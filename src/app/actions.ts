@@ -21,3 +21,7 @@ export async function setReleaseStatus(id: string, status: string) {
 export async function setWithdrawalStatus(id: string, status: string) {
   const sb = await createClient(); await sb.from('withdrawals').update({ status }).eq('id', id); revalidatePath('/admin')
 }
+
+export async function setLgpdStatus(id: string, status: string) {
+  const sb = await createClient(); await sb.from('lgpd_requests').update({ status }).eq('id', id); revalidatePath('/admin')
+}

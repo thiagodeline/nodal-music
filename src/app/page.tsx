@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import './landing.css'
+import '@/components/legal.css'
 
 const stores = ['Spotify', 'Apple Music', 'YouTube Music', 'Deezer', 'TikTok', 'Instagram', 'SoundCloud', 'Amazon Music']
 const bars = [38, 52, 44, 70, 62, 88, 76]
@@ -89,7 +90,7 @@ export default function Home() {
 
     <footer className="wrap l-foot">
       <img src="/logo.png" alt="Nodal Music" />
-      <p>© {new Date().getFullYear()} Nodal Music. Todos os direitos reservados.</p>
+      <div><nav className="l-legal" aria-label="Legal"><Link href="/termos">Termos</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">Seus dados (LGPD)</Link></nav><p style={{ marginTop: 10 }}>© {new Date().getFullYear()} Nodal Music. Todos os direitos reservados.</p></div>
     </footer>
   </>)
 }

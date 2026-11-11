@@ -1,0 +1,12 @@
+.legal{max-width:760px;margin:0 auto;padding:48px 24px 96px}
+.legal h1{font-size:2.4rem;margin-bottom:8px}
+.legal h2{font-size:1.25rem;margin:36px 0 8px}
+.legal p,.legal li{color:var(--mute);margin-bottom:10px}
+.legal ul{padding-left:20px;margin:8px 0 12px}
+.legal a{color:var(--signal)}
+.lg-meta{font-size:.95rem}
+.l-legal{display:flex;gap:18px;flex-wrap:wrap}
+.l-legal a{color:var(--mute);text-decoration:none}.l-legal a:hover{color:var(--text)}
+.cookie{position:fixed;left:16px;right:16px;bottom:16px;max-width:560px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;z-index:50;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.cookie p{flex:1;min-width:220px;color:var(--mute);font-size:.92rem;margin:0}
+.cookie a{color:var(--signal)}

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { setReleaseStatus, setWithdrawalStatus } from '../actions'
+import { setReleaseStatus, setWithdrawalStatus, setLgpdStatus } from '../actions'
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 export default async function Admin() {
   const sb = await createClient()
@@ -12,6 +12,7 @@ export default async function Admin() {
     sb.from('withdrawals').select('*, profiles(artist_name)').order('created_at', { ascending: false }).limit(50),
     sb.from('profiles').select('*', { count: 'exact', head: true }),
   ])
+  const { data: lgpd } = await sb.from('lgpd_requests').select('*').order('created_at', { ascending: false }).limit(50)
   const audio = Object.fromEntries(await Promise.all((rels ?? []).map(async r => [r.id, (await sb.storage.from('audio').createSignedUrl(r.audio_path, 3600)).data?.signedUrl])))
   const pend = (rels ?? []).filter(r => r.status === 'pending').length, pw = (wds ?? []).filter(w => w.status === 'pending').length
   return (<main className="panel"><h1>Painel admin</h1>
@@ -28,5 +29,9 @@ export default async function Admin() {
           <td style={{ display: 'flex', gap: 6 }}>
             <form action={setWithdrawalStatus.bind(null, w.id, 'paid')}><button className="btn sm">Marcar pago</button></form>
             <form action={setWithdrawalStatus.bind(null, w.id, 'rejected')}><button className="btn sm bad">Recusar</button></form></td></tr>)}</tbody></table>
+      <h2 className="h">Pedidos LGPD (prazo de resposta: 15 dias)</h2>
+      <table><thead><tr><th>Recebido</th><th>Prazo</th><th>Quem</th><th>Pedido</th><th>Status</th><th></th></tr></thead><tbody>
+        {lgpd?.map(l => <tr key={l.id}><td>{new Date(l.created_at).toLocaleDateString('pt-BR')}</td><td>{new Date(new Date(l.created_at).getTime() + 15 * 864e5).toLocaleDateString('pt-BR')}</td><td>{l.name}<br /><small>{l.email}</small></td><td>{l.type}{l.details ? ': ' + l.details : ''}</td><td><span className={`tag ${l.status === 'done' ? 'paid' : 'pending'}`}>{l.status === 'done' ? 'atendido' : 'aberto'}</span></td>
+          <td><form action={setLgpdStatus.bind(null, l.id, 'done')}><button className="btn sm">Marcar atendido</button></form></td></tr>)}</tbody></table>
     </main>)
 }

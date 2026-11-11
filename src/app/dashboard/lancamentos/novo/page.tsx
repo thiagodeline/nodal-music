@@ -18,7 +18,7 @@ export default function Novo() {
       location.href = '/dashboard'
     } catch (x: any) { setErr('Não foi possível enviar: ' + (x.message ?? 'tente de novo.')); setBusy(false) }
   }
-  return (<div className="wrap"><main className="panel"><h1>Novo lançamento</h1>
+  return (<main className="panel"><h1>Novo lançamento</h1>
     <form className="f" onSubmit={submit}>
       <label>Título<input name="title" required /></label>
       <label>Tipo<select name="type"><option value="single">Single</option><option value="ep">EP</option><option value="album">Álbum</option></select></label>
@@ -27,5 +27,5 @@ export default function Novo() {
       <label>Áudio (WAV ou FLAC)<input name="audio" type="file" accept=".wav,.flac,audio/wav,audio/flac" required /></label>
       {err && <p className="err">{err}</p>}
       <button className="btn" disabled={busy}>{busy ? 'Enviando…' : 'Enviar lançamento'}</button>
-    </form></main></div>)
+    </form></main>)
 }

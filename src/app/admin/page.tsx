@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { setReleaseStatus, setWithdrawalStatus } from '../actions'
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -15,8 +14,7 @@ export default async function Admin() {
   ])
   const audio = Object.fromEntries(await Promise.all((rels ?? []).map(async r => [r.id, (await sb.storage.from('audio').createSignedUrl(r.audio_path, 3600)).data?.signedUrl])))
   const pend = (rels ?? []).filter(r => r.status === 'pending').length, pw = (wds ?? []).filter(w => w.status === 'pending').length
-  return (<div className="wrap"><header className="nav"><img src="/logo.png" alt="Nodal Music" /><nav><Link href="/dashboard">Meu painel</Link></nav></header>
-    <main className="panel"><h1>Painel admin</h1>
+  return (<main className="panel"><h1>Painel admin</h1>
       <div className="stats"><div className="stat"><small>Artistas</small><strong>{count}</strong></div><div className="stat gold"><small>Lançamentos para revisar</small><strong>{pend}</strong></div><div className="stat gold"><small>Saques pendentes</small><strong>{pw}</strong></div></div>
       <h2 className="h">Lançamentos</h2>
       <table><thead><tr><th>Artista</th><th>Título</th><th>Áudio</th><th>Status</th><th></th></tr></thead><tbody>
@@ -30,5 +28,5 @@ export default async function Admin() {
           <td style={{ display: 'flex', gap: 6 }}>
             <form action={setWithdrawalStatus.bind(null, w.id, 'paid')}><button className="btn sm">Marcar pago</button></form>
             <form action={setWithdrawalStatus.bind(null, w.id, 'rejected')}><button className="btn sm bad">Recusar</button></form></td></tr>)}</tbody></table>
-    </main></div>)
+    </main>)
 }

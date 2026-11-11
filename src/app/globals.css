@@ -52,3 +52,5 @@ input,select{background:var(--surface);border:1px solid var(--line);color:var(--
 .err{color:var(--bad)}.empty{color:var(--mute);padding:16px 0}
 @media(max-width:800px){.hero,.steps,.cols,.stats{grid-template-columns:1fr}.hero{padding-top:32px}}
 @media(prefers-reduced-motion:no-preference){.net .hub{animation:p 3s ease-in-out infinite;transform-origin:center;transform-box:fill-box}@keyframes p{50%{transform:scale(1.25)}}}
+.auth .card{border:1px solid var(--line)}
+.panel h1{font-size:2rem}

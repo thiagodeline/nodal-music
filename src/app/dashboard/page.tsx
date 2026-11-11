@@ -17,8 +17,7 @@ export default async function Dashboard() {
   const earned = (reports ?? []).reduce((s, r) => s + Number(r.revenue), 0)
   const balance = earned - (wds ?? []).filter(w => w.status !== 'rejected').reduce((s, w) => s + Number(w.amount), 0)
   const byPlat: Record<string, number> = {}; (reports ?? []).forEach(r => byPlat[r.platform] = (byPlat[r.platform] || 0) + Number(r.streams))
-  return (<div className="wrap"><header className="nav"><img src="/logo.png" alt="Nodal Music" /><nav>{me?.role === 'admin' && <Link href="/admin">Admin</Link>}</nav></header>
-    <main className="panel">
+  return (<main className="panel">
       <h1>Olá, {me?.artist_name || 'artista'}</h1>
       <div className="stats">
         <div className="stat gold"><small>Saldo disponível</small><strong>{brl(balance)}</strong></div>
@@ -40,5 +39,5 @@ export default async function Dashboard() {
         <button className="btn" disabled={balance <= 0}>Pedir saque</button>
       </form>
       {wds?.length ? <table style={{ marginTop: 20 }}><tbody>{wds.map(w => <tr key={w.id}><td>{new Date(w.created_at).toLocaleDateString('pt-BR')}</td><td>{brl(Number(w.amount))}</td><td><span className={`tag ${w.status}`}>{label[w.status]}</span></td></tr>)}</tbody></table> : null}
-    </main></div>)
+    </main>)
 }

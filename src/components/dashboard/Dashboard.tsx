@@ -39,7 +39,7 @@ export default function Dashboard() {
       sb.from('releases').select('*').eq('artist_id', user.id).order('created_at', { ascending: false }),
       sb.from('reports').select('*').eq('artist_id', user.id),
       sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false })])
-    if (me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
+    if (me.data?.onboarding_completed === false || me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
     setD({ me: me.data, email: user.email ?? '', releases: r.data ?? [], reports: rp.data ?? [], wds: w.data ?? [] })
   }, [])
   useEffect(() => { load() }, [load])

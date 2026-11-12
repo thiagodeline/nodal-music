@@ -11,9 +11,13 @@ export default function Login() {
       const email = String(f.get('email')).trim(), password = String(f.get('password'))
       if (novo) {
         const { data, error } = await sb.auth.signUp({ email, password, options: { data: { terms_version: '2026-11' } } })
-        if (error) return setErr(error.message)
-        if (!data.session) return setInfo('Enviamos um link de confirmação para o seu e-mail. Depois de confirmar, entre para continuar.')
-        location.href = '/onboarding' // conta criada e já autenticada
+        if (error) return setErr(/already registered/i.test(error.message) ? 'Este e-mail já tem conta. Use Entrar.' : error.message)
+        let session = data.session
+        if (!session) { // sem sessão = o Supabase ainda exige confirmação de e-mail; tenta entrar direto
+          const r = await sb.auth.signInWithPassword({ email, password }); session = r.data.session
+        }
+        if (!session) return setErr('Conta criada, mas o login automático não foi possível: a confirmação de e-mail ainda está ligada no Supabase. Desligue "Confirm email" em Authentication, Providers, Email.')
+        location.href = '/onboarding' // conta criada, sessão ativa e cookie gravado
         return
       }
       const { error } = await sb.auth.signInWithPassword({ email, password })

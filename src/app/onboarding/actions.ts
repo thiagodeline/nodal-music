@@ -22,7 +22,7 @@ export async function completeOnboarding(input: unknown): Promise<OnboardingResu
     if (me.status !== 'PENDING_ONBOARDING') return { ok: false, error: 'O seu cadastro já foi concluído.' }
     const { error } = await sb.from('profiles').update({
       account_type: v.accountType, artist_name: v.stageName, name: v.fullName, birth_date: v.birthDate, email: v.email, phone: normPhone(v.phone), address: v.address,
-      cpf: v.accountType === 'ARTIST' ? digits(v.document) : null, cnpj: v.accountType === 'LABEL' ? normCnpj(v.document) : null, status: 'PENDING_CONTRACT',
+      cpf: v.accountType === 'ARTIST' ? digits(v.document) : null, cnpj: v.accountType === 'LABEL' ? normCnpj(v.document) : null, status: 'PENDING_CONTRACT', onboarding_completed: true,
     }).eq('id', user.id).eq('status', 'PENDING_ONBOARDING')
     if (error) {
       if (error.code === '23505') return { ok: false, error: 'Este documento já está cadastrado em outra conta.', fieldErrors: { document: 'Já cadastrado em outra conta' } }

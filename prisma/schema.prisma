@@ -34,6 +34,7 @@ model UserProfile {
   address            String?
   accountType        AccountType?  @map("account_type")
   status             AccountStatus @default(PENDING_ONBOARDING)
+  onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
   canReleaseMusic    Boolean       @default(false) @map("can_release_music")
   stageName          String?       @map("artist_name") // nome artístico (ARTIST) ou razão social (LABEL)
   cpf                String?       @unique

@@ -6,7 +6,7 @@ export function Account({ d, reload }: { d: Data; reload: () => void }) {
   const [msg, setMsg] = useState(''), [pm, setPm] = useState('')
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); const f = new FormData(e.currentTarget)
-    const { error } = await createClient().from('profiles').update({ name: f.get('name'), artist_name: f.get('artist'), pix_key: f.get('pix') || null }).eq('id', d.me.id)
+    const { error } = await createClient().from('profiles').update({ artist_name: f.get('artist'), pix_key: f.get('pix') || null }).eq('id', d.me.id)
     setMsg(error ? 'Não foi possível salvar.' : 'Dados salvos.'); if (!error) reload()
   }
   async function pass(e: React.FormEvent<HTMLFormElement>) {
@@ -19,7 +19,7 @@ export function Account({ d, reload }: { d: Data; reload: () => void }) {
   return (<div className="two-col">
     <form className="card form" onSubmit={save}><h3>Informações pessoais</h3>
       <label>E-mail<input value={d.email} disabled /></label>
-      <div className="two"><label>Nome completo<input name="name" defaultValue={d.me?.name ?? ''} /></label><label>Nome artístico<input name="artist" defaultValue={d.me?.artist_name ?? ''} /></label></div>
+      <div className="two"><label>Nome completo<input value={d.me?.name ?? ''} disabled title="Para alterar dados cadastrais, abra um chamado no Suporte" /></label><label>Nome artístico<input name="artist" defaultValue={d.me?.artist_name ?? ''} /></label></div>
       <h3 style={{ marginTop: 8 }}>Chave Pix</h3>
       <label>Chave Pix padrão para saques<input name="pix" defaultValue={d.me?.pix_key ?? ''} /></label>
       {msg && <p className={msg.startsWith('Dados') ? 'ok' : 'err'}>{msg}</p>}<div><button className="btn">Salvar alterações</button></div></form>

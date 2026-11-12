@@ -1,13 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { Search, X } from 'lucide-react'
+import { NewReleaseCta } from './ContractBanner'
 import { Data, Release, Badge, Cover, Empty, dt } from './ui'
 const F: [string, string, (s: string) => boolean][] = [['all', 'Todos', () => true], ['ok', 'Aprovados', s => s === 'approved' || s === 'live'], ['pending', 'Em Revisão', s => s === 'pending'], ['rejected', 'Reprovados', s => s === 'rejected']]
-export default function Catalog({ d }: { d: Data }) {
+export default function Catalog({ d, can }: { d: Data; can: boolean }) {
   const [q, setQ] = useState(''), [f, setF] = useState('all'), [sel, setSel] = useState<Release | null>(null)
   const fn = F.find(x => x[0] === f)![2], t = q.trim().toLowerCase()
   const rows = d.releases.filter(r => fn(r.status) && (!t || [r.title, r.isrc, r.upc].some(x => (x || '').toLowerCase().includes(t))))
-  if (!d.releases.length) return <div className="card"><Empty title="Seu catálogo está vazio" text="Cada faixa ou álbum que você enviar aparece aqui, com status e códigos."><a className="btn" href="#new">+ Criar Primeiro Lançamento</a></Empty></div>
+  if (!d.releases.length) return <div className="card"><Empty title="Seu catálogo está vazio" text="Cada faixa ou álbum que você enviar aparece aqui, com status e códigos."><NewReleaseCta can={can} label="+ Criar Primeiro Lançamento" /></Empty></div>
   return (<div className="card">
     <div className="toolbar"><label className="search"><Search size={16} /><input placeholder="Buscar por título, ISRC ou UPC" value={q} onChange={e => setQ(e.target.value)} /></label>
       <div className="pills">{F.map(([k, l]) => <button key={k} className={f === k ? 'on' : ''} onClick={() => setF(k)}>{l}</button>)}</div></div>

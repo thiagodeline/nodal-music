@@ -103,3 +103,8 @@
 .nd .btn.sm{padding:6px 12px}
 @media(max-width:1000px){.two-col{grid-template-columns:1fr}}
 @media(max-width:700px){.rowf,.ap{grid-template-columns:1fr}}
+
+.nd-side .nav-lock{display:flex;align-items:center;gap:10px;color:#5b6486;padding:9px 10px;border-radius:10px;cursor:not-allowed}
+.banner{display:flex;gap:12px;align-items:flex-start;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);color:#fbbf24;border-radius:12px;padding:14px 16px}
+.banner p{margin:0;color:#fcd34d}.banner svg{flex:none;margin-top:2px}
+.banner.red{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#f87171}.banner.red p{color:#fca5a5}

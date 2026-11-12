@@ -1,7 +1,8 @@
 'use client'
+import { NewReleaseCta } from './ContractBanner'
 import { Data, Kpi, Badge, Cover, Bars, Area, Empty, brl, num, dt, money, sum, group } from './ui'
 const iso = (d: Date) => d.toISOString().slice(0, 10)
-export default function Overview({ d }: { d: Data }) {
+export default function Overview({ d, can }: { d: Data; can: boolean }) {
   const { balance } = money(d)
   const today = new Date(), days = Array.from({ length: 30 }, (_, i) => { const x = new Date(today); x.setDate(x.getDate() - (29 - i)); return iso(x) })
   const cut = (n: number) => { const x = new Date(today); x.setDate(x.getDate() - n); return iso(x) }
@@ -26,6 +27,6 @@ export default function Overview({ d }: { d: Data }) {
     <div className="card"><div className="row-h"><h3>Lançamentos recentes</h3><a className="link" href="#catalog">Ver todos</a></div>
       {d.releases.length ? <table><thead><tr><th>Faixa</th><th>Artista</th><th>Data</th><th>Status</th></tr></thead><tbody>
         {d.releases.slice(0, 3).map(r => <tr key={r.id}><td><div className="cell"><Cover path={r.cover_path} />{r.title}</div></td><td>{r.main_artist || d.me?.artist_name || '—'}</td><td>{dt(r.release_date || r.created_at)}</td><td><Badge s={r.status} /></td></tr>)}</tbody></table>
-        : <Empty title="Nenhum lançamento ainda" text="Envie sua primeira faixa e acompanhe tudo por aqui."><a className="btn" href="#new">+ Criar primeiro lançamento</a></Empty>}</div>
+        : <Empty title="Nenhum lançamento ainda" text="Envie sua primeira faixa e acompanhe tudo por aqui."><NewReleaseCta can={can} label="+ Criar primeiro lançamento" /></Empty>}</div>
   </>)
 }

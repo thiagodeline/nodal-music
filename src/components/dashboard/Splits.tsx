@@ -2,13 +2,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { NewReleaseCta } from './ContractBanner'
 import { Data, Empty, COL } from './ui'
 const ROLES = ['Produtor / Beatmaker', 'Compositor', 'Featuring', 'Mixagem / Master', 'Outro']
 type R = { email: string; role: string; percent: string }
-export default function Splits({ d }: { d: Data }) {
+export default function Splits({ d, can }: { d: Data; can: boolean }) {
   const sb = useMemo(() => createClient(), []); const [rid, setRid] = useState(d.releases[0]?.id ?? ''), [rows, setRows] = useState<R[]>([]), [msg, setMsg] = useState(''), [busy, setBusy] = useState(false)
   useEffect(() => { if (!rid) return; sb.from('splits').select('*').eq('release_id', rid).order('created_at').then(({ data }) => setRows((data ?? []).map((x: any) => ({ email: x.email, role: x.role, percent: String(x.percent) })))) }, [rid, sb])
-  if (!d.releases.length) return <div className="card"><Empty title="Envie um lançamento primeiro" text="O split é definido por faixa. Depois de enviar um lançamento, ele aparece aqui."><a className="btn" href="#new">+ Novo lançamento</a></Empty></div>
+  if (!d.releases.length) return <div className="card"><Empty title="Envie um lançamento primeiro" text="O split é definido por faixa. Depois de enviar um lançamento, ele aparece aqui."><NewReleaseCta can={can} label="+ Novo lançamento" /></Empty></div>
   const others = rows.reduce((s, r) => s + (Number(r.percent) || 0), 0), mine = Math.round((100 - others) * 100) / 100
   const upd = (i: number, k: keyof R, v: string) => setRows(rows.map((r, j) => j === i ? { ...r, [k]: v } : r))
   async function save() {

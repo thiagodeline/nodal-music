@@ -1,0 +1,47 @@
+// REFERÊNCIA. O app em produção fala com o Supabase direto (Auth + RLS) e não usa Prisma.
+// Este arquivo espelha as tabelas criadas por supabase/onboarding.sql, para você usar em `prisma db pull`/Studio.
+// Se um dia usar Prisma no servidor, lembre: ele ignora o RLS, então toda checagem de permissão passa a ser sua.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum AccountType {
+  ARTIST
+  LABEL
+  @@map("account_type")
+}
+
+enum AccountStatus {
+  PENDING_ONBOARDING
+  PENDING_CONTRACT
+  ACTIVE
+  BLOCKED
+  @@map("account_status")
+}
+
+model UserProfile {
+  id                 String        @id @db.Uuid // = auth.users.id do Supabase
+  email              String?
+  phone              String?
+  fullName           String?       @map("name")
+  birthDate          DateTime?     @map("birth_date") @db.Date
+  address            String?
+  accountType        AccountType?  @map("account_type")
+  status             AccountStatus @default(PENDING_ONBOARDING)
+  canReleaseMusic    Boolean       @default(false) @map("can_release_music")
+  stageName          String?       @map("artist_name") // nome artístico (ARTIST) ou razão social (LABEL)
+  cpf                String?       @unique
+  cnpj               String?       @unique
+  role               String        @default("artist")
+  pixKey             String?       @map("pix_key")
+  contractAcceptedAt DateTime?     @map("contract_accepted_at") @db.Timestamptz
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  @@map("profiles")
+}

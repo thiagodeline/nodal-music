@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-export type Release = { id: string; title: string; type: string; main_artist: string | null; genre: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
+export type Release = { id: string; title: string; type: string; main_artist: string | null; genre: string | null; credits: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
 export type Report = { id: string; release_id: string | null; platform: string; month: string; streams: number; revenue: number; country: string | null }
 export type Wd = { id: string; amount: number; pix_key: string; status: string; created_at: string }
 export type Data = { me: any; email: string; releases: Release[]; reports: Report[]; wds: Wd[] }
@@ -18,7 +18,7 @@ export function money(d: Data) {
 export const sum = (a: Report[], k: 'streams' | 'revenue') => a.reduce((s, r) => s + Number(r[k]), 0)
 export const group = (a: Report[], key: (r: Report) => string) => { const m: Record<string, number> = {}; a.forEach(r => { const k = key(r) || 'Outros'; m[k] = (m[k] || 0) + Number(r.streams) }); return Object.entries(m).sort((x, y) => y[1] - x[1]) }
 
-const ST: Record<string, [string, string]> = { pending: ['Em Revisão', 'amber'], approved: ['Aprovado', 'green'], live: ['No ar', 'green'], draft: ['Rascunho', 'gray'], rejected: ['Reprovado', 'red'], paid: ['Pago', 'green'], wpending: ['Pendente', 'amber'], credited: ['Creditado', 'green'] }
+const ST: Record<string, [string, string]> = { pending: ['Em Revisão', 'amber'], approved: ['Aprovado', 'green'], live: ['No ar', 'green'], draft: ['Rascunho', 'gray'], rejected: ['Reprovado', 'red'], paid: ['Pago', 'green'], wpending: ['Pendente', 'orange'], open: ['Aberto', 'amber'], in_progress: ['Em Atendimento', 'blue'], closed: ['Fechado', 'gray'], credited: ['Creditado', 'green'] }
 export const Badge = ({ s }: { s: string }) => { const [t, c] = ST[s] ?? [s, 'gray']; return <span className={`bd ${c}`}>{t}</span> }
 export function Cover({ path, size = 40 }: { path: string | null; size?: number }) {
   if (!path) return <div className="cov" style={{ width: size, height: size }} />
@@ -49,7 +49,7 @@ export function Bars({ rows }: { rows: [string, number][] }) {
   const tot = rows.reduce((s, r) => s + r[1], 0) || 1, max = Math.max(1, ...rows.map(r => r[1]))
   return (<div className="bars">{rows.map(([n, v]) => <div key={n} className="bar"><div className="bar-h"><span>{n}</span><b>{(v / tot * 100).toFixed(0)}%</b></div><div className="track"><i style={{ width: (v / max * 100) + '%' }} /></div></div>)}</div>)
 }
-const COL = ['#2563eb', '#60a5fa', '#818cf8', '#22d3ee', '#a78bfa', '#475569']
+export const COL = ['#2563eb', '#60a5fa', '#818cf8', '#22d3ee', '#a78bfa', '#475569']
 export function Donut({ rows }: { rows: [string, number][] }) {
   const tot = rows.reduce((s, r) => s + r[1], 0) || 1, R = 52, C = 2 * Math.PI * R; let off = 0
   return (<div className="donut"><svg viewBox="0 0 140 140" width="150" height="150" role="img" aria-label="Distribuição por país"><g transform="rotate(-90 70 70)">

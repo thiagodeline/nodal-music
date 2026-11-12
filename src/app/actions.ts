@@ -6,7 +6,7 @@ export async function requestWithdrawal(fd: FormData) {
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser(); if (!user) return
   const amount = Number(fd.get('amount')); const pix = String(fd.get('pix') || '')
-  if (!(amount > 0) || !pix) return
+  if (!(amount >= 50) || !pix) return
   const { data: rep } = await sb.from('reports').select('revenue').eq('artist_id', user.id)
   const { data: wd } = await sb.from('withdrawals').select('amount,status').eq('artist_id', user.id)
   const balance = (rep ?? []).reduce((s, r) => s + Number(r.revenue), 0) - (wd ?? []).filter(w => w.status !== 'rejected').reduce((s, w) => s + Number(w.amount), 0)

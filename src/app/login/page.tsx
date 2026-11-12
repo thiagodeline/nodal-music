@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { ensureProfile } from '@/lib/profile'
 export default function Login() {
   const [novo, setNovo] = useState(false)
   const [err, setErr] = useState(''); const [info, setInfo] = useState(''); const [busy, setBusy] = useState(false)
@@ -17,6 +18,7 @@ export default function Login() {
           const r = await sb.auth.signInWithPassword({ email, password }); session = r.data.session
         }
         if (!session) return setErr('Conta criada, mas o login automático não foi possível: a confirmação de e-mail ainda está ligada no Supabase. Desligue "Confirm email" em Authentication, Providers, Email.')
+        if (session.user) await ensureProfile(sb, session.user) // garante a linha PENDING_ONBOARDING logo no cadastro
         location.href = '/onboarding' // conta criada, sessão ativa e cookie gravado
         return
       }

@@ -27,8 +27,12 @@ export default function OnboardingForm({ email }: { email: string }) {
   const pick = (v: 'ARTIST' | 'LABEL') => { setValue('accountType', v); setValue('document', ''); clearErrors(); setServerError('') }
   async function onSubmit(values: OnboardingValues) {
     setServerError('')
-    const r = await completeOnboarding(values)
+    let r
+    try { r = await completeOnboarding(values) } catch (e) {
+      console.error('Erro detalhado (rede/servidor):', e); return setServerError('Falha de conexão. Verifique a internet e tente de novo.')
+    }
     if (!r.ok) {
+      if (r.debug) console.error('Erro detalhado Supabase:', r.debug) // código, mensagem, details e hint exatos
       Object.entries(r.fieldErrors ?? {}).forEach(([k, message]) => setError(k as keyof OnboardingValues, { message }))
       return setServerError(r.error)
     }

@@ -7,8 +7,8 @@ export default async function Page() {
   const sb = await createClient()
   const { data: { user } } = await sb.auth.getUser()
   if (!user) redirect('/login')
-  let { data: me } = await sb.from('profiles').select('status').eq('id', user.id).maybeSingle()
-  if (!me) { await ensureProfile(sb, user); me = { status: 'PENDING_ONBOARDING' } } // conta sem perfil: cria agora
-  if (me.status !== 'PENDING_ONBOARDING') redirect('/dashboard')
+  const p = await ensureProfile(sb, user) // conta sem perfil: cria agora
+  if (p.error) console.error('Erro detalhado Supabase (onboarding/page):', p.error)
+  if (p.status && p.status !== 'PENDING_ONBOARDING') redirect('/dashboard')
   return <OnboardingForm email={user.email ?? ''} />
 }

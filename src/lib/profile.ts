@@ -1,11 +1,17 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
-// Garante que a linha do perfil existe (status PENDING_ONBOARDING). Não mexe em nada se já existir.
-// Serve de rede de segurança caso o gatilho do banco tenha falhado ou a conta seja antiga.
-export async function ensureProfile(sb: SupabaseClient, user: Pick<User, 'id' | 'email'>) {
-  const { error } = await sb.from('profiles').upsert(
-    { id: user.id, email: user.email ?? null, status: 'PENDING_ONBOARDING', onboarding_completed: false },
+export type DbErr = { code?: string; message: string; details?: string | null; hint?: string | null }
+
+// Devolve o status do perfil, criando a linha (PENDING_ONBOARDING) só se ela não existir.
+// Lê primeiro: se a linha já existe, nem tenta inserir (inserir exige uma política de INSERT, mesmo com ON CONFLICT).
+export async function ensureProfile(sb: SupabaseClient, user: Pick<User, 'id' | 'email'>): Promise<{ status?: string; error?: DbErr }> {
+  const sel = await sb.from('profiles').select('status').eq('id', user.id).maybeSingle()
+  if (sel.error) return { error: sel.error }
+  if (sel.data) return { status: sel.data.status }
+  const ins = await sb.from('profiles').upsert(
+    { id: user.id, email: user.email ?? null, status: 'PENDING_ONBOARDING' },
     { onConflict: 'id', ignoreDuplicates: true },
   )
-  return error
+  if (ins.error) return { error: ins.error }
+  return { status: 'PENDING_ONBOARDING' }
 }

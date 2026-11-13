@@ -18,7 +18,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 export default function OnboardingForm({ email }: { email: string }) {
-  const router = useRouter(); const [serverError, setServerError] = useState('')
+  const router = useRouter(); const [serverError, setServerError] = useState(''), [detail, setDetail] = useState('')
   const { register, handleSubmit, watch, setValue, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema), mode: 'onTouched',
     defaultValues: { accountType: 'ARTIST', stageName: '', fullName: '', birthDate: '', email, phone: '', address: '', document: '' },
@@ -26,13 +26,13 @@ export default function OnboardingForm({ email }: { email: string }) {
   const type = watch('accountType'), t = COPY[type]
   const pick = (v: 'ARTIST' | 'LABEL') => { setValue('accountType', v); setValue('document', ''); clearErrors(); setServerError('') }
   async function onSubmit(values: OnboardingValues) {
-    setServerError('')
+    setServerError(''); setDetail('')
     let r
     try { r = await completeOnboarding(values) } catch (e) {
       console.error('Erro detalhado (rede/servidor):', e); return setServerError('Falha de conexão. Verifique a internet e tente de novo.')
     }
     if (!r.ok) {
-      if (r.debug) console.error('Erro detalhado Supabase:', r.debug) // código, mensagem, details e hint exatos
+      if (r.debug) { console.error('Erro detalhado Supabase:', r.debug); setDetail(`${r.debug.step} | ${r.debug.code ?? 'sem código'} | ${r.debug.message}`) } // código, mensagem, details e hint exatos
       Object.entries(r.fieldErrors ?? {}).forEach(([k, message]) => setError(k as keyof OnboardingValues, { message }))
       return setServerError(r.error)
     }
@@ -60,6 +60,7 @@ export default function OnboardingForm({ email }: { email: string }) {
       <Field label={t.doc} error={errors.document?.message}><input placeholder={t.docHint} {...register('document')} inputMode={type === 'ARTIST' ? 'numeric' : 'text'} autoComplete="off" /></Field>
       <p className="ob-note">Usamos esses dados só para preparar o seu contrato, conforme a nossa <a href="/privacidade" target="_blank">Política de Privacidade</a>.</p>
       {serverError && <p className="ob-err" role="alert">{serverError}</p>}
+      {detail && <p className="ob-note">Detalhe técnico: {detail}</p>}
       <button className="ob-btn" disabled={isSubmitting}>{isSubmitting ? 'Salvando…' : 'Salvar e continuar'}</button>
     </form>
   </div></main>)

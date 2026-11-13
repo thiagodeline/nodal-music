@@ -15,7 +15,8 @@
   "lucide-react": "^0.453.0",
   "zod": "^3.23.8",
   "react-hook-form": "^7.53.0",
-  "@hookform/resolvers": "^3.9.0"
+  "@hookform/resolvers": "^3.9.0",
+  "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
  },
  "devDependencies": {
   "typescript": "^5.5.0",

@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Music2, PlusCircle, BarChart3, Wallet, Handshake, UserRound, LifeBuoy, Settings, LogOut, Menu, ShieldCheck, ArrowLeft, Lock, FileSignature } from 'lucide-react'
+import { LayoutDashboard, Music2, PlusCircle, BarChart3, Wallet, Handshake, UserRound, LifeBuoy, Settings, LogOut, Menu, ShieldCheck, ArrowLeft, Lock, FileSignature, FileSpreadsheet } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import './dashboard.css'
 import type { Data } from './ui'
@@ -16,6 +16,7 @@ import Support from './Support'
 import Splits from './Splits'
 import Admin from './Admin'
 import PendingContracts from './PendingContracts'
+import RoyaltiesImport from './RoyaltiesImport'
 import { ContractBanner } from './ContractBanner'
 import { useCanReleaseMusic } from './useCanReleaseMusic'
 
@@ -26,7 +27,7 @@ const NAV: [string, [string, string, any][]][] = [
   ['Financeiro', [['financial', 'Saldo e Saques', Wallet], ['split', 'Split de Royalties', Handshake]]],
   ['Configurações', [['profiles', 'Meus Artistas', UserRound], ['support', 'Suporte', LifeBuoy], ['account', 'Minha Conta', Settings]]],
 ]
-const ADM: [string, [string, string, any][]] = ['Administração', [['admin', 'Painel Admin', ShieldCheck], ['contracts', 'Contratos Pendentes', FileSignature]]]
+const ADM: [string, [string, string, any][]] = ['Administração', [['admin', 'Painel Admin', ShieldCheck], ['contracts', 'Contratos Pendentes', FileSignature], ['royalties', 'Importar Royalties', FileSpreadsheet]]]
 const ROUTES = [...NAV, ADM].flatMap(s => s[1].map(i => i[0]))
 const nav = (adm: boolean) => adm ? [...NAV, ADM] : NAV
 
@@ -55,14 +56,14 @@ export default function Dashboard() {
       <div className="nd-foot"><button onClick={out}><LogOut size={17} />Sair</button></div>
     </aside>
     <div className="nd-main">
-      <header className="nd-top"><button className="burger" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={20} /></button><h1>{title}</h1>{(route === 'admin' || route === 'contracts') && <a className="btn ghost sm" href="#overview"><ArrowLeft size={15} />Voltar ao Painel de Artista</a>}
+      <header className="nd-top"><button className="burger" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={20} /></button><h1>{title}</h1>{(route === 'admin' || route === 'contracts' || route === 'royalties') && <a className="btn ghost sm" href="#overview"><ArrowLeft size={15} />Voltar ao Painel de Artista</a>}
         <div className="who"><span>{d?.me?.artist_name || d?.email}</span></div></header>
       <main>{!d ? <p className="mut">Carregando…</p> : <>
-        {route !== 'admin' && route !== 'contracts' && <ContractBanner status={gate.status} />}
+        {route !== 'admin' && route !== 'contracts' && route !== 'royalties' && <ContractBanner status={gate.status} />}
         {route === 'overview' && <Overview d={d} can={gate.canRelease} />}{route === 'catalog' && <Catalog d={d} can={gate.canRelease} />}
         {route === 'new' && (gate.canRelease ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
         {route === 'financial' && <Finance d={d} reload={load} />}{route === 'account' && <Account d={d} reload={load} />}
         {route === 'split' && <Splits d={d} can={gate.canRelease} />}{route === 'profiles' && <Artists d={d} />}{route === 'support' && <Support d={d} />}
-        {route === 'admin' && (isAdm ? <Admin /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'contracts' && (isAdm ? <PendingContracts /> : <p className="mut">Acesso restrito a administradores.</p>)}</>}</main>
+        {route === 'admin' && (isAdm ? <Admin /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'contracts' && (isAdm ? <PendingContracts /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'royalties' && (isAdm ? <RoyaltiesImport /> : <p className="mut">Acesso restrito a administradores.</p>)}</>}</main>
     </div></div>)
 }

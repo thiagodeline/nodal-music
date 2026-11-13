@@ -1,23 +1,35 @@
 'use client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Headphones, Check, X, Paperclip, Eye } from 'lucide-react'
+import { Headphones, Check, X, Paperclip, Eye, Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Badge, Cover, Kpi, Empty, brl, dt } from './ui'
 import { CAT } from './Support'
 export default function Admin() {
   const sb = useMemo(() => createClient(), [])
   const [rels, setRels] = useState<any[]>([]), [wds, setWds] = useState<any[]>([]), [lg, setLg] = useState<any[]>([]), [tk, setTk] = useState<any[]>([]), [n, setN] = useState(0)
+  const [arts, setArts] = useState<any[]>([]), [cts, setCts] = useState<any[]>([]), [dl, setDl] = useState('')
   const [all, setAll] = useState({ r: false, w: false }), [player, setPlayer] = useState<{ t: string; u: string } | null>(null), [err, setErr] = useState('')
   const fileRef = useRef<HTMLInputElement>(null), tgt = useRef<any>(null)
   const load = useCallback(async () => {
     const q = (t: string, sel = '*') => sb.from(t).select(sel).order('created_at', { ascending: false }).limit(100)
-    const [r, w, l, t, c] = await Promise.all([q('releases', '*, profiles(artist_name)'), q('withdrawals', '*, profiles(artist_name)'), q('lgpd_requests'), q('tickets', '*, profiles(artist_name)'), sb.from('profiles').select('*', { count: 'exact', head: true })])
-    setRels(r.data ?? []); setWds(w.data ?? []); setLg(l.data ?? []); setTk(t.data ?? []); setN(c.count ?? 0)
+    const [r, w, l, t, c, a, k] = await Promise.all([q('releases', '*, profiles(artist_name)'), q('withdrawals', '*, profiles(artist_name)'), q('lgpd_requests'), q('tickets', '*, profiles(artist_name)'), sb.from('profiles').select('*', { count: 'exact', head: true }),
+      sb.from('profiles').select('id, artist_name').order('artist_name').limit(500), sb.from('user_contracts').select('user_id, signed_name, signed_at, ip_address, pdf_url').limit(500)])
+    setRels(r.data ?? []); setWds(w.data ?? []); setLg(l.data ?? []); setTk(t.data ?? []); setN(c.count ?? 0); setArts(a.data ?? []); setCts(k.data ?? [])
   }, [sb])
   useEffect(() => { load() }, [load])
   const upd = async (table: string, id: string, patch: object) => { setErr(''); const { error } = await sb.from(table).update(patch).eq('id', id); if (error) setErr('Não foi possível atualizar: ' + error.message); load() }
   const play = async (r: any) => { const { data, error } = await sb.storage.from('audio').createSignedUrl(r.audio_path, 3600); if (error || !data) return setErr('Não foi possível abrir o áudio.'); setPlayer({ t: r.title, u: data.signedUrl }) }
   const openRcpt = async (p: string) => { const win = window.open('', '_blank'); const { data } = await sb.storage.from('receipts').createSignedUrl(p, 600); if (win && data) win.location.href = data.signedUrl; else win?.close() }
+  // Contrato assinado: bucket privado 'contracts' -> URL assinada temporária (60 s) com download forçado
+  const ctByUser = useMemo(() => new Map(cts.map(c => [c.user_id, c])), [cts])
+  const dlContract = async (a: any, c: any) => {
+    setErr(''); setDl(a.id)
+    const nome = (a.artist_name || 'artista').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w]+/g, '_').replace(/^_|_$/g, '')
+    const { data, error } = await sb.storage.from('contracts').createSignedUrl(c.pdf_url, 60, { download: `contrato_${nome}.pdf` })
+    setDl('')
+    if (error || !data) return setErr('Não foi possível gerar o link do contrato.')
+    const el = document.createElement('a'); el.href = data.signedUrl; el.rel = 'noopener'; document.body.appendChild(el); el.click(); el.remove()
+  }
   async function upload(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0], w = tgt.current; e.target.value = ''; if (!f || !w) return
     const p = `${w.artist_id}/${w.id}-${f.name.replace(/[^\w.-]/g, '_')}`; const { error } = await sb.storage.from('receipts').upload(p, f)
@@ -45,6 +57,13 @@ export default function Admin() {
             {w.receipt_path ? <button className="btn ghost sm" onClick={() => openRcpt(w.receipt_path)}><Eye size={14} />Ver comprovante</button> : <button className="btn ghost sm" onClick={() => { tgt.current = w; fileRef.current?.click() }}><Paperclip size={14} />Comprovante</button>}
             {w.status === 'pending' && <button className="btn bad sm" onClick={() => upd('withdrawals', w.id, { status: 'rejected' })}><X size={14} />Recusar</button>}</div></td></tr>)}</tbody></table></div>
         : <Empty title="Nenhum saque pendente" />}</div>
+    <div className="card"><h3>Artistas cadastrados ({arts.length})</h3>
+      {arts.length ? <div className="scroll"><table><thead><tr><th>Artista</th><th>Contrato</th><th>Assinado por</th><th>Assinado em</th><th>IP</th><th>Ações</th></tr></thead><tbody>
+        {arts.map(a => { const c = ctByUser.get(a.id); return <tr key={a.id}><td>{a.artist_name || '—'}</td>
+          <td><span className={'bd ' + (c ? 'green' : 'amber')}>{c ? 'Assinado' : 'Pendente'}</span></td>
+          <td>{c?.signed_name ?? '—'}</td><td>{c ? dt(c.signed_at) : '—'}</td><td className="mono">{c?.ip_address ?? '—'}</td>
+          <td>{c ? <div className="acts"><button className="btn ghost sm" disabled={dl === a.id} onClick={() => dlContract(a, c)}><Download size={14} />{dl === a.id ? 'Gerando…' : 'Baixar Contrato PDF'}</button></div> : <span className="mut">Aguardando assinatura</span>}</td></tr> })}</tbody></table></div>
+        : <Empty title="Nenhum artista cadastrado" />}</div>
     <div className="card"><h3>Chamados de suporte ({openT} em aberto)</h3>
       {tk.length ? <div className="scroll"><table><thead><tr><th>Artista</th><th>Assunto</th><th>Categoria</th><th>Mensagem</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead><tbody>
         {tk.map(t => <tr key={t.id}><td>{who(t)}</td><td>{t.subject}</td><td>{CAT[t.category]}</td><td className="trunc" title={t.message}>{t.message}</td><td>{dt(t.created_at)}</td><td><Badge s={t.status} /></td>

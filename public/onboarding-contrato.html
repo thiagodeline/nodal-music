@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nodal Music | Contrato de distribuição</title>
+<style>
+  :root{
+    --ink:#1b1f2a; --muted:#5d6475; --paper:#fffefb; --bg:#eef0f4;
+    --line:#d9dce3; --accent:#2b4fd8; --accent-ink:#fff; --ok:#17703f; --err:#b3261e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+  .wrap{max-width:560px;margin:8vh auto;padding:0 20px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:28px}
+  h1{font-size:1.4rem;margin:0 0 8px}
+  .muted{color:var(--muted)}
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 18px}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button:focus-visible,input:focus-visible{outline:3px solid #9db1ff;outline-offset:2px}
+  a.btn{display:inline-block;text-decoration:none;border-radius:8px;padding:10px 18px;background:var(--ok);color:#fff;font-weight:600}
+
+  /* ---------- diálogos ---------- */
+  dialog{border:0;padding:0;border-radius:12px;max-width:820px;width:calc(100% - 24px);max-height:92vh;color:var(--ink)}
+  dialog::backdrop{background:rgba(15,18,28,.55)}
+  dialog[open]{display:flex;flex-direction:column}
+  .dlg-head{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .dlg-head h2{margin:0;font-size:1.1rem}
+  .dlg-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  #contract-scroll{overflow-y:auto;padding:22px;background:var(--paper)}
+  #sign-dialog{max-width:480px}
+  .sign-body{padding:22px}
+  .sign-body label{display:block;font-weight:600;margin-bottom:6px}
+  .sign-body input{width:100%;font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:8px}
+  .hint{font-size:.88rem;color:var(--muted);margin:8px 0 0}
+  .error{color:var(--err);font-size:.92rem;margin:10px 0 0;min-height:1.2em}
+
+  /* ---------- texto do contrato (tela) ---------- */
+  .contract{font:15.5px/1.65 Georgia,"Times New Roman",serif;max-width:68ch;margin:0 auto}
+  .contract h1{font-size:1.15rem;text-align:center;margin:0 0 18px;line-height:1.3}
+  .contract h3{font-size:1rem;margin:26px 0 8px}
+  .contract p{margin:0 0 10px;text-align:justify}
+  .contract ol,.contract ul{margin:0 0 10px;padding-left:1.6em}
+  .contract li{margin-bottom:6px;text-align:justify}
+  .contract ol.alpha{list-style:lower-alpha}
+  .contract .party{border:1px solid var(--line);padding:10px 14px;border-radius:6px;background:#fff;margin:10px 0 14px}
+  .contract .party div{margin:2px 0}
+
+  /* ---------- modo PDF (clone usado só na geração) ---------- */
+  .pdf-host{position:fixed;left:-10000px;top:0;width:794px;background:#fff}
+  .contract.pdf-mode{max-width:none;width:714px;margin:0;padding:0;font-size:11.5px;line-height:1.5;color:#000;background:#fff}
+  .pdf-mode h1{font-size:14px}
+  .pdf-mode h3{font-size:12px;break-after:avoid}
+  .pdf-mode p,.pdf-mode li{break-inside:avoid}
+  .pdf-mode .party{border-color:#999}
+  .sign-stamp{margin-top:28px;padding-top:12px;border-top:1px solid #000;font-weight:bold;break-inside:avoid}
+
+  #signed-panel{display:none;margin-top:18px;padding:16px;border:1px solid #bfe3cd;background:#eefaf2;border-radius:10px}
+  #signed-panel p{margin:0 0 12px;color:var(--ok);font-weight:600}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <section class="card">
+    <h1>Contrato de distribuição digital</h1>
+    <p class="muted">Antes de enviar sua música, leia e assine o Termo de Adesão da Nodal Music.</p>
+
+    <button id="btn-open-contract" class="primary" type="button">Ler e assinar o contrato</button>
+
+    <div id="signed-panel" role="status">
+      <p id="signed-msg">Contrato assinado.</p>
+      <a id="btn-download" class="btn" href="#" download="contrato_assinado.pdf">Baixar contrato assinado (PDF)</a>
+    </div>
+  </section>
+</main>
+
+<!-- ============ MODAL 1: leitura do contrato ============ -->
+<dialog id="contract-dialog" aria-labelledby="contract-dlg-title">
+  <div class="dlg-head">
+    <h2 id="contract-dlg-title">Termo de Adesão</h2>
+    <button type="button" id="btn-close-contract" aria-label="Fechar">Fechar</button>
+  </div>
+
+  <div id="contract-scroll" tabindex="0">
+    <!-- O id "contract-body" é clonado e carimbado na geração do PDF -->
+    <article id="contract-body" class="contract">
+
+<h1>TERMO DE ADESÃO DE LICENCIAMENTO DE FONOGRAMAS E VIDEOFONOGRAMAS PARA DISTRIBUIÇÃO DIGITAL</h1>
+
+<p>Bem-vindo à nossa Plataforma. O Presente termo digital é um acordo entre nossa Distribuidora e você usuário. Leia atentamente os seguintes Termos de Serviço que inclui nossa Política de Pagamento. Este termos e suas condições, bem como a Política de Privacidade (a "Política de Privacidade"), regem seu acesso e uso da Plataforma, incluindo o uso de qualquer conteúdo, informação, produtos e / ou serviços (os “Serviços”) nele contidos. Este é um contrato legal e válido entre você, Usuário (“Licenciante”) e a Distribuidora (“Empresa” ou LICENCIADA).</p>
+
+<p>A LICENCIADA se reserva o direito exclusivo de, a qualquer momento, modificar, descontinuar ou encerrar o Site e os Serviços, ou modificar os Termos de Serviço sem aviso prévio, mediante informe no site. É sua responsabilidade verificar estes Termos de Serviço periodicamente para ver se há alterações e qual o teor e ao continuar utilizando a Plataforma, dar sua ciência e aceite.</p>
+
+<p>Ao continuar a usar ou acessar o Site e / ou Serviços após a Licenciada publicar qualquer modificação e /ou atualização, você concorda em estar legalmente sujeito aos Termos de Uso e Serviço revisados. Você não pode alterar os termos e condições dos Termos de Serviço sem o consentimento expresso por escrito da Empresa.</p>
+
+<h3>DAS PARTES</h3>
+<p>De um lado, NODAL MUSIC empresa jurídica registrada sob o CNPJ 64.100.398/0001-10 e sediada a Rua das Orquídeas, 455, Águas Claras, cidade de Viamão – RS, CEP 94575-004, doravante denominada simplesmente como LICENCIADA ou NODAL; e, de outro lado, o USUÁRIO da plataforma, que, ao ingressar e utilizar o sistema, compromete-se a preencher seu perfil com todas as informações necessárias, incluindo nome completo, endereço, e-mail, CPF, sendo tais dados associados ao seu login e endereço de IP. O aceite eletrônico destes termos constitui sua ciência e concordância integral, servindo como assinatura digital a este contrato e todas as obrigações nele contidas.</p>
+
+<div class="party">
+  <div><strong>LICENCIANTE (USUÁRIO):</strong> <span data-field="nome">____________________</span></div>
+  <div><strong>CPF:</strong> <span data-field="cpf">____________________</span></div>
+  <div><strong>E-mail:</strong> <span data-field="email">____________________</span></div>
+  <div><strong>Endereço:</strong> <span data-field="endereco">____________________</span></div>
+</div>
+
+<p><strong>Considerando que:</strong></p>
+<ul>
+  <li>A LICENCIADA oferece serviços digitais especializados para o mercado da música, incluindo distribuição digital, marketing, edição, subedição, gerenciamento de direitos autorais, sincronização de conteúdo de áudio e audiovisuais, e intermediação de pagamentos;</li>
+  <li>O USUÁRIO, seja um artista independente ou um selo, gravadora, responsável pela representação de diversos artistas, é titular de direitos autorais ou detentor de licenças sobre fonogramas, obras audiovisuais ou outros conteúdos e deseja utilizar a plataforma para realizar a distribuição digital desses materiais;</li>
+  <li>RESOLVEM as PARTES, por meio deste termo de adesão digital, nomear a LICENCIADA como sua representante, sendo-lhe conferida exclusividade na distribuição digital de “Seu Conteúdo” (conforme definição abaixo).</li>
+</ul>
+
+<h3>CLÁUSULA I – DO OBJETO DO CONTRATO E DIREITOS CONCEDIDOS</h3>
+<p>O objeto deste instrumento é a contratação, pelo LICENCIANTE, dos serviços de distribuição digital de fonogramas, obras audiovisuais ou outros conteúdos (coletivamente, “conteúdos”), prestados pela LICENCIADA em conjunto com suas SUBLICENCIADAS, sendo que para tanto, o LICENCIANTE concede, à LICENCIADA, em caráter irretratável, durante o "Prazo de Vigência" (conforme definição abaixo) e em todo o Território Mundial, relativamente as distribuições ativas (vigentes) e futuras:</p>
+<ol class="alpha">
+  <li>O direito e licença para converter, digitalizar, anexar, integrar, codificar ou reproduzir seus conteúdos em qualquer formato digital ou eletrônico, a qualquer tempo, com o intuito de distribuir tais conteúdos;</li>
+  <li>O direito e licença para distribuir digitalmente, reproduzir, transmitir, licenciar, vender (incluindo sem limitação via download, streaming, serviços de assinatura e gravação), anunciar, publicar, publicar em conexão com anúncios publicitários (YouTube e outras mídias), transmitir ou de qualquer forma usar e explorar os conteúdos em qualquer formato digital ou eletrônico, atual ou futuro, na vigência deste acordo, aos consumidores em todo o território nacional e internacional, através de alguma plataforma ou serviço de terceiros, incluindo, mas não se limitando ao site (distribuição direta), plataformas ou serviços de qualquer plataforma de terceiros, inclusive empresas de telefonia e empresas de exploração de repertórios e sonorização de ambientes, sendo certo que tais direitos incluem o direito de explorar, produzir, exibir, reproduzir e distribuir trechos dos conteúdos (tais como imagens e/ou trechos de audiovisuais em separado (ex. thumb Nails), ou ainda trechos de fonogramas (como Snipes ou teasers);</li>
+  <li>O direito e licença para transmitir os conteúdos em forma de áudio ou áudio visual, no todo ou em parte, como amostra a título gratuito, com o intuito de obter mais downloads, plays de streaming, fortalecimento da imagem do artista ou outra forma de aquisição ou acesso aos conteúdos, sem que nenhum royalty ou pagamento (incluindo, mas não limitado ao uso da composição musical) deva ser pago, visto tratar-se de conteúdo gratuito para fins de marketing;</li>
+  <li>O direito exclusivo e licença para gerenciar e administrar a exploração comercial de áudio, vídeo e de gravações audiovisuais postados por terceiros (user generated content, ou “UGC”), que incorpore o seu conteúdo na Internet, via YouTube ou de outra forma, incluindo, sem limitação, a geração e a gestão do código Content ID do YouTube com relação aos conteúdos naquela plataforma, permitindo o rastreamento, monetização, retirada ou bloqueio de tal UGC na Internet.</li>
+  <li>O direito não exclusivo e licença para usar, nos termos ajustados neste acordo, os direitos de imagem, nome, voz e biografia de cada artista, cuja atuação esteja inclusa nos fonogramas, obras audiovisuais, no álbum aprovado, letras e anotações relacionadas aos conteúdos (coletivamente o “Material do álbum”), tudo em conjunto com a exploração, venda e distribuição dos conteúdos, anúncios, divulgação ou promoção dos conteúdos em toda configuração e mídia fornecida.</li>
+</ol>
+
+<h3>CLÁUSULA II - PRAZO DE VIGÊNCIA:</h3>
+<p>Período durante o qual o Licenciante se obriga a fornecer à Licenciada quaisquer Gravações feitas [ou iniciadas] em tal período:</p>
+<ol>
+  <li>O prazo de vigência mínimo deste Contrato é de 5 (cinco) anos a contar da assinatura digital deste termo, renovando-se a vigência por igual período a cada atualização dos termos disponíveis na plataforma.</li>
+  <li>Este período será automaticamente estendido por períodos consecutivos de 5 (cinco) ano(s) ("Período de Exclusividade Estendido"), a menos que seja enviada previamente uma notificação por e-mail para a outra parte com no mínimo 90 dias de antecedência da data de início de cada Período de Exclusividade Estendido, informando ainda: seu nome de usuário; endereço de e-mail associado à sua Conta; todos os títulos de álbuns para os quais está solicitando o takedown e o motivo pelo qual está solicitando o takedown ou encerramento do contrato.</li>
+  <li>Caso seja solicitada pelo Licenciante a rescisão ou takedown de qualquer conteúdo fora deste período, configurará violação material do contrato, e a LICENCIADA se resguarda o direito de:
+    <ol class="alpha">
+      <li>não liberar o takedown do(s) fonograma(s) solicitado(s) e/ou</li>
+      <li>liberar mediante pagamento de multa correspondente à projeção do faturamento que seria alcançado com o catálogo durante o período restante de contratação, aplicando-se ainda uma multa de 40% somado a esse valor.</li>
+    </ol>
+  </li>
+</ol>
+
+<h3>CLÁUSULA III – DO REPASSE DE RENDIMENTOS E POLÍTICA DE PAGAMENTOS:</h3>
+<p><strong>Repasse de Receitas:</strong> A LICENCIADA se compromete a repassar ao LICENCIANTE, por meio de transferência bancária ou pix para a conta corrente de sua titularidade cadastrada no painel da plataforma, o percentual de 75% (% - porcentagem) sobre as Receitas Líquidas, após a dedução de: (i) valores referentes aos Direitos Mecânicos, quando aplicáveis, e (ii) impostos e taxas, incluindo, para maior clareza, eventuais impostos retidos na fonte. Adicionalmente, será repassado ao LICENCIANTE o percentual de 75% (% - porcentagem) sobre o lucro líquido obtido pela exploração dos produtos no YouTube. Caso haja taxa de transação para esse pagamento, valor será repassado ao LICENCIANTE.</p>
+<p>Todos os valores recebidos em dólares ou em outra moeda estrangeira serão convertidos para a moeda brasileira (Real) com base na taxa de câmbio do dia do recebimento. As informações detalhadas sobre o câmbio e os valores de conversão estarão disponíveis para o(a) USUÁRIO(A) nos relatórios financeiros, acessíveis no painel do usuário, na aba "Financeiro.</p>
+<p><strong>Usuários Residentes no Exterior:</strong> Os pagamentos de royalties para LICENCIANTES que residem fora do Brasil serão realizados por meio de plataformas parceiras de pagamento internacionais, ou mediante solicitação via PayPal. Esses pagamentos estarão sujeitos a taxas de serviço e de saque aplicadas por essas plataformas, conforme os termos e condições estabelecidos por cada prestadora.</p>
+<p>Além disso, para contas localizadas nos Estados Unidos, incidirá uma retenção de 30% sobre os rendimentos, em conformidade com as normas fiscais vigentes para remessas internacionais, exigidas pelo IRS (Internal Revenue Service). Essa retenção aplica-se em caso de ausência de um formulário W8BEN preenchido, conforme as exigências para estrangeiros que recebem pagamentos nos EUA.</p>
+<p>Assim, o LICENCIANTE está ciente de que: As taxas de serviço e de saque, bem como prazo de pagamento, variam conforme a plataforma escolhida e serão deduzidas diretamente dos rendimentos a serem pagos.</p>
+<p>Em caso de contas bancárias ou plataformas de pagamento dos EUA, a retenção de 30% poderá ser aplicada, salvo se houver a devida documentação fiscal para isenção ou redução, conforme as normas de tributos de remessas internacionais para residentes estrangeiros.</p>
+<p>Para solicitar um pagamento via PayPal ou por meio de plataforma parceira específica, o LICENCIANTE deve comunicar a LICENCIADA e fornecer os dados atualizados para o processamento seguro da transação internacional.</p>
+<p><strong>Atividades Fraudulentas e/ou Violação das Políticas das Plataformas:</strong> Caso sejam observadas ou notificadas pelas plataformas atividades fraudulentas e/ou violações às suas políticas, causadas pelo LICENCIANTE ou por ações ou omissões de coligadas a ele, a LICENCIADA se resguarda o direito de bloquear a conta do LICENCIANTE e realizar auditorias a qualquer momento. Quaisquer custos incorridos pela LICENCIADA em decorrência dessas ações, incluindo multas das plataformas, taxas, honorários advocatícios e despesas legais, bem como repasses de direitos autorais, poderão ser deduzidos dos valores devidos ao LICENCIANTE, independentemente de sua autorização prévia. Apenas a notificação de infração enviada ao e-mail cadastrado pelo LICENCIANTE será suficiente para formalizar tal abatimento.</p>
+<p><strong>Bloqueio de conta e Remoção de Conteúdo por Infrações:</strong> Se a conta do LICENCIANTE for bloqueada devido a infrações das políticas das plataformas e for necessária a remoção de conteúdos, a LICENCIADA cobrará uma taxa de R$ 10,00 (dez reais) por faixa removida.</p>
+<p><strong>Reembolso por Pagamento Indevido:</strong> Caso um pagamento tenha sido indevidamente realizado ao LICENCIANTE, seja por erro de divisão de royalties, cadastro ou sistema, a LICENCIADA se reserva o direito de deduzir o valor correspondente dos rendimentos futuros. Caso os rendimentos futuros sejam insuficientes para ressarcir terceiros prejudicados, o LICENCIANTE assume a responsabilidade legal e judicial perante a parte prejudicada, bem como a obrigação de reembolsar eventuais valores recebidos, havendo ou não saldo em conta.</p>
+<p><strong>Suspensão Preventiva de Conta por Infrações Reiteradas ou Manipulação de Dados:</strong> Caso o LICENCIANTE envie mais de 2 (dois) produtos bloqueados por plágio, ou receba mais de 2 (duas) notificações de violação de conteúdo de terceiros, seja constatado manipulação de plays, Content ID, ou outras violações às políticas da plataforma e das plataformas de streaming, ou ainda apresente um aumento significativo e injustificado de rendimentos em sua conta, proveniente de fraude ou manipulação de visualizações e monetização, a LICENCIADA poderá suspender preventivamente a conta e todas as demais contas associadas ao LICENCIANTE e os pagamentos das mesmas até a realização de uma auditoria completa. Caso seja comprovado que tais rendimentos são oriundos de fraude, infrações de direitos de terceiros ou manipulação de rendimentos das plataformas, o LICENCIANTE perderá o direito a esses rendimentos, que serão redistribuídos conforme estabelecido na Cláusula II, podendo ter sua conta definitivamente bloqueada e seu catálogo integralmente removido.</p>
+<p><strong>Adesão ao Discovery Mode do Spotify e Procedimentos de Opt-out:</strong> O LICENCIANTE, ao distribuir seus conteúdos musicais no Spotify através da LICENCIADA, está ciente da existência do serviço “Discovery Mode” oferecido pela plataforma. Esse recurso de marketing permite que o Spotify destaque as faixas do LICENCIANTE em playlists e recomendações personalizadas aos usuários, visando ampliar a visibilidade e o alcance do conteúdo. Em contrapartida, o Spotify aplica um desconto sobre os valores de royalties gerados pelas execuções realizadas através do Discovery Mode, resultando em uma remuneração reduzida para as faixas promovidas com esse recurso.</p>
+<p>Ao utilizar o Discovery Mode, o LICENCIANTE concorda que os valores devidos por essas execuções poderão ser ajustados conforme as taxas de marketing aplicadas pela plataforma, com percentual de desconto pré-estabelecido pelo Spotify.</p>
+<p>Caso o LICENCIANTE não deseje participar do Discovery Mode, ele se compromete a realizar a solicitação de opt-out diretamente junto ao Spotify, em seu perfil do Spotify for Artist, e deverá acompanhar a exclusão de suas faixas desse recurso de marketing. A LICENCIADO fica responsável integralmente para realizar os trâmites para a remoção do Discovery Mode, conforme as instruções da plataforma Spotify, mas o opt-out dependerá de confirmação de que o processo foi concluído com sucesso junto ao Spotify, não tendo a LICENCIADA qualquer ingerência ou responsabilidade quanto a isso.</p>
+<p><strong>Prazos de Repasse de Royalties:</strong> O LICENCIANTE está ciente de que as plataformas de distribuição digital geralmente realizam os pagamentos referentes a visualizações, execuções, plays e outros rendimentos em um prazo de 3 (três) a 4 (quatro) meses após a disponibilização do conteúdo. A LICENCIADA se compromete a repassar ao LICENCIANTE os royalties devidos em até 30 (trinta) dias contados a partir do efetivo recebimento desses valores das plataformas digitais.</p>
+
+<h3>CLÁUSULA IV - DAS OBRIGAÇÕES</h3>
+<p>As PARTES se obrigam, reciprocamente, e antes de iniciar qualquer pleito contra terceiros, a comunicar o fato ao outro, visando evitar eventual duplicidade de atuação ou descoordenação quanto às medidas protetoras adotadas.</p>
+<p>O LICENCIANTE fica exclusivamente responsável pela originalidade e exclusividade dos fonogramas, videos e produtos distribuídos, objeto deste termo, exonerando a LICENCIADA de toda e qualquer responsabilidade civil ou criminal, e obrigando-se a indenizá-la das perdas e danos que vier a sofrer em caso de contestação, ação ou notificação por violação a direito de Terceiros.</p>
+<p>O LICENCIANTE, ou um licenciado agindo em seu nome será responsável por obter e pagar todos e quaisquer autorizações ou licenças necessárias no Território Autorizado para a utilização de quaisquer obras musicais incorporadas em seu conteúdo. Sem limitar a generalidade do acima exposto, O LICENCIANTE (diretamente ou através de um terceiro agindo em seu nome) será responsável por cadastrar a divisão de royalties em sua conta e pelo pagamento de:</p>
+<ol class="alpha">
+  <li>quaisquer royalties e outras somas devidas aos artistas (participantes e não participantes), autores, coautores, proprietários de direitos autorais e coproprietários, produtores, engenheiros, e qualquer outro participante na gravação do fonograma originadas da venda ou de outros usos do Seu Conteúdo;</li>
+  <li>todos os royalties mecânicos ou outros montantes devidos a editores de música e / ou autores ou coautores de composições musicais incorporadas em seu conteúdo a partir de vendas ou outros usos do Seu Conteúdo;</li>
+  <li>quaisquer outros royalties, taxas e/ou montantes devidos com respeito ao seu conteúdo ou outros materiais fornecidos pelo LICENCIANTE à LICENCIADA e que sejam reclamados por terceiros, sendo que em nenhum momento ficará a LICENCIADA responsável por fazer qualquer pagamento retroativo à terceiros que reclamem a autoria ou titularidade do fonograma distribuído sem autorização pelo LICENCIANTE, sendo essa responsabilidade total e absoluta do LICENCIANTE.</li>
+</ol>
+<p>O LICENCIANTE concorda que o valor a receber é parte integrante de quaisquer - intitulados - "royalties de artista" que possam requerer pagamento por vendas ou explorações nos termos das leis aplicáveis de qualquer jurisdição e por qualquer execução pública, exibição pública ou comunicações para o público das gravações sonoras e obras musicais que constituem Seu Conteúdo.</p>
+<p>A LICENCIADA compromete-se a não utilizar de forma irresponsável os fonogramas e videofonogramas fornecidos pelo(a) USUÁRIO(A), e se compromete a fazer os repasses de pagamento nos termos desse contrato. Contudo, a LICENCIADA é intermediadora das plataformas, não oferecendo nenhuma garantia quanto ao número plays ou rendimento pago pelas agregadoras – DSP’s (plataformas) pela distribuição de seu conteúdo. Além disso, A LICENCIADA não garante que as plataformas cumprirão qualquer contrato que celebrarem com A LICENCIADA para a venda, distribuição ou uso licenciado de Seu Conteúdo, inclusive o pagamento dos royalties que eles nos devam para a distribuição de Seu Conteúdo.</p>
+<p>Se um parceiro/plataforma se recusar ao pagamento pelo uso de Seu Conteúdo, o LICENCIANTE concorda em assumir a responsabilidade pela cobrança de quaisquer pagamentos que possam ser devidos por tais Licenciados inadimplentes por qualquer venda, distribuição ou uso licenciado de Seu Conteúdo se esse terceiro não pagar ou recusar-se a pagar esses valores à LICENCIADA, mediante nossa solicitação.</p>
+
+<h3>CLÁUSULA V – REPRESENTAÇÃO E GARANTIAS</h3>
+<p>O LICENCIANTE declara e garante que:</p>
+<ol class="alpha">
+  <li>tem no mínimo dezoito (18) anos de idade ou se menor de 18 e maior de 12 (doze) está assistido /representado por maior capaz, e atualmente não está contratado por um contrato exclusivo de compositor, coedição, administração ou outro contrato sobre os Direitos do Autor em quaisquer das Composições ou para os serviços de composição do Autor.</li>
+  <li>Todas as informações de registro e outras informações que forem enviadas para A LICENCIADA são e continuarão a ser verdadeiras e precisas. O LICENCIANTE garante que notificará A LICENCIADA imediatamente se qualquer informação mudar ou precisar ser atualizada. No caso desta notificação, A LICENCIADA cientes em relação a uma discrepância ou qualquer imprecisão no que diz respeito às informações fornecidas no Registro, terá o direito de suspender os pagamentos gerados em conexão com as Composições em questão até que a discrepância ou imprecisão seja resolvida de forma razoavelmente satisfatória, sem a limitação dos nossos direitos de indenização, tal como descritos abaixo.</li>
+  <li>Todas as Composições e fonogramas distribuídos pelo LICENCIANTE com A LICENCIADA são totalmente originais, ou no caso de serem de terceiros, o LICENCIANTE garante que obteve autorização prévia para distribuir, e nem a Composição nem qualquer parte da mesma (incluindo qualquer música, título, letras ou outro material) infringe ou infringirá qualquer direito autoral, marca, direitos de publicidade ou outros direitos estatutário ou legais, ou outros direitos de terceiros; viola ou violará qualquer lei aplicável, regra ou regulamento ou causará qualquer danos a e/ou responsabilidade para A LICENCIADA. Sem limitar o precedente, nenhuma Composição contém um "sample" ou outra porção de uma composição musical de titularidade ou controlada por terceiros.</li>
+  <li>O LICENCIANTE tem o pleno direito, poder e autoridade para atuar em nome de todo e qualquer proprietário de qualquer direito, propriedade ou participação no e relativo ao Seu Conteúdo, incluindo, mas sem limitação, todas as obras musicais incorporadas ao Seu Conteúdo, e que está autorizado a fornecer Seu Conteúdo para A LICENCIADA para as utilizações especificadas no presente Contrato. Para que não restem dúvidas, o LICENCIANTE estiver atuando em nome de um artista, banda, grupo ou empresa, este declara e garante à LICENCIADA que está plenamente autorizado a celebrar este Contrato em nome de tal artista, banda, grupo ou empresa, a conceder todos os direitos e a assumir e cumprir todas as obrigações, avenças, declarações e garantias estipuladas no presente Contrato. Ou se O LICENCIANTE é um artista representado por um produtor, ou agência, garante estar livre e desimpedido para assinar esse contrato e caso não esteja, correrá as suas expensas qualquer ação ou reclamação.</li>
+  <li>O LICENCIANTE concorda ainda em se submeter e se vincular aos termos e políticas da LICENCIADA e aos termos de serviço e políticas das plataformas de terceiros (incluindo, mas não limitando ao YouTube, Apple, Spotify, Deezer, Google e outras plataformas utilizadas).</li>
+  <li>Se gravadora, ou selo, representando vários artistas, declara possuir CNPJ ativo e regularizado, compatível com a distribuição de música e representação de artistas; garante ter contratos válidos e vigentes com os artistas representados, autorizando a distribuição digital e a gestão de canais no YouTube; garante ter a titularidade dos direitos sobre as obras musicais e audiovisuais distribuídas ou obter a devida autorização dos detentores desses direitos;</li>
+  <li>Eximirá a LICENCIADA e suas SUBLICENCIADAS por todas e quaisquer causas de pedir relacionadas a este contrato, seja no presente ou no futuro, sendo sua inteira responsabilidade arcar com qualquer solicitação de terceiros;</li>
+  <li>As limitações de responsabilidade descritas nesta seção se aplicam independentemente da causa de pedir sob as quais tais indenizações são pretendidas, seja por violação contratual, responsabilidade em sentido estrito ou outros ilícitos civis, independentemente de as partes terem (ou deverem ter) ciência ou terem sido informadas acerca da possibilidade de tal indenização, e independentemente de qualquer medida deixar de atingir sua finalidade essencial.</li>
+  <li>As partes reconhecem que as avenças feitas nesta seção representam um elemento essencial deste contrato, que refletem uma alocação de risco razoável e que cada parte não celebraria este contrato sem tais limitações de responsabilidade.</li>
+</ol>
+
+<h3>CLÁUSULA VI – CONFIDENCIALIDADE</h3>
+<p>Os termos e condições deste Contrato são confidenciais e não poderão ser revelados pelo LICENCIANTE a terceiros sem o consentimento prévio por escrito da LICENCIADA, exceto conforme a divulgação seja exigida pelas leis aplicáveis ou por ação judicial, sendo certo que nesse caso, O LICENCIANTE deverá nos notificar com antecedência mínima de 5 (cinco) dias antes de qualquer divulgação exigida por lei ou por ação judicial, a fim de nos ofertar uma oportunidade de proteger tais termos através de ordem de proteção ou de outra forma.</p>
+
+<h3>CLÁUSULA VII - MODIFICAÇÃO, RESCISÃO E EFEITO DA RESCISÃO:</h3>
+<p><strong>Modificação do Contrato.</strong> A LICENCIADA se reserva o direito de alterar, modificar, adicionar, atualizar ou remover todo ou parte deste Contrato, a seu exclusivo critério, a qualquer momento e periodicamente. O LICENCIANTE autoriza o envio de comunicações por qualquer meio razoável que possamos escolher, a nosso exclusivo critério. No caso de alterações substanciais aos termos deste Contrato, a LICENCIADA notificará o LICENCIANTE por meio de aviso no seu Painel de conta. A data da última atualização deste Contrato estará identificada na última página dele. Se qualquer modificação se revelar inaceitável para o LICENCIANTE, o seu único recurso será descontinuar o uso dos Serviços enviando-nos uma Notificação de Rescisão. O seu uso contínuo dos Serviços após qualquer modificação constituirá a sua aceitação vinculativa das alterações.</p>
+<p><strong>Consequências da Rescisão.</strong> A expiração do contrato pelo decurso dos 5 (cinco) anos ou pelo término ou rescisão contratual não isentará o LICENCIANTE ou A LICENCIADA das respectivas obrigações incorridas. Além disso, as disposições do presente Contrato subsistirão a rescisão deste Contrato, incluindo, mas sem limitação, Indenização, Isenções de Responsabilidades, Limitação de Responsabilidade, confidencialidade e Disposições Gerais.</p>
+
+<h3>CLÁUSULA VIII - ADMINISTRAÇÃO DE SEU CONTEÚDO; REMOÇÃO DE CONTEÚDO NA PLATAFORMA:</h3>
+<p><strong>i. Monitoramento.</strong> A LICENCIADA não controla ou distribui automaticamente seu Conteúdo inserido em nossa plataforma e não tem nenhuma obrigação de monitorá-lo para qualquer finalidade. Podemos, por nosso exclusivo critério ou liberalidade, revisar ou acessar parte ou todo Seu Conteúdo, mas ao fazê-lo não assumimos nenhuma responsabilidade por ele, nenhuma obrigação de modificar ou remover quaisquer elementos impróprios de Seu Conteúdo ou de monitorar, revisar ou acessar o conteúdo ou arte de qualquer outro artista.</p>
+<p><strong>ii. Direito de Remoção.</strong> A LICENCIADA se reserva o direito de a seu exclusivo e absoluto critério, de bloquear ou remover qualquer parte de Seu Conteúdo dos Serviços. As razões para remoção incluem, entre outros, conteúdos:</p>
+<ol class="alpha">
+  <li>considerados manifestamente ofensivos, pornográficos, racistas, com menção ao nazismo ou difamatórios;</li>
+  <li>considerados objetos de uma disputa entre LICENCIANTE, ou nós, e um terceiro;</li>
+  <li>em decorrência do seu silêncio quando instado a comprovar seus direitos quanto à distribuição;</li>
+  <li>conteúdo que viole os direitos de propriedade intelectual ou outros interesses protegidos de um terceiro;</li>
+  <li>sujeitos a um aviso de apropriação por uma parte que reivindica ser proprietária dos direitos ali contidos; ou</li>
+  <li>sujeitos a queixas legítimas de licenciados, parceiros e afiliados quanto à fraude e manipulação de plays.</li>
+  <li>Também podemos remover Seu Conteúdo dos Serviços tivermos motivos para suspeitar que Seu Conteúdo ou Conta tenha sido submetido e/ou envolvido em atividades fraudulentas, usar IP suspeito, tenha se utilizado de técnicas de manipulação de política de pagamento de DSPs, manipulação de plays, manipulação de Content ID, ou por qualquer outro motivo, a critério exclusivo e absoluto da LICENCIADA, sendo necessária a remoção para proteger os interesses nossos interesses comerciais e de nossas afiliadas, parceiros ou licenciados.</li>
+  <li>A LICENCIADA também pode remover Seu Conteúdo dos Serviços se O LICENCIANTE for abusivo ou grosseiro ou propagar informações falsas ou intencionalmente enganosas a qualquer funcionário ou agente da LICENCIADA.</li>
+  <li>Por fim, a LICENCIADA também se resguarda o direito de alterar metadados, remover ou bloquear seu fonograma para distribuição, uma vez que seu conteúdo que não siga as regras de qualidade e controle das agregadoras, tais como capa, originalidade, nomes de artista, conteúdo, entre outras, situação em que O LICENCIANTE poderá ou não ser notificado desta remoção ou bloqueio pelo seu Dashboard ou via ticket a ser enviado para seu e-mail cadastrado.</li>
+</ol>
+<p><strong>iii. Direito de Retenção de Receita e bloqueio de contas:</strong></p>
+<ol class="alpha">
+  <li>A LICENCIADA se reserva ainda o direito de suspender o pagamento de fundos que lhe sejam devidos e de bloquear a sua capacidade de retirar fundos de sua Conta até que seja obtida uma resolução e/ou explicação satisfatória das atividades suspeitas ou de infração a direitos autorais de terceiros, ou para pagamento de multas impostas pelas DSPS. À medida que se determinar atividades fraudulentas motivadas por suas ações ou omissões, ou pelas ações ou omissões de seus afiliados, os custos incorridos pela LICENCIADA (inclusive MULTA, honorários advocatícios e custas judiciais) relacionados às mesmas, para além de outros recursos, podem ser deduzidos por nós de eventuais valores que, de outro modo, lhe sejam devidos nos termos do presente documento.</li>
+  <li>Alguns Sublicenciados da LICENCIADA podem também dispor de políticas relacionadas a fraudes e atividades suspeitas, e o LICENCIANTE concorda que essas políticas serão vinculativas nos termos deste documento.</li>
+</ol>
+<p><strong>IV. Ausência de Rescisão por Remoção:</strong> Este Contrato não será automaticamente rescindido pela remoção por parte da LICENCIADA de seu Conteúdo do site ou de sites ou serviços de um Licenciado. Para rescindir este Contrato após a remoção de qualquer parte de Seu Conteúdo, o LICENCIANTE deverá enviar uma Notificação de Rescisão conforme cláusula II, ítem ii desse contrato.</p>
+
+<h3>CLÁUSULA IX. DISPOSIÇÕES GERAIS</h3>
+<p>Cada parte declara e garante à outra que:</p>
+<ol class="alpha">
+  <li>está autorizada a celebrar este Contrato nos termos e condições estabelecidos neste documento.</li>
+  <li>não agirá de alguma maneira que entre em conflito ou interfira em qualquer compromisso ou obrigação existente da outra parte e que nenhum acordo celebrado anteriormente pela parte interferirá na execução de suas obrigações nos termos deste Contrato.</li>
+  <li>executará suas obrigações nos termos deste Contrato em plena conformidade com todas as leis, normas e regulamentos aplicáveis de qualquer autoridade governamental que tenha jurisdição sobre tal execução.</li>
+</ol>
+<p>A LICENCIADA não garante a exploração das Gravações, que dependerá da preferência do consumidor, nem da inclusão ou participação de alguma Loja de Consumo determinada ou Lista de reprodução. A Empresa reserva-se o direito, a seu exclusivo critério, de recusar-se a fazer negócios com qualquer Loja do Consumidor. Exceto conforme especificamente estabelecido nos Termos de Serviço, a Empresa não terá obrigações para com você.</p>
+<p>A LICENCIADA não será considerada em uma violação dos Termos de Serviço, a menos que você tenha as notificado sobre a violação e a Empresa tenha falhado em sanar tal violação no prazo de trinta (30) dias após o recebimento de tal notificação. Em nenhum caso, qualquer violação dará a você o direito de rescindir os direitos aqui concedidos.</p>
+<p>Esse termo de uso é assinado por meio do aceite na plataforma e em caráter irretratável e irrevogável e vinculará os mandantes, cessionários, herdeiros, testamenteiros, coligados, agentes, administradores e sucessores de cada uma das partes. A LICENCIADA terá o direito de ceder livremente este contrato, a qualquer momento a qualquer parte, a seu critério exclusivo. O LICENCIANTE reconhece e concorda que nem este contrato e nem qualquer direito contido no presente contrato poderá ser cedido ou transferido pelo LICENCIANTE sem o expresso consentimento prévio e por escrito das LICENCIADAS.</p>
+<p>Qualquer controvérsia oriunda deste Contrato ou com ele relacionada deverá ser discutida entre as PARTES, as quais envidarão seus melhores esforços para a resolução, sempre garantindo a PARTE em questão um mínimo de 30 (trinta) dias para a resolução do conflito, e não sendo possível nesse período, mais 30 (trinta) dias para buscar a resolução.</p>
+<p>Este Termo engloba a Política de Pagamento da LICENCIADA, e em conjunto com a Política de Privacidade, contém todo o entendimento entre das partes com relação à matéria tratada neste instrumento.</p>
+<p>Este Termo (incluindo todos os Adendos), em sua última versão, deve prevalecer sobre todos os contratos ou acordos digitais anteriores firmados entre LICENCIANTE e a LICENCIADA relativos aos Serviços, incluindo qualquer contrato genérico que esteja na plataforma para este fim.</p>
+<p>Havendo conflito entre os termos das LICENCIADA e os termos das plataformas de terceiros, os termos da LICENCIADA deverão prevalecer. Este contrato contêm o total entendimento das partes relacionadas com o assunto e substituem todos os acordos anteriores firmados entre o LICENCIANTE e a LICENCIADA.</p>
+<p>E por estarem assim justos e contratados, o Licenciante concorda que a nodalmusic.com.br ou com o respeito à sua conta plataforma Nodal Music, concorda com os termos de serviços. Uma vez utilizando os serviços e acessando a conta, está aceitando os termos de serviços em sua totalidade conforme descrito neste termo, de forma irrevogável e irretratável.</p>
+<p>Fica subordinada o presente contrato e termo de uso ao que dispõe o Capítulo V do Título III da Lei nº 9.610/98, elegendo-se o Foro da Comarca da cidade de Viamão para dirimir as questões que derivem deste contrato.</p>
+<p>Termo atualizado e disponibilizado na plataforma pelo Departamento Jurídico da NODAL MUSIC, em novembro de 2026.</p>
+<p>A partir de 01 de janeiro de 2027, a LICENCIADA reitera que não cobra quaisquer taxas para cadastro e distribuição de conteúdo em sua plataforma. A receita da LICENCIADA é gerada exclusivamente por meio de uma porcentagem sobre os rendimentos obtidos a partir de reproduções, visualizações e downloads do conteúdo distribuído, conforme disposto na CLÁUSULA III – DO REPASSE DE RENDIMENTOS E POLÍTICA DE PAGAMENTOS. Para otimizar a operação e aprimorar a experiência dos artistas, fica estipulado e aceito pelas Partes que a partir de 01/01/2027, será necessário um saldo mínimo de R$ 80,00 (oitenta reais) na conta para que seja possível solicitar um saque. Caso o LICENCIANTE não atinja esse valor mínimo, o saque não poderá ser efetuado, permanecendo o saldo acumulado até que o limite seja alcançado. O LICENCIANTE dá plena ciência e aceitação a esta alteração a partir do momento de 01/01/2027. O acesso e uso da conta e dos serviços após a disponibilização desta atualização configura concordância integral e vinculativa com os novos termos.</p>
+<p>Esta atualização passa a vigorar na data mencionada e se incorpora integralmente ao Termo de Adesão de Licenciamento de Fonogramas e Videofonogramas para Distribuição Digital, mantendo-se todas as demais cláusulas e condições inalteradas.</p>
+
+    </article>
+  </div>
+
+  <div class="dlg-foot">
+    <span id="scroll-hint" class="muted">Role até o final para liberar a assinatura.</span>
+    <button type="button" id="btn-open-sign" class="primary" disabled>Clique aqui para assinar</button>
+  </div>
+</dialog>
+
+<!-- ============ MODAL 2: assinatura ============ -->
+<dialog id="sign-dialog" aria-labelledby="sign-dlg-title">
+  <div class="dlg-head">
+    <h2 id="sign-dlg-title">Assinar contrato</h2>
+    <button type="button" id="btn-cancel-sign" aria-label="Cancelar">Cancelar</button>
+  </div>
+  <div class="sign-body">
+    <label for="sign-name">Nome completo</label>
+    <input id="sign-name" type="text" autocomplete="name" placeholder="Como consta no seu documento" required>
+    <p class="hint">Ao clicar em “Aceitar e Assinar”, seu nome, data, hora e endereço de IP serão registrados como assinatura digital deste contrato.</p>
+    <p id="sign-error" class="error" role="alert"></p>
+  </div>
+  <div class="dlg-foot">
+    <span></span>
+    <button type="button" id="btn-sign" class="primary">Aceitar e Assinar</button>
+  </div>
+</dialog>
+
+<!-- Dependências -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="contract-signer.js"></script>
+
+<script>
+  // 1) Configure o seu projeto Supabase
+  const supabaseClient = supabase.createClient(
+    'https://jklitdqichsuymgspvbe.supabase.co',
+    'sb_publishable_4zKtEeJQMofr2_MU0v6s2w_8i6E8b4-'
+  );
+
+  // 2) Inicialize depois que o usuário estiver logado
+  (async () => {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) { window.location.href = '/login.html'; return; }
+
+    // Ajuste ao seu schema de perfil (nomes das colunas)
+    const { data: profile } = await supabaseClient
+      .from('profiles').select('full_name, cpf, address').eq('id', user.id).maybeSingle();
+
+    ContractSigner.init({
+      supabase: supabaseClient,
+      user,
+      profile: {
+        nome: profile?.full_name || user.user_metadata?.full_name || '',
+        cpf: profile?.cpf || '',
+        email: user.email,
+        endereco: profile?.address || ''
+      }
+    });
+  })();
+
+  // 3) Libere a próxima etapa do onboarding quando o contrato for assinado
+  document.addEventListener('contract:signed', () => {
+    // ex.: window.location.href = '/onboarding/proximo-passo.html';
+  });
+</script>
+</body>
+</html>

@@ -21,16 +21,16 @@
 
 ## Pontos obrigatórios para fechamento jurídico e ativação
 
-1. **Confirmar a razão social oficial vinculada ao CNPJ 64.100.398/0001-10.** O contrato anterior trazia a marca SINTONE e o CNPJ, mas não trouxe a razão social; o número não pôde ser confirmado em registro oficial nesta revisão.
-2. **Informar e validar um endereço de e-mail institucional que receba notificações contratuais.** Não inventar um endereço nem divulgar um endereço não monitorado.
-3. **Conferir se endereço e CNPJ correspondem à entidade que efetivamente contratará com os artistas** e se os responsáveis pelo selo podem representá-lo.
+1. **Nome empresarial encontrado nas consultas públicas:** `64.100.398 THYAGO ESPINDOLA DE MELO`, MEI vinculado ao CNPJ `64.100.398/0001-10`. **Confirmar no CCMEI oficial** antes de habilitar assinaturas. O MEI não tem contrato social, mas tem nome empresarial.
+2. **E-mail institucional informado pelo responsável:** `suporte@sintone.com.br`. É necessário garantir que esta caixa esteja configurada e recebendo mensagens; a entrega não foi testada.
+3. **Regularidade da atividade:** consultas públicas do CNPJ mostram CNAE principal `5320-2/01` (serviços de malote), sem CNAE secundário de música/distribuição. A SINTONE presta serviços de distribuição musical. **Antes de habilitar contratação remunerada, verificar com contador a adequação dos CNAEs, possibilidade de exercício como MEI e eventual necessidade de desenquadramento.** Confirmar também o endereço no CCMEI.
 4. **Revisão jurídica humana** recomendada por profissional habilitado para as particularidades de direitos autorais, direito do consumidor, tributação, LGPD, distribuição e cobrança de royalties.
 5. Confirmar se a regra de pagamento e saque é operacionalmente praticável, inclusive para saldos pós-encerramento.
 
 ## Procedimento para ativação após confirmação
 
-- Substituir no texto de `contract_templates.body` os dois campos `[PREENCHER: ...]` com informações verdadeiras e conferir o documento final.
-- Se o texto for alterado de modo substancial, criar a versão `2026.11-R3` em vez de sobrescrever uma versão **já assinada**.
+- Os dois campos antigos de identificação e e-mail foram preenchidos no texto R2. Confirmar o nome empresarial no CCMEI, a funcionalidade do e-mail e a adequação da atividade/CNAE antes de aprovar o modelo.
+- Se o texto for alterado de modo substancial, criar a versão `2026.11-R3` em vez de sobrescrever uma versão **já assinada**. Não há assinaturas no banco no momento desta atualização.
 - Conferir que o corpo integral exibido ao artista corresponde ao corpo salvo no banco.
 - Ativar uma versão por tipo somente após aprovação, preservando as versões anteriores para auditoria.
 - Testar com uma conta de staging, incluindo download do PDF e assinatura idempotente, antes de habilitar o público real.
@@ -41,6 +41,6 @@
 - Compilação do Next.js em GitHub Actions.
 - Geração do PDF integral via html2pdf.js: 6 páginas, cerca de 3,2 MB; primeira e última página não vazias.
 - Correção do erro de PDF de uma página em branco causado por renderização a `left:-100000px`.
-- Verificação de que templates R2 existem no Supabase e permanecem inativos.
+- Verificação de que templates R2 existem no Supabase e permanecem inativos. Os dois campos de identificação e contato foram preenchidos, mas a habilitação jurídica ainda depende de regularidade cadastral e revisão final.
 
 Este documento não é parecer jurídico nem substitui a confirmação de dados da pessoa jurídica.

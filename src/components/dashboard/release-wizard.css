@@ -109,3 +109,5 @@
 .sr-modal-actions button{border:1px solid #cbd5e1;background:#f8fafc;color:#1d4ed8;border-radius:8px;padding:8px 12px;font-weight:650;cursor:pointer}
 .sr-modal .sr-platforms{overflow:auto;min-height:0;padding:18px 22px;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
 @media(max-width:530px){.sr-modal .sr-platforms{grid-template-columns:1fr}.sr-select-platforms{flex-wrap:wrap}}
+
+.sr-instagram-addon{border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;padding:14px 16px;display:grid;gap:8px}.sr-instagram-addon label{font-weight:750;color:#1d4ed8}.sr-instagram-addon p{color:#475569;font-size:12px;margin:0}

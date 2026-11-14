@@ -37,7 +37,7 @@ async function reconcile(orderId:string,recordId:string,amount:number){
  if(error)console.error('[billing] verified order reconciliation failed', {code:error.code,orderId})
  return !error
 }
-export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):Promise<CheckoutResult>{
+export async function startOneTimeCheckout(planId:string,payment:PaymentMethod,addonReleaseId?:string):Promise<CheckoutResult>{
  if(!allowed()||!process.env.MERCADOPAGO_ACCESS_TOKEN||!process.env.SUPABASE_SERVICE_ROLE_KEY||!process.env.MERCADOPAGO_WEBHOOK_SECRET)
   return {ok:false,message:'Pagamentos temporariamente indisponíveis.'}
  const sb=await createClient()
@@ -54,11 +54,27 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):
     !/^[0-9]{11,14}$/.test(c.identification?.number||''))
    return {ok:false,message:'Confira os dados de pagamento e tente novamente.'}
  }
+ if(addonReleaseId!==undefined&&!/^[0-9a-f-]{36}$/i.test(addonReleaseId))
+  return {ok:false,message:'Identificação do lançamento inválida.'}
+ const addon=!!addonReleaseId
  const {data:plan,error:planError}=await sb.from('billing_plans')
-  .select('id,name,price_brl').eq('id',planId).eq('published',true).eq('archived',false).single()
- if(planError||!plan||!(Number(plan.price_brl)>0))
-  return {ok:false,message:'Plano não está disponível para compra.'}
- const amount=Number(plan.price_brl),db=admin()
+  .select('id,name,price_brl,instagram_addon_fee,has_instagram_included').eq('id',planId)
+  .eq('published',true).eq('archived',false).single()
+ if(planError||!plan)return {ok:false,message:'Plano não está disponível para compra.'}
+ if(addon){
+  const {data:current,error:currentError}=await sb.rpc('current_sintone_plan',{p_user:user.id})
+  if(currentError||current!==planId||plan.has_instagram_included||Number(plan.instagram_addon_fee)<=0)
+   return {ok:false,message:'Não há taxa adicional de Instagram para este plano.'}
+ }
+ const amount=addon?Number(plan.instagram_addon_fee):Number(plan.price_brl)
+ if(!(amount>0))return {ok:false,message:'Pagamento indisponível.'}
+ const db=admin()
+ if(addon){
+  const {data:already}=await db.from('billing_one_time_orders').select('id')
+   .eq('user_id',user.id).eq('release_id',addonReleaseId!)
+   .eq('order_kind','instagram_addon').eq('status','paid').maybeSingle()
+  if(already)return {ok:false,message:'O adicional deste lançamento já foi pago. Pode enviar a música.'}
+ }
  const {data:existing}=await db.from('billing_one_time_orders')
   .select('id,mp_order_id,method,amount_brl,plan_id').eq('user_id',user.id)
   .eq('status','pending').order('created_at',{ascending:false}).limit(1).maybeSingle()
@@ -70,7 +86,8 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):
   return {ok:false,message:'Existe um pagamento pendente em sua conta. Aguarde sua confirmação ou contate o suporte.'}
  }
  const {data:local,error:insertError}=await db.from('billing_one_time_orders')
-  .insert({user_id:user.id,plan_id:plan.id,amount_brl:amount,method:payment.method,status:'pending'})
+  .insert({user_id:user.id,plan_id:plan.id,amount_brl:amount,method:payment.method,status:'pending',
+   order_kind:addon?'instagram_addon':'plan',release_id:addon?addonReleaseId:null})
   .select('id').single()
  if(insertError||!local)return {ok:false,message:'Não foi possível iniciar o pagamento.'}
  let createdId:string|undefined
@@ -126,17 +143,17 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):
   }
   createdId=body.id
   const paid=await reconcile(body.id,local.id,amount)
-  if(paid)return {ok:true,status:'paid',message:'Pagamento confirmado. Seu acesso foi renovado por 30 dias.',orderId:local.id}
+  if(paid)return {ok:true,status:'paid',message:addon?'Adicional Instagram/Facebook pago. Agora pode enviar o lançamento.':'Pagamento confirmado. Seu acesso foi renovado por 30 dias.',orderId:local.id}
   if(body.status==='rejected'||body.status==='failed'||body.status==='canceled'){
    await db.from('billing_one_time_orders').update({status:'rejected'}).eq('id',local.id)
    return {ok:false,message:'Pagamento recusado. Nenhuma renovação foi aplicada.'}
   }
   const pix=body.transactions?.payments?.[0]?.payment_method
   if(payment.method==='pix'&&pix?.qr_code){
-   return {ok:true,status:'pending',message:'Pix gerado. O plano será liberado após a confirmação do pagamento.',
+   return {ok:true,status:'pending',message:addon?'Pix do adicional gerado. A seleção Instagram/Facebook será liberada após a confirmação.':'Pix gerado. O plano será liberado após a confirmação do pagamento.',
     orderId:local.id,pix:{code:pix.qr_code,qrBase64:pix.qr_code_base64||'',ticketUrl:pix.ticket_url||''}}
   }
-  return {ok:true,status:'pending',message:'Pagamento em processamento. O acesso será atualizado após confirmação.',orderId:local.id}
+  return {ok:true,status:'pending',message:addon?'Pagamento do adicional em processamento.':'Pagamento em processamento. O acesso será atualizado após confirmação.',orderId:local.id}
  }catch(e){
   // Se a API pode ter processado o pagamento, não marque como recusado nem permita duplicação.
   if(!createdId)console.error('[billing] Orders API failed or was rejected; review pending status',{localId:local.id})
@@ -150,13 +167,24 @@ export async function checkOneTimeOrder(localId:string):Promise<{ok:boolean;paid
  const sb=await createClient()
  const {data:{user}}=await sb.auth.getUser()
  if(!user||!/^[0-9a-f-]{36}$/i.test(localId))return {ok:false,paid:false,message:'Pedido inválido.'}
- const {data:row,error}=await sb.from('billing_one_time_orders').select('id,user_id,amount_brl,mp_order_id,status')
+ const {data:row,error}=await sb.from('billing_one_time_orders').select('id,user_id,amount_brl,mp_order_id,status,order_kind')
   .eq('id',localId).eq('user_id',user.id).single()
  if(error||!row)return {ok:false,paid:false,message:'Pagamento não encontrado.'}
  if(row.status==='paid')return {ok:true,paid:true,message:'Pagamento confirmado.'}
  if(!row.mp_order_id)return {ok:false,paid:false,message:'Pagamento aguardando conciliação.'}
  try{
   const paid=await reconcile(row.mp_order_id,row.id,Number(row.amount_brl))
-  return {ok:true,paid,message:paid?'Pagamento confirmado. Plano atualizado.':'Pagamento ainda não confirmado.'}
+  return {ok:true,paid,message:paid?(row.order_kind==='instagram_addon'?'Adicional Instagram/Facebook pago.':'Pagamento confirmado. Plano atualizado.'):'Pagamento ainda não confirmado.'}
  }catch{return {ok:false,paid:false,message:'Não foi possível consultar o pagamento agora.'}}
+}
+
+export async function checkReleaseAddon(releaseId:string):Promise<boolean>{
+ if(!/^[0-9a-f-]{36}$/i.test(releaseId))return false
+ const sb=await createClient()
+ const {data:{user}}=await sb.auth.getUser()
+ if(!user)return false
+ const {data}=await sb.from('billing_one_time_orders').select('id')
+  .eq('user_id',user.id).eq('release_id',releaseId)
+  .eq('order_kind','instagram_addon').eq('status','paid').limit(1)
+ return !!data?.length
 }

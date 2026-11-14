@@ -5,6 +5,9 @@ import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X} from 'l
 import {createClient} from '@/lib/supabase/client'
 import {uploadReleaseAsset} from '@/lib/upload-release-asset'
 import WaveformPreview from './WaveformPreview'
+import {DSP,isMetaStore} from '@/lib/dsp-catalog'
+import {SubscriptionCardForm} from '@/components/billing/SubscriptionCardForm'
+import {checkReleaseAddon} from '@/app/dashboard/billing-actions'
 import type {Data} from './ui'
 import './release-wizard.css'
 
@@ -18,7 +21,7 @@ type Track={
   credits:string;explicit:boolean;language:string
 }
 type Profile={id:string;name:string}
-const DSP=["7Digital","Amazon","Ami","Anghami","Apple Music","Apple Music 1","AWA","Beatport","Bmat","Boomplay","Bugs!","Deezer","Dreamus Company (Flo)","Facebook","Facebook Audio Library","Facebook Fingerprinting","Facebook Video","Facebook Video Figerprint","Fizy","FLO Music","Genie Music","Gracenote","Hungama","iHeartRadio","iHeart Radio US","iMusica","Jaxsta Music","JioSaavn","Joox","KKBox","KKBOXMY","Kuack Media","Kuaishou","LINE Music","Lyricfind","Meplaylist","Mixcloud","Muska","Napster","Naver","Naver Vibe","Nuuday A/S","Pandora","Peloton","Phononet","Pretzel Rocks","Qobuz","Resso","Snap","Soundcloud","Spotify","Spotify Discovery Mode","Tencent","Tidal","TikTok","Touchtunes","Trebel","United Media Agency (Uma)","Xite","Yandex Music","Youtube Music","Zvooq"] as const
+type CurrentPlan={id:string;name:string;price_brl:number;monthly_releases_limit:number|null;max_artists:number;included_stores:string[];has_instagram_included:boolean;instagram_addon_fee:number}
 const trackNew=():Track=>({
   key:crypto.randomUUID(),title:'',isrc:'',file:null,featured_artists:'',
   contributors:[],composers:'',producers:'',lyricists:'',credits:'',explicit:false,language:'pt'
@@ -56,9 +59,24 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [pYear,setPYear]=useState(new Date().getFullYear())
   const [cYear,setCYear]=useState(new Date().getFullYear())
   const [platformMode,setPlatformMode]=useState<'all'|'selected'>('all')
+  const [currentPlan,setCurrentPlan]=useState<CurrentPlan|null>(null)
+  const [planLoading,setPlanLoading]=useState(true)
+  const [monthlyUsed,setMonthlyUsed]=useState(0)
+  const [enableInstagram,setEnableInstagram]=useState(false)
+  const [addonCheckout,setAddonCheckout]=useState(false)
+  const [addonPaid,setAddonPaid]=useState(false)
+  const releaseId=useRef<string>(crypto.randomUUID())
   const [platforms,setPlatforms]=useState<string[]>([])
   const [platformModal,setPlatformModal]=useState(false)
-  const effectivePlatforms=platformMode==='all'?[...DSP]:platforms
+  const allowedDSP=currentPlan?.included_stores?.length?
+    currentPlan.included_stores:[...DSP]
+  const instagramAllowed=allowedDSP.some(isMetaStore)
+  const instagramFee=currentPlan?.has_instagram_included?0:Number(currentPlan?.instagram_addon_fee||0)
+  const requiresAddon=instagramFee>0
+  const effectivePlatforms=platformMode==='all'?
+   allowedDSP.filter(x=>!isMetaStore(x)||!requiresAddon||enableInstagram):
+   platforms.filter(x=>allowedDSP.includes(x))
+  const metaSelected=effectivePlatforms.some(isMetaStore)
   const [cover,setCover]=useState<File|null>(null)
   const [coverUrl,setCoverUrl]=useState('')
   const [errors,setErrors]=useState<Record<string,string>>({})
@@ -82,7 +100,26 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     })
     return()=>{mounted=false}
   },[d.me?.id])
-  useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
+  useEffect(()=>{
+    let active=true
+    const sb=createClient()
+    void (async()=>{
+      try{
+       const {data:id,error:identityError}=await sb.rpc('current_sintone_plan',{p_user:d.me.id})
+       if(identityError||!id)throw Error('Plano ativo não localizado. Acesse Planos e confira seu acesso.')
+       const now=new Date(),monthStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1))
+       const [{data:plan,error:planError},{count,error:countError}]=await Promise.all([
+        sb.from('billing_plans').select('id,name,price_brl,monthly_releases_limit,max_artists,included_stores,has_instagram_included,instagram_addon_fee').eq('id',id).single(),
+        sb.from('releases').select('id',{count:'exact',head:true}).eq('artist_id',d.me.id).gte('created_at',monthStart.toISOString())
+       ])
+       if(planError||countError||!plan)throw Error('Não foi possível carregar os limites do plano.')
+       if(active){setCurrentPlan(plan as CurrentPlan);setMonthlyUsed(count||0)}
+      }catch(e){if(active)setGeneralError(e instanceof Error?e.message:'Erro ao verificar plano')}
+      finally{if(active)setPlanLoading(false)}
+    })()
+    return()=>{active=false}
+  },[d.me.id])
+    useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
   useEffect(()=>{if(!platformModal)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setPlatformModal(false)};document.addEventListener('keydown',onKey);return()=>document.removeEventListener('keydown',onKey)},[platformModal])
 
   const editArtist=(key:string,part:Partial<Artist>)=>setArtists(a=>a.map(x=>x.key===key?{...x,...part}:x))
@@ -173,6 +210,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       if(!text(pHolder)||!text(cHolder))errorsFound.copyright='Informe os dois titulares de direitos.'
       if(!Number.isInteger(pYear)||pYear<1900||pYear>2200||!Number.isInteger(cYear)||cYear<1900||cYear>2200)errorsFound.copyright='Ano de copyright inválido.'
       if(!effectivePlatforms.length)errorsFound.platforms='Escolha pelo menos uma plataforma.'
+      if(planLoading||!currentPlan)errorsFound.plan='Não foi possível validar o plano. Recarregue o painel.'
+      if(currentPlan?.monthly_releases_limit!=null&&monthlyUsed>=currentPlan.monthly_releases_limit)errorsFound.plan='Seu limite de lançamentos deste mês foi atingido.'
       if(!cover)errorsFound.cover='Envie uma capa JPG 3000×3000.'
       if(!rights)errorsFound.rights='Confirme os direitos e autorizações do material.'
     }
@@ -190,21 +229,28 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     if(!check(1)){setStep(1);return}
     if(!check(2)){setStep(2);return}
     if(busy)return
+    if(metaSelected&&requiresAddon&&!addonPaid){
+      try{
+       const paid=await checkReleaseAddon(releaseId.current)
+       if(!paid){setAddonCheckout(true);setGeneralError('Finalize o pagamento do adicional Instagram/Facebook para enviar este lançamento.');return}
+       setAddonPaid(true)
+      }catch{setGeneralError('Não foi possível verificar o pagamento do Instagram/Facebook.');return}
+    }
     setBusy(true);setGeneralError('');setProgress('Autenticando...')
     success.current=false;uploadPaths.current=[]
     const client=createClient()
     try{
       const {data:{user},error:authErr}=await client.auth.getUser()
       if(authErr||!user)throw new Error('Sessão expirada. Entre novamente.')
-      const releaseId=crypto.randomUUID()
-      const coverPath=user.id+'/'+releaseId+'/cover.jpg'
+      const id=releaseId.current
+      const coverPath=user.id+'/'+id+'/cover.jpg'
       setProgress('Enviando a capa...')
       uploadPaths.current.push({bucket:'covers',path:coverPath})
       await uploadReleaseAsset('covers',coverPath,cover!,p=>setProgress('Capa: '+p+'%'))
       const payloadTracks=[]
       for(let i=0;i<tracks.length;i++){
         const t=tracks[i],ext=/\.flac$/i.test(t.file!.name)?'flac':'wav'
-        const audioPath=user.id+'/'+releaseId+'/tracks/'+String(i+1).padStart(2,'0')+'.'+ext
+        const audioPath=user.id+'/'+id+'/tracks/'+String(i+1).padStart(2,'0')+'.'+ext
         uploadPaths.current.push({bucket:'audio',path:audioPath})
         await uploadReleaseAsset('audio',audioPath,t.file!,p=>setProgress('Faixa '+(i+1)+'/'+tracks.length+': '+p+'%'))
         payloadTracks.push({
@@ -218,15 +264,17 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       }
       setProgress('Registrando lançamento e enviando para revisão...')
       const payload={
-        id:releaseId,type:format,title:title.trim(),genre:genre.trim(),
+        id,type:format,title:title.trim(),genre:genre.trim(),
         subgenre:subgenre.trim(),release_date:date,upc:upc.replace(/\s/g,''),
         artists:artists.map(a=>({profile_id:a.profile_id,name:a.name.trim(),role:a.role})),
         tracks:payloadTracks,cover_path:coverPath,rights_confirmed:rights,
         label_name:label.trim(),p_line:'℗ '+pYear+' '+pHolder.trim(),
         c_line:'© '+cYear+' '+cHolder.trim(),platforms:effectivePlatforms
       }
-      const {data,error}=await client.rpc('submit_sintone_release',{p:payload})
-      if(error||data!==releaseId)throw new Error(error?.message||'O cadastro não foi confirmado. Confira seu catálogo.')
+      const response=await fetch('/api/releases',{method:'POST',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      const result=await response.json()
+      if(!response.ok||result.id!==id)throw new Error(result.error||'O cadastro não foi confirmado. Confira seu catálogo.')
       success.current=true
       setProgress('Lançamento recebido! Aguarde a revisão da SINTONE.')
       reload()
@@ -417,7 +465,18 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
          <label className={platformMode==='selected'?'sr-mode active':'sr-mode'}><input type="radio" name="distributionMode" checked={platformMode==='selected'} onChange={()=>setPlatformMode('selected')}/> Apenas em plataformas selecionadas</label>
        </div>
        {platformMode==='selected'&&<button type="button" className="sr-select-platforms" onClick={()=>setPlatformModal(true)}>Selecione as plataformas aqui <span>{platforms.length} selecionadas</span></button>}
-      {err('platforms')}
+      {instagramAllowed&&<div className="sr-instagram-addon">
+        <label className="sr-check"><input type="checkbox" checked={metaSelected} onChange={e=>{
+          setEnableInstagram(e.target.checked)
+          if(platformMode==='selected')setPlatforms(prev=>e.target.checked?[...prev.filter(x=>!isMetaStore(x)),'Facebook']:prev.filter(x=>!isMetaStore(x)))
+        }}/>
+         {currentPlan?.has_instagram_included?'Instagram/Facebook incluído (R$ 0,00)':
+          'Incluir Instagram/Facebook ('+(requiresAddon?'+ '+instagramFee.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'sem custo')+')'}
+        </label>
+        {metaSelected&&requiresAddon&&<p>Adicional por lançamento. O pagamento precisa estar confirmado antes do envio.</p>}
+       </div>}
+      {currentPlan&&<p className="mut">Plano: <strong>{currentPlan.name}</strong> · Lançamentos neste mês: {monthlyUsed}/{currentPlan.monthly_releases_limit??'ilimitado'} · Até {currentPlan.max_artists} perfis de artista</p>}
+      {err('platforms')}{err('plan')}
       <h3>Capa do lançamento *</h3>
       <label className="sr-cover-picker">
         {coverUrl?<img src={coverUrl} alt="Prévia da capa do lançamento"/>:<UploadCloud size={27}/>}
@@ -430,7 +489,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         <span><strong>Formato</strong>{fmtTitle[format]} · {tracks.length} faixas</span>
         <span><strong>Artista principal</strong>{artists.find(a=>a.role==='primary')?.name||'—'}</span>
         <span><strong>Lançamento</strong>{title||'—'}</span>
-        <span><strong>Plataformas</strong>{platformMode==='all'?`Todas (${DSP.length})`:`${platforms.length} selecionadas`}</span>
+        <span><strong>Plataformas</strong>{`${effectivePlatforms.length} plataformas`}</span>
         <span><strong>Data</strong>{date||'—'}</span>
         <span><strong>Capa</strong>{cover?.name||'Pendente'}</span>
       </div>
@@ -440,7 +499,10 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       {err('rights')}
     </section>}
 
-    {platformModal&&<div className="sr-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPlatformModal(false)}}><section className="sr-modal" role="dialog" aria-modal="true" aria-labelledby="sr-modal-title"><header><div><h3 id="sr-modal-title">Selecionar plataformas</h3><p className="mut">{platforms.length} de {DSP.length} plataformas selecionadas</p></div><button type="button" className="sr-icon" aria-label="Fechar seleção" onClick={()=>setPlatformModal(false)}><X size={20}/></button></header><div className="sr-modal-actions"><button type="button" onClick={()=>setPlatforms([...DSP])}>Selecionar todas</button><button type="button" onClick={()=>setPlatforms([])}>Limpar seleção</button></div><div className="sr-platforms">{DSP.map(v=><label key={v} className="sr-platform"><input type="checkbox" checked={platforms.includes(v)} onChange={e=>setPlatforms(prev=>e.target.checked?[...prev,v]:prev.filter(k=>k!==v))}/>{v}</label>)}</div><footer><button type="button" className="btn" onClick={()=>setPlatformModal(false)}>Concluir seleção ({platforms.length})</button></footer></section></div>}
+    {addonCheckout&&currentPlan&&<SubscriptionCardForm plan={{id:currentPlan.id,name:currentPlan.name,price_brl:currentPlan.price_brl,frequency:1}}
+      addonReleaseId={releaseId.current} addonPrice={instagramFee}
+      onClose={()=>{setAddonCheckout(false);void checkReleaseAddon(releaseId.current).then(setAddonPaid)}}/>}
+    {platformModal&&<div className="sr-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPlatformModal(false)}}><section className="sr-modal" role="dialog" aria-modal="true" aria-labelledby="sr-modal-title"><header><div><h3 id="sr-modal-title">Selecionar plataformas</h3><p className="mut">{platforms.length} de {allowedDSP.length} plataformas selecionadas</p></div><button type="button" className="sr-icon" aria-label="Fechar seleção" onClick={()=>setPlatformModal(false)}><X size={20}/></button></header><div className="sr-modal-actions"><button type="button" onClick={()=>setPlatforms([...allowedDSP].filter(x=>!isMetaStore(x)||!requiresAddon))}>Selecionar todas</button><button type="button" onClick={()=>setPlatforms([])}>Limpar seleção</button></div><div className="sr-platforms">{allowedDSP.map(v=><label key={v} className="sr-platform"><input type="checkbox" checked={platforms.includes(v)} onChange={e=>setPlatforms(prev=>e.target.checked?[...prev,v]:prev.filter(k=>k!==v))}/>{isMetaStore(v)?v+' · Instagram/Facebook '+(requiresAddon?'+ '+instagramFee.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'incluído'):v}</label>)}</div><footer><button type="button" className="btn" onClick={()=>setPlatformModal(false)}>Concluir seleção ({platforms.length})</button></footer></section></div>}
      {generalError&&<p className="sr-error sr-global" role="alert">{generalError}</p>}
     {progress&&<p className="sr-progress" role="status">{progress}</p>}
     <div className="sr-footer">

@@ -1,48 +1,49 @@
-// REFERÊNCIA. O app em produção fala com o Supabase direto (Auth + RLS) e não usa Prisma.
-// Este arquivo espelha as tabelas criadas por supabase/onboarding.sql, para você usar em `prisma db pull`/Studio.
-// Se um dia usar Prisma no servidor, lembre: ele ignora o RLS, então toda checagem de permissão passa a ser sua.
+// Esquema de referência para uma migração futura ao Prisma.
+// A SINTONE em produção utiliza Supabase/PostgreSQL (sem Prisma Client no runtime).
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
-
-enum AccountType {
-  ARTIST
-  LABEL
-  @@map("account_type")
+model BillingPlan {
+  id                    String    @id @default(uuid()) @db.Uuid
+  name                  String
+  description           String    @default("")
+  price                 Decimal   @map("price_brl") @db.Decimal(10,2)
+  royaltyCommission     Decimal   @default(0) @map("royalty_commission") @db.Decimal(5,2)
+  monthlyReleasesLimit  Int?      @map("monthly_releases_limit")
+  maxArtists            Int       @default(20) @map("max_artists")
+  includedStores        String[]  @map("included_stores")
+  hasInstagramIncluded  Boolean   @default(false) @map("has_instagram_included")
+  instagramAddonFee     Decimal   @default(0) @map("instagram_addon_fee") @db.Decimal(10,2)
+  benefits              Json      @default("[]")
+  frequency             Int       @default(1)
+  frequencyType         String    @default("months") @map("frequency_type")
+  active                Boolean   @default(false)
+  published             Boolean   @default(false)
+  archived              Boolean   @default(false)
+  isDefault             Boolean   @default(false) @map("is_default")
+  mpPlanId              String?   @map("mp_plan_id")
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  orders                BillingOneTimeOrder[]
+  @@map("billing_plans")
 }
-
-enum AccountStatus {
-  PENDING_ONBOARDING
-  PENDING_CONTRACT
-  ACTIVE
-  BLOCKED
-  @@map("account_status")
-}
-
-model UserProfile {
-  id                 String        @id @db.Uuid // = auth.users.id do Supabase
-  email              String?
-  phone              String?
-  fullName           String?       @map("name")
-  birthDate          DateTime?     @map("birth_date") @db.Date
-  address            String?
-  accountType        AccountType?  @map("account_type")
-  status             AccountStatus @default(PENDING_ONBOARDING)
-  onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
-  canReleaseMusic    Boolean       @default(false) @map("can_release_music")
-  stageName          String?       @map("artist_name") // nome artístico (ARTIST) ou razão social (LABEL)
-  cpf                String?       @unique
-  cnpj               String?       @unique
-  role               String        @default("artist")
-  pixKey             String?       @map("pix_key")
-  contractAcceptedAt DateTime?     @map("contract_accepted_at") @db.Timestamptz
-  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
-
-  @@map("profiles")
+model BillingOneTimeOrder {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @map("user_id") @db.Uuid
+  planId                String    @map("plan_id") @db.Uuid
+  plan                  BillingPlan @relation(fields:[planId],references:[id])
+  amount                Decimal   @map("amount_brl") @db.Decimal(12,2)
+  method                String
+  status                String    @default("pending")
+  orderKind             String    @default("plan") @map("order_kind")
+  releaseId             String?   @map("release_id") @db.Uuid
+  mpOrderId             String?   @unique @map("mp_order_id")
+  confirmedAt           DateTime? @map("confirmed_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([userId,status,createdAt])
+  @@map("billing_one_time_orders")
 }

@@ -7,7 +7,7 @@ type BrickForm={token:string;payment_method_id:string;installments:number;payer:
 type Controller={unmount:()=>void}
 type MP={bricks:()=>{create:(name:string,id:string,settings:unknown)=>Promise<Controller>}}
 declare global{interface Window{MercadoPago?:new (key:string,opts?:{locale:string})=>MP}}
-export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}){
+export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice}:{plan:Plan;onClose:()=>void;addonReleaseId?:string;addonPrice?:number}){
  const [method,setMethod]=useState<'card'|'pix'>('card')
  const [sdkReady,setSdkReady]=useState(false)
  const [busy,setBusy]=useState(false)
@@ -20,13 +20,14 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
  const mounted=useRef(true)
  const inFlight=useRef(false)
  const completed=useRef(false)
- const price=Number(plan.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+ const total=addonReleaseId?Number(addonPrice):Number(plan.price_brl)
+ const price=total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
  const submit=useCallback(async(payment:Parameters<typeof startOneTimeCheckout>[1])=>{
   if(inFlight.current||completed.current)return false
   inFlight.current=true
   setBusy(true);setError('')
   try{
-   const res=await startOneTimeCheckout(plan.id,payment)
+   const res=await startOneTimeCheckout(plan.id,payment,addonReleaseId)
    if(!mounted.current)return false
    if(!res.ok){setError(res.message);return false}
    completed.current=true
@@ -36,7 +37,7 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
    return true
   }catch{if(mounted.current)setError('Erro de comunicação. Confira seu histórico de pagamentos antes de tentar novamente.');return false}
   finally{inFlight.current=false;if(mounted.current)setBusy(false)}
- },[plan.id])
+ },[plan.id,addonReleaseId])
  useEffect(()=>{
   mounted.current=true
   return()=>{mounted.current=false;try{controller.current?.unmount()}catch{}}
@@ -46,7 +47,7 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
   let disposed=false
   const mp=new window.MercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,{locale:'pt-BR'})
   void mp.bricks().create('cardPayment','st-brick-card',{
-   initialization:{amount:Number(plan.price_brl)},
+   initialization:{amount:total},
    customization:{visual:{style:{theme:'default'}}},
    callbacks:{
     onReady:()=>{if(!disposed)setReady(true)},
@@ -63,7 +64,7 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
   }).then(instance=>{if(disposed)instance.unmount();else controller.current=instance})
    .catch(()=>{if(!disposed)setError('Erro ao iniciar o formulário de pagamento.')})
   return()=>{disposed=true;try{controller.current?.unmount()}catch{}controller.current=null;setReady(false)}
- },[sdkReady,method,plan.price_brl,submit])
+ },[sdkReady,method,total,submit])
  async function check(){
   if(!resultId||busy)return
   setBusy(true)
@@ -73,8 +74,8 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
  return <div className="st-checkout-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)onClose()}}>
   <section className="st-checkout-dialog" role="dialog" aria-modal="true" aria-labelledby="st-checkout-title">
    <button className="st-checkout-close" type="button" onClick={onClose} disabled={busy} aria-label="Fechar">×</button>
-   <h2 id="st-checkout-title">Pagar {plan.name}</h2>
-   <p><strong>{price}</strong> por 30 dias de acesso. Pagamento único, sem renovação automática.</p>
+   <h2 id="st-checkout-title">{addonReleaseId?'Instagram/Facebook — adicional':'Pagar '+plan.name}</h2>
+   <p><strong>{price}</strong> {addonReleaseId?'para adicionar Instagram/Facebook neste lançamento. Pagamento único.':'por 30 dias de acesso. Pagamento único, sem renovação automática.'}</p>
    {resultId?<div className="st-checkout-success" role="status">
     <p>{message}</p>
     {pix&&<div>
@@ -96,7 +97,7 @@ export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}
      {!ready&&!error&&<p>Carregando checkout...</p>}
      <div id="st-brick-card"/>
     </>:<div>
-     <p className="st-checkout-note">Gere um Pix para pagar uma única vez. A renovação de 30 dias começa após a confirmação.</p>
+     <p className="st-checkout-note">Gere um Pix para pagar uma única vez. O serviço será liberado após a confirmação do pagamento.</p>
      <button type="button" className="st-plan-action" onClick={()=>void submit({method:'pix'})} disabled={busy}>{busy?'Gerando Pix...':'Gerar Pix de '+price}</button>
     </div>}
    </>}

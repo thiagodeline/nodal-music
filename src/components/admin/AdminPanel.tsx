@@ -16,10 +16,8 @@ import AdminAccounts from './AdminAccounts'
 import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 import AdminReleaseTracks from './AdminReleaseTracks'
 import AdminTickets from './AdminTickets'
-import AdminBilling from './AdminBilling'
 import AdminPayouts from './AdminPayouts'
 import AdminDelivery from './AdminDelivery'
-import AdminRoyaltyTerms from './AdminRoyaltyTerms'
 import AdminQA from './AdminQA'
 import ReleaseQuickPreview from './ReleaseQuickPreview'
 
@@ -70,7 +68,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
 
 export default function AdminPanel({adminLabel,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
-  const [tab,setTab]=useState<'releases'|'artists'|'royalties'|'plans'|'support'|'payouts'|'delivery'|'terms'>('releases')
+  const [tab,setTab]=useState<'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'>('releases')
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -108,7 +106,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
   const open=(r:AdminRelease,mode:'details'|'approve'|'reject'='details')=>{setSelectedId(r.id);setReviewMode(mode);setRejecting(mode==='reject');setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
-  const changeTab=(next:'releases'|'artists'|'royalties'|'plans'|'support'|'payouts'|'delivery'|'terms')=>{setTab(next);setSearch('');setFeedback(null)}
+  const changeTab=(next:'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery')=>{setTab(next);setSearch('');setFeedback(null)}
   async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
     try {const result=await getReleaseAudioUrl(id,trackId)
@@ -155,10 +153,9 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <button className={tab==='releases'?'sa-nav-active':''} onClick={()=>changeTab('releases')}><Music2 size={18}/> Lançamentos</button>
         <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contas</button>
         <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
-        <button className={tab==='plans'?'sa-nav-active':''} onClick={()=>changeTab('plans')}><CreditCard size={18}/> Planos</button>
+        <Link href="/admin/planos" className="sa-admin-plan-link"><CreditCard size={18}/> Planos</Link>
         <button className={tab==='support'?'sa-nav-active':''} onClick={()=>changeTab('support')}><MessageSquare size={18}/> Suporte</button>
         <button className={tab==='payouts'?'sa-nav-active':''} onClick={()=>changeTab('payouts')}><Banknote size={18}/> Saques e repasses</button>
-        <button className={tab==='terms'?'sa-nav-active':''} onClick={()=>changeTab('terms')}><UsersRound size={18}/> Comissões</button>
         <button className={tab==='delivery'?'sa-nav-active':''} onClick={()=>changeTab('delivery')}><Truck size={18}/> Entregas às lojas</button>
       </nav>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
@@ -176,7 +173,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         </button>)}</div>
         <div className="sa-board">
           <div className="sa-board-heading"><h2 className="sa-board-title">{
-            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',plans:'Planos',support:'Suporte',payouts:'Saques e repasses',terms:'Comissões',delivery:'Distribuição e entregas'} as Record<string,string>)[tab]
+            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',support:'Suporte',payouts:'Saques e repasses',delivery:'Distribuição e entregas'} as Record<string,string>)[tab]
           }</h2><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length)+' resultados':tab==='artists'?glyph(filteredUsers.length)+' resultados':'Gestão administrativa'}</span></div>
           {(tab==='releases'||tab==='artists') && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
@@ -211,7 +208,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <AdminBilling/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='terms' ? <AdminRoyaltyTerms users={users}/> : <AdminDelivery releases={releases}/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : <AdminDelivery releases={releases}/>}
         </div>
       </main>
     </div>

@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { createBillingPlan,registerMercadoPagoPlan } from '@/app/admin/actions'
+import { createBillingPlan,registerMercadoPagoPlan,testMercadoPagoConnection } from '@/app/admin/actions'
 import { CreditCard, LoaderCircle } from 'lucide-react'
 type Plan={id:string;name:string;description:string;price_brl:number;frequency:number;frequency_type:string;active:boolean;mp_plan_id:string|null}
 export default function AdminBilling(){
@@ -14,6 +14,7 @@ export default function AdminBilling(){
  const [description,setDescription]=useState('')
  const [price,setPrice]=useState('')
  const [frequency,setFrequency]=useState<1|12>(1)
+ const [connectionStatus,setConnectionStatus]=useState('')
  const load=useCallback(async()=>{
   const {data,error}=await sb.from('billing_plans')
     .select('id,name,description,price_brl,frequency,frequency_type,active,mp_plan_id')
@@ -33,6 +34,15 @@ export default function AdminBilling(){
    if(result.ok){setName('');setDescription('');setPrice('');await load()}
   }finally{setBusy('')}
  }
+ async function testConnection(){
+  if(busy)return
+  setBusy('connection');setConnectionStatus('')
+  try{
+   const result=await testMercadoPagoConnection()
+   setConnectionStatus(result.message||'')
+  }catch{setConnectionStatus('Não foi possível testar a conexão.')}
+  finally{setBusy('')}
+ }
  async function sync(id:string){
   setBusy(id);setMsg('')
   try{const result=await registerMercadoPagoPlan(id);setMsg(result.message||'');await load()}
@@ -40,6 +50,7 @@ export default function AdminBilling(){
  }
  return <div className="sa-billing">
   <div className="sa-billing-heading"><CreditCard size={24}/><div><h2>Planos e assinaturas</h2><p>Mercado Pago · Catálogo em preparação. Planos novos ficam inativos até a integração de cobrança ser validada.</p></div></div>
+  <div className="sa-billing-form"><h3>Conexão Mercado Pago</h3><p className="sa-x-note">Validação somente leitura. Não cria pagamentos.</p><button type="button" className="sa-download" disabled={!!busy} onClick={()=>void testConnection()}>Testar conexão</button>{connectionStatus&&<p role="status">{connectionStatus}</p>}</div>
   <form className="sa-billing-form" onSubmit={e=>void save(e)}>
    <h3>Criar plano</h3>
    <div className="sa-billing-grid">

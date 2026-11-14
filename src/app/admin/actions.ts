@@ -148,3 +148,24 @@ export async function registerMercadoPagoPlan(id:string):Promise<Result>{
     return {ok:true,message:'Plano registrado no Mercado Pago. Permanece inativo até a etapa de pagamentos.'}
   }catch{return {ok:false,message:'Falha de conexão com a API do Mercado Pago.'}}
 }
+
+/** Verificação somente leitura: não cria planos, assinaturas ou cobranças. */
+export async function testMercadoPagoConnection():Promise<Result>{
+  const ctx=await getAdminContext()
+  if(!ctx)return forbidden
+  const token=process.env.MERCADOPAGO_ACCESS_TOKEN
+  const site=process.env.SINTONE_SITE_URL
+  if(!token)return {ok:false,message:'Access Token não configurado no ambiente deste deployment.'}
+  if(!site){return {ok:false,message:'SINTONE_SITE_URL não configurada no ambiente deste deployment.'}}
+  try{
+    const response=await fetch('https://api.mercadopago.com/preapproval_plan/search',{
+      headers:{Authorization:'Bearer '+token,Accept:'application/json'},
+      method:'GET',cache:'no-store',signal:AbortSignal.timeout(12000)
+    })
+    if(response.ok)return {ok:true,message:'Conexão autorizada com a API de Assinaturas do Mercado Pago. Nenhuma cobrança foi criada.'}
+    if(response.status===401||response.status===403)return {ok:false,message:'Credencial recusada pelo Mercado Pago (HTTP '+response.status+'). Confirme o token e seu ambiente.'}
+    return {ok:false,message:'API de assinaturas retornou HTTP '+response.status+'. Verifique a aplicação do Mercado Pago.'}
+  }catch{
+    return {ok:false,message:'Não foi possível consultar a API do Mercado Pago. Tente novamente.'}
+  }
+}

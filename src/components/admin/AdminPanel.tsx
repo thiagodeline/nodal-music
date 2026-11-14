@@ -23,7 +23,7 @@ export type AdminUser = {
   id:string;name:string|null;artist_name:string|null;email:string|null;role:string;
   status:string;account_type:string|null;registration_profile:string|null;created_at:string
 }
-export type AdminContract = {user_id:string;signed_name:string;signed_at:string}
+export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
   adminLabel:string; users:AdminUser[]; releases:AdminRelease[]; contracts:AdminContract[];
   metrics:{users:number;pending:number;approved:number;total:number};
@@ -70,7 +70,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
     (!normalized || [r.title,r.main_artist,r.featured_artists,usersById.get(r.artist_id)?.artist_name,r.isrc,r.upc].some(v=>v?.toLocaleLowerCase('pt-BR').includes(normalized)))
   ),[releases,filter,normalized,usersById])
   const filteredUsers=useMemo(()=>users.filter(u=>{
-    const signed=contractsByUser.has(u.id)
+    const signed=contractsByUser.get(u.id)?.pdf_status==='ready'
     return (contractFilter==='all'||(contractFilter==='signed'?signed:!signed)) &&
       (!normalized || [u.name,u.artist_name,u.email].some(v=>v?.toLocaleLowerCase('pt-BR').includes(normalized)))
   }),[users,contractFilter,normalized,contractsByUser])
@@ -178,12 +178,12 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           </> : <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes. A contagem do card inclui todas as contas.</p>}
             <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Artista / Responsável</th><th>Perfil</th><th>Cadastro</th><th>Contrato</th><th>Ação</th></tr></thead><tbody>
-              {filteredUsers.map(u=>{const contract=contractsByUser.get(u.id);return <tr key={u.id}>
+              {filteredUsers.map(u=>{const contract=contractsByUser.get(u.id);const pdfReady=contract?.pdf_status==='ready';return <tr key={u.id}>
                 <td><div className="sa-user-cell"><span className="sa-avatar">{(u.artist_name||u.name||'A').slice(0,1).toUpperCase()}</span><div><strong>{u.artist_name||u.name||'Sem nome informado'}</strong><small>{u.email||'E-mail indisponível'}</small></div></div></td>
                 <td>{profileLabels[u.account_type||u.registration_profile||'']||'A definir'}</td><td>{fmtDate(u.created_at)}</td>
-                <td><span className={'sa-tag '+(contract?'sa-tag-approved':'sa-tag-pending')}>{contract?'Assinado':'Pendente'}</span>{contract&&<small className="sa-contract-date">{fmtDate(contract.signed_at)}</small>}</td>
-                <td>{contract?<button className="sa-download" disabled={busy===u.id} onClick={()=>downloadContract(u.id)}>{busy===u.id?<LoaderCircle className="sa-spin" size={16}/>:<Download size={16}/>} Baixar contrato PDF</button>:
-                  <span className="sa-muted">Aguardando assinatura</span>}</td>
+                <td><span className={'sa-tag '+(pdfReady?'sa-tag-approved':'sa-tag-pending')}>{pdfReady?'Assinado':contract?'PDF pendente':'Pendente'}</span>{contract&&<small className="sa-contract-date">{fmtDate(contract.signed_at)}</small>}</td>
+                <td>{pdfReady?<button className="sa-download" disabled={busy===u.id} onClick={()=>downloadContract(u.id)}>{busy===u.id?<LoaderCircle className="sa-spin" size={16}/>:<Download size={16}/>} Baixar contrato PDF</button>:
+                  <span className="sa-muted">{contract?'Aguardando PDF':'Aguardando assinatura'}</span>}</td>
               </tr>})}
             </tbody></table></div>
             {!filteredUsers.length&&<div className="sa-empty"><UsersRound size={36}/><h3>Nenhum artista encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}

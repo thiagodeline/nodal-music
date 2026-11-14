@@ -13,7 +13,7 @@ export default function Catalog({ d, can }: { d: Data; can: boolean }) {
     <div className="toolbar"><label className="search"><Search size={16} /><input placeholder="Buscar por título, ISRC ou UPC" value={q} onChange={e => setQ(e.target.value)} /></label>
       <div className="pills">{F.map(([k, l]) => <button key={k} className={f === k ? 'on' : ''} onClick={() => setF(k)}>{l}</button>)}</div></div>
     <div className="scroll"><table><thead><tr><th>Capa e título</th><th>Artista principal</th><th>ISRC / UPC</th><th>Envio</th><th>Status</th><th></th></tr></thead><tbody>
-      {rows.map(r => <tr key={r.id}><td><div className="cell"><Cover path={r.cover_path} size={44} /><div>{r.title}<small className="mut block">{r.type}</small></div></div></td><td>{r.main_artist || d.me?.artist_name || '—'}</td>
+      {rows.map(r => <tr key={r.id}><td><div className="cell"><Cover path={r.cover_path} size={44} /><div>{r.title}<small className="mut block">{r.type}</small>{r.status === 'rejected' && <small className="err block" style={{maxWidth:280,whiteSpace:'normal'}}>{r.rejection_reason || 'Consulte o suporte para saber o motivo da rejeição.'}</small>}</div></div></td><td>{r.main_artist || d.me?.artist_name || '—'}</td>
         <td className="mono">{r.isrc || '—'}<small className="mut block">{r.upc || '—'}</small></td><td>{dt(r.created_at)}</td><td><Badge s={r.status} /></td><td><button className="btn ghost sm" onClick={() => setSel(r)}>Ver detalhes</button></td></tr>)}</tbody></table></div>
     {!rows.length && <p className="mut pad">Nenhum resultado para esse filtro.</p>}
     {sel && <div className="modal" onClick={() => setSel(null)}><div className="sheet" onClick={e => e.stopPropagation()}>

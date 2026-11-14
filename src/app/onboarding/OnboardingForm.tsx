@@ -17,11 +17,11 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   return <label className="ob-f"><span>{label}</span>{children}{error && <em role="alert">{error}</em>}</label>
 }
 
-export default function OnboardingForm({ email }: { email: string }) {
+export default function OnboardingForm({ email, initialName = '', initialType = 'ARTIST', isProducer = false }: { email: string; initialName?: string; initialType?: 'ARTIST' | 'LABEL'; isProducer?: boolean }) {
   const router = useRouter(); const [serverError, setServerError] = useState(''), [detail, setDetail] = useState('')
   const { register, handleSubmit, watch, setValue, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema), mode: 'onTouched',
-    defaultValues: { accountType: 'ARTIST', stageName: '', fullName: '', birthDate: '', email, phone: '', address: '', document: '' },
+    defaultValues: { accountType: initialType, stageName: '', fullName: initialName, birthDate: '', email, phone: '', address: '', document: '' },
   })
   const type = watch('accountType'), t = COPY[type]
   const pick = (v: 'ARTIST' | 'LABEL') => { setValue('accountType', v); setValue('document', ''); clearErrors(); setServerError('') }
@@ -39,8 +39,9 @@ export default function OnboardingForm({ email }: { email: string }) {
     router.push('/dashboard'); router.refresh()
   }
   return (<main className="ob"><div className="ob-wrap">
-    <img src="/logo.png" alt="Nodal Music" className="ob-logo" />
+    <img src="/sintone-logo.svg" alt="SINTONE" className="ob-logo" />
     <h1>Escolha uma conta para criar</h1>
+    {isProducer && <p className="ob-sub">O perfil Produção utiliza cadastro individual (CPF).</p>}
     <p className="ob-sub">Boas-vindas! Conte-nos quem você é para podermos personalizar sua experiência.</p>
     <div className="ob-types" role="radiogroup" aria-label="Tipo de conta">
       {([['ARTIST', 'Artista', 'Lanço minha própria música', Mic2], ['LABEL', 'Selo', 'Gerencio um selo ou vários artistas', Building2]] as const).map(([k, name, desc, Ic]) =>

@@ -6,7 +6,7 @@ import { Data } from './ui'
 const steps = ['Dados e créditos', 'Áudio', 'Revisão']
 export default function NewRelease({ d, reload }: { d: Data; reload: () => void }) {
   const [st, setSt] = useState(0), [err, setErr] = useState(''), [busy, setBusy] = useState(false), [drag, setDrag] = useState(false)
-  const [v, setV] = useState({ title: '', type: 'single', artist: d.me?.artist_name || '', genre: '', date: '', isrc: '', upc: '', credits: '', explicit: false })
+  const [v, setV] = useState({ title: '', type: 'single', artist: d.me?.artist_name || '', genre: '', subgenre: '', featured: '', composers: '', producers: '', lyricists: '', date: '', isrc: '', upc: '', credits: '', explicit: false })
   const [cover, setCover] = useState<File | null>(null), [prev, setPrev] = useState(''), [audio, setAudio] = useState<File | null>(null)
   const inp = useRef<HTMLInputElement>(null)
   const set = (k: string, x: any) => setV(p => ({ ...p, [k]: x }))
@@ -39,7 +39,7 @@ export default function NewRelease({ d, reload }: { d: Data; reload: () => void 
     const up = async (b: string, f: File) => { const p = `${user.id}/${Date.now()}-${f.name.replace(/[^\w.-]/g, '_')}`; const { error } = await sb.storage.from(b).upload(p, f); if (error) throw error; return p }
     try {
       const c = await up('covers', cover), a = await up('audio', audio!)
-      const { error } = await sb.from('releases').insert({ artist_id: user.id, title: v.title.trim(), type: v.type, main_artist: v.artist.trim(), genre: v.genre || null, explicit: v.explicit, release_date: v.date || null, isrc: v.isrc.replace(/-/g, '').toUpperCase() || null, upc: v.upc.replace(/\s/g, '') || null, credits: v.credits.trim() || null, cover_path: c, audio_path: a, status: 'pending' })
+      const { error } = await sb.from('releases').insert({ artist_id: user.id, title: v.title.trim(), type: v.type, main_artist: v.artist.trim(), featured_artists: v.featured.trim() || null, genre: v.genre || null, subgenre: v.subgenre.trim() || null, composers: v.composers.trim() || null, producers: v.producers.trim() || null, lyricists: v.lyricists.trim() || null, explicit: v.explicit, release_date: v.date || null, isrc: v.isrc.replace(/-/g, '').toUpperCase() || null, upc: v.upc.replace(/\s/g, '') || null, credits: v.credits.trim() || null, cover_path: c, audio_path: a, status: 'pending' })
       if (error) throw error
       reload(); location.hash = '#catalog'
     } catch (x: any) { setErr('Não foi possível enviar: ' + (x.message ?? 'tente de novo.')); setBusy(false) }
@@ -53,16 +53,19 @@ export default function NewRelease({ d, reload }: { d: Data; reload: () => void 
           <label>Artista principal<input value={v.artist} onChange={e => set('artist', e.target.value)} maxLength={120} /></label></div>
         <div className="two"><label>Tipo<select value={v.type} onChange={e => set('type', e.target.value)}><option value="single">Single</option><option value="ep">EP</option><option value="album">Álbum</option></select></label>
           <label>Gênero<input value={v.genre} onChange={e => set('genre', e.target.value)} placeholder="Ex.: Funk, Sertanejo, Pop" /></label></div>
+        <div className="two"><label>Subgênero<input value={v.subgenre} onChange={e => set('subgenre', e.target.value)} placeholder="Ex.: Boom bap" maxLength={120} /></label><label>Artistas participantes (feat)<input value={v.featured} onChange={e => set('featured', e.target.value)} placeholder="Ex.: MC Nome, DJ Nome" maxLength={250}/></label></div>
         <label>Data de lançamento desejada<input type="date" value={v.date} onChange={e => set('date', e.target.value)} /></label>
         <div className="two"><label>ISRC (se já tiver)<input value={v.isrc} onChange={e => set('isrc', e.target.value)} placeholder="BRABC2600001" /></label>
           <label>UPC/EAN (se já tiver)<input value={v.upc} onChange={e => set('upc', e.target.value)} placeholder="12 ou 13 números" /></label></div>
         <p className="mut" style={{ margin: 0 }}>Sem ISRC ou UPC? Deixe em branco, a nossa equipe gera na aprovação.</p>
-        <label>Créditos (compositores, produtores, intérpretes)<textarea rows={3} value={v.credits} onChange={e => set('credits', e.target.value)} placeholder="Ex.: Composição: Ana Lima. Produção: Beto Souza." maxLength={1000} /></label>
+        <div className="two"><label>Compositores<input value={v.composers} onChange={e => set('composers', e.target.value)} maxLength={500} placeholder="Nomes completos"/></label><label>Produtores<input value={v.producers} onChange={e => set('producers', e.target.value)} maxLength={500} placeholder="Nomes completos"/></label></div>
+        <label>Letristas<input value={v.lyricists} onChange={e => set('lyricists', e.target.value)} maxLength={500} placeholder="Nomes completos"/></label>
+        <label>Outros créditos (intérpretes, mixagem, masterização)<textarea rows={3} value={v.credits} onChange={e => set('credits', e.target.value)} placeholder="Ex.: Composição: Ana Lima. Produção: Beto Souza." maxLength={1000} /></label>
         <label className="chk"><input type="checkbox" checked={v.explicit} onChange={e => set('explicit', e.target.checked)} /> Contém conteúdo explícito</label></div>}
       {st === 1 && <div className="form"><label>Áudio (WAV ou FLAC)<input type="file" accept=".wav,.flac,audio/wav,audio/flac" onChange={e => pickAudio(e.target.files?.[0])} /></label>
         {audio && <p className="ok">{audio.name} ({(audio.size / 1048576).toFixed(1)} MB)</p>}
         <p className="mut" style={{ margin: 0 }}>A capa é enviada no quadro ao lado.</p></div>}
-      {st === 2 && <div className="form"><dl className="review">{[['Título', v.title], ['Artista', v.artist], ['Tipo', v.type], ['Gênero', v.genre], ['Lançamento', v.date], ['ISRC', v.isrc], ['UPC/EAN', v.upc], ['Explícito', v.explicit ? 'Sim' : 'Não'], ['Áudio', audio?.name], ['Capa', cover?.name]].map(([k, x]) => <div key={k as string}><dt>{k}</dt><dd>{x || '—'}</dd></div>)}</dl>
+      {st === 2 && <div className="form"><dl className="review">{[['Título', v.title], ['Artista', v.artist], ['Tipo', v.type], ['Gênero', v.genre], ['Subgênero', v.subgenre], ['Participações', v.featured], ['Compositores', v.composers], ['Produtores', v.producers], ['Letristas', v.lyricists], ['Lançamento', v.date], ['ISRC', v.isrc], ['UPC/EAN', v.upc], ['Explícito', v.explicit ? 'Sim' : 'Não'], ['Áudio', audio?.name], ['Capa', cover?.name]].map(([k, x]) => <div key={k as string}><dt>{k}</dt><dd>{x || '—'}</dd></div>)}</dl>
         <p className="mut">Ao enviar, você declara ter os direitos sobre a obra, conforme o contrato e os Termos de Serviço. Nossa equipe revisa em seguida.</p></div>}
       {err && <p className="err" style={{ marginTop: 12 }}>{err}</p>}
       <div className="wiz-foot">{st > 0 && <button className="btn ghost" onClick={() => setSt(st - 1)} disabled={busy}>Voltar</button>}

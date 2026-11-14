@@ -1,7 +1,7 @@
 import { CO, type Sec } from './legal'
 
 export const privacidade: Sec[] = [
-  ['Quem somos', `${CO.razao}, CNPJ ${CO.cnpj}, com sede em ${CO.endereco} (“Nodal Music”), é a controladora dos dados pessoais tratados neste site e no painel, nos termos da Lei nº 13.709/2018 (LGPD).`, `Encarregado pelo tratamento de dados: ${CO.dpo}. Contato: ${CO.email}.`],
+  ['Quem somos', `${CO.razao}, CNPJ ${CO.cnpj}, com sede em ${CO.endereco} (“SINTONE”), é a controladora dos dados pessoais tratados neste site e no painel, nos termos da Lei nº 13.709/2018 (LGPD).`, `Encarregado pelo tratamento de dados: ${CO.dpo}. Contato: ${CO.email}.`],
   ['Dados que coletamos', 'Coletamos somente o que é necessário para prestar o serviço de distribuição:',
     '- Conta: nome artístico, e-mail e senha (guardada de forma criptografada, nunca em texto aberto).',
     '- Lançamentos: título, tipo, data, arquivo de áudio e capa que você envia.',
@@ -36,11 +36,11 @@ export const privacidade: Sec[] = [
 ]
 
 export const termos: Sec[] = [
-  ['Aceite', `Estes Termos de Serviço regem o uso do site e do painel da ${CO.razao} (“Nodal Music”). Ao criar uma conta, você declara que leu e concorda com eles e com a Política de Privacidade.`],
+  ['Aceite', `Estes Termos de Serviço regem o uso do site e do painel da ${CO.razao} (“SINTONE”). Ao criar uma conta, você declara que leu e concorda com eles e com a Política de Privacidade.`],
   ['Quem pode usar', '- Ter 18 anos ou mais, ou ser representado por responsável legal.',
     '- Ser pessoa jurídica regularmente constituída, quando a conta for de empresa ou selo, com poderes para aceitar estes termos.',
     '- Fornecer informações verdadeiras e mantê-las atualizadas.'],
-  ['O serviço', 'A Nodal Music entrega seus lançamentos às plataformas de streaming e lojas digitais parceiras e oferece um painel para acompanhar status, streams, receita e saques. Não garantimos que uma plataforma específica aceite ou mantenha o lançamento, nem resultados de audiência ou de receita.'],
+  ['O serviço', 'A SINTONE entrega seus lançamentos às plataformas de streaming e lojas digitais parceiras e oferece um painel para acompanhar status, streams, receita e saques. Não garantimos que uma plataforma específica aceite ou mantenha o lançamento, nem resultados de audiência ou de receita.'],
   ['Seus direitos autorais', 'Você continua titular de todos os direitos sobre suas obras e gravações. Você nos concede uma licença não exclusiva, limitada ao prazo em que o lançamento estiver ativo, apenas para reproduzir, entregar e disponibilizar o conteúdo às plataformas parceiras e para exibir seu nome, título e capa no painel. Não há exclusividade, e você pode pedir a retirada do lançamento a qualquer momento.'],
   ['O que você declara e garante', 'Ao enviar um lançamento, você declara que:',
     '- é titular, ou tem autorização por escrito, de todos os direitos de composição, fonograma, capa, voz e imagem envolvidos;',
@@ -51,16 +51,16 @@ export const termos: Sec[] = [
     '- Voz ou imagem de uma pessoa clonada ou simulada sem autorização.',
     '- Streams artificiais, bots, fazendas de cliques ou qualquer manipulação de audiência.',
     '- Conteúdo que promova ódio, violência, discriminação, ou que envolva a sexualização de crianças.',
-    '- Qualquer conteúdo ilegal ou que possa gerar penalidade para a Nodal Music junto às plataformas.'],
-  ['Royalties e pagamentos', `- Os valores vêm dos relatórios que as plataformas enviam. A Nodal Music retém ${CO.percentual}.`,
+    '- Qualquer conteúdo ilegal ou que possa gerar penalidade para a SINTONE junto às plataformas.'],
+  ['Royalties e pagamentos', `- Os valores vêm dos relatórios que as plataformas enviam. A SINTONE retém ${CO.percentual}.`,
     '- Os relatórios podem chegar com atraso, e o saldo só considera valores já recebidos e informados.',
     `- Saques são feitos por Pix, a partir de ${CO.saqueMin}, em até ${CO.prazoSaque} após a aprovação.`,
     '- Você é responsável pelos tributos incidentes sobre o que recebe. Podemos reter ou recolher tributos quando a lei exigir e pedir os dados fiscais necessários.',
     '- Valores estornados pelas plataformas por fraude, violação de direitos ou erro podem ser descontados de saldos futuros, conforme a Política de Reembolso e Estornos.'],
   ['Retirada de conteúdo e denúncias', 'Se recebermos uma notificação fundamentada de que um lançamento viola direitos, podemos retirá-lo das lojas e suspender pagamentos relacionados enquanto a questão é analisada, avisando você com os motivos e dando a chance de se manifestar, salvo quando a lei ou a plataforma exigir retirada imediata.'],
   ['Suspensão e encerramento', 'Você pode encerrar sua conta quando quiser. Podemos suspender ou encerrar contas que violem estes termos ou a lei, com aviso e motivo. Valores devidos e ainda não pagos serão pagos, descontados os estornos e tributos legais.'],
-  ['Responsabilidade', 'Atuamos com diligência, mas não respondemos por falhas ou decisões das plataformas parceiras fora do nosso controle. Você responde pelos danos que causar à Nodal Music ou a terceiros por violar estes termos. Nada nestes termos exclui direitos que a lei garanta a você como consumidor.'],
-  ['Propriedade intelectual da plataforma', 'O nome, o logo, o site e o painel da Nodal Music são protegidos e não podem ser copiados ou usados sem autorização.'],
+  ['Responsabilidade', 'Atuamos com diligência, mas não respondemos por falhas ou decisões das plataformas parceiras fora do nosso controle. Você responde pelos danos que causar à SINTONE ou a terceiros por violar estes termos. Nada nestes termos exclui direitos que a lei garanta a você como consumidor.'],
+  ['Propriedade intelectual da plataforma', 'O nome, o logo, o site e o painel da SINTONE são protegidos e não podem ser copiados ou usados sem autorização.'],
   ['Alterações', 'Podemos alterar estes termos. Avisaremos com pelo menos 30 dias de antecedência quando a mudança for relevante, e você poderá encerrar a conta se não concordar.'],
   ['Lei e foro', `Estes termos seguem a lei brasileira. Fica eleito o foro de ${CO.foro}, ressalvado o direito do consumidor de ajuizar ação no foro do seu domicílio.`],
   ['Contato', `${CO.email}.`],
@@ -78,7 +78,7 @@ export const cookies: Sec[] = [
 ]
 
 export const reembolso: Sec[] = [
-  ['A quem se aplica', 'Esta política trata de devolução de valores pagos à Nodal Music (como taxas de serviço, se houver) e de estornos de royalties.'],
+  ['A quem se aplica', 'Esta política trata de devolução de valores pagos à SINTONE (como taxas de serviço, se houver) e de estornos de royalties.'],
   ['Direito de arrependimento', 'Se você contratar um serviço pago pelo site, pode desistir em até 7 dias corridos da contratação, conforme o art. 49 do Código de Defesa do Consumidor, e receber a devolução integral do valor pago, no mesmo meio de pagamento, em até 10 dias úteis.'],
   ['Depois do prazo de 7 dias', '- Se o lançamento ainda não foi enviado às plataformas, devolvemos o valor pago pelo serviço não prestado.',
     '- Se o lançamento já foi entregue às lojas, o serviço foi prestado e a taxa não é devolvida, salvo falha nossa comprovada.',

@@ -147,10 +147,6 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contas</button>
         <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
       </nav>
-      <div className="sa-sidebar-secondary"><span>OUTRAS FERRAMENTAS</span>
-        <button type="button" onClick={()=>changeTab('artists')}><FileSignature size={17}/> Contratos e contas</button>
-        <button type="button" onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Importar royalties</button>
-      </div>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
     </aside>
     <div className="sa-main">

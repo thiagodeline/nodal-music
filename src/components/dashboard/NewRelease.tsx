@@ -1,7 +1,8 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
-import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud} from 'lucide-react'
+import Link from 'next/link'
+import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import {uploadReleaseAsset} from '@/lib/upload-release-asset'
 import WaveformPreview from './WaveformPreview'
@@ -18,7 +19,7 @@ type Track={
   credits:string;explicit:boolean;language:string
 }
 type Profile={id:string;name:string}
-const DSP=['Spotify','Apple Music','Deezer','YouTube Music','Amazon Music','Tidal','TikTok','Instagram/Facebook','SoundCloud'] as const
+const DSP=["7Digital","Amazon","Ami","Anghami","Apple Music","Apple Music 1","AWA","Beatport","Bmat","Boomplay","Bugs!","Deezer","Dreamus Company (Flo)","Facebook","Facebook Audio Library","Facebook Fingerprinting","Facebook Video","Facebook Video Figerprint","Fizy","FLO Music","Genie Music","Gracenote","Hungama","iHeartRadio","iHeart Radio US","iMusica","Jaxsta Music","JioSaavn","Joox","KKBox","KKBOXMY","Kuack Media","Kuaishou","LINE Music","Lyricfind","Meplaylist","Mixcloud","Muska","Napster","Naver","Naver Vibe","Nuuday A/S","Pandora","Peloton","Phononet","Pretzel Rocks","Qobuz","Resso","Snap","Soundcloud","Spotify","Spotify Discovery Mode","Tencent","Tidal","TikTok","Touchtunes","Trebel","United Media Agency (Uma)","Xite","Yandex Music","Youtube Music","Zvooq"] as const
 const trackNew=():Track=>({
   key:crypto.randomUUID(),title:'',isrc:'',file:null,featured_artists:'',
   contributors:[],composers:'',producers:'',lyricists:'',credits:'',explicit:false,language:'pt'
@@ -38,9 +39,11 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [step,setStep]=useState(0)
   const [format,setFormat]=useState<Format>('single')
   const [artists,setArtists]=useState<Artist[]>([
-    {key:'primary',profile_id:'',name:d.me?.artist_name||'',role:'primary'}
+    {key:'primary',profile_id:'',name:'',role:'primary'}
   ])
   const [profiles,setProfiles]=useState<Profile[]>([])
+  const [profilesLoading,setProfilesLoading]=useState(true)
+  const [profilesError,setProfilesError]=useState(false)
   const [tracks,setTracks]=useState<Track[]>(()=>[trackNew()])
   const [activeTrack,setActiveTrack]=useState(0)
   const [title,setTitle]=useState('')
@@ -53,7 +56,10 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [cHolder,setCHolder]=useState(d.me?.artist_name||'')
   const [pYear,setPYear]=useState(new Date().getFullYear())
   const [cYear,setCYear]=useState(new Date().getFullYear())
-  const [platforms,setPlatforms]=useState<string[]>(['Spotify','Apple Music','Deezer','YouTube Music','Amazon Music'])
+  const [platformMode,setPlatformMode]=useState<'all'|'selected'>('all')
+  const [platforms,setPlatforms]=useState<string[]>([])
+  const [platformModal,setPlatformModal]=useState(false)
+  const effectivePlatforms=platformMode==='all'?[...DSP]:platforms
   const [cover,setCover]=useState<File|null>(null)
   const [coverUrl,setCoverUrl]=useState('')
   const [errors,setErrors]=useState<Record<string,string>>({})
@@ -70,12 +76,15 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     const sb=createClient()
     sb.from('artist_profiles').select('id,name').eq('owner_id',d.me?.id).order('created_at').then(({data,error})=>{
       if(!mounted)return
-      if(error)setGeneralError('Não foi possível carregar seus perfis artísticos. Você ainda pode informar os nomes manualmente.')
+      setProfilesLoading(false)
+      setProfilesError(!!error)
+      if(error){setGeneralError('Não foi possível carregar os artistas. Recarregue a página.');return}
       setProfiles(data||[])
     })
     return()=>{mounted=false}
   },[d.me?.id])
   useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
+  useEffect(()=>{if(!platformModal)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setPlatformModal(false)};document.addEventListener('keydown',onKey);return()=>document.removeEventListener('keydown',onKey)},[platformModal])
 
   const editArtist=(key:string,part:Partial<Artist>)=>setArtists(a=>a.map(x=>x.key===key?{...x,...part}:x))
   const editTrack=(key:string,part:Partial<Track>)=>setTracks(a=>a.map(x=>x.key===key?{...x,...part}:x))
@@ -106,7 +115,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   }
   const selectProfile=(a:Artist,profileId:string)=>{
     const p=profiles.find(x=>x.id===profileId)
-    editArtist(a.key,{profile_id:p?.id||'',name:p?.name||a.name})
+    editArtist(a.key,{profile_id:p?.id||'',name:p?.name||''})
   }
   const selectAudio=(key:string,f?:File)=>{
     if(!f)return
@@ -134,10 +143,11 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   function check(s:number) {
     const errorsFound:Record<string,string>={}
     if(s===0){
+      if(profilesLoading||profilesError||!profiles.length)errorsFound.artists='Cadastre um artista em Meus Artistas antes de continuar.'
       if(!artists.length||artists.filter(x=>x.role==='primary').length!==1)
         errorsFound.artists='Escolha exatamente um artista principal.'
       artists.forEach(a=>{
-        if(!text(a.name))errorsFound['artist.'+a.key]='Informe o nome ou selecione um perfil.'
+        if(!a.profile_id||!profiles.some(p=>p.id===a.profile_id&&p.name===a.name))errorsFound['artist.'+a.key]='Selecione um artista cadastrado em Meus Artistas.'
       })
     }
     if(s===1){
@@ -163,7 +173,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       if(!text(label)||text(label).length<2)errorsFound.label='Informe o selo.'
       if(!text(pHolder)||!text(cHolder))errorsFound.copyright='Informe os dois titulares de direitos.'
       if(!Number.isInteger(pYear)||pYear<1900||pYear>2200||!Number.isInteger(cYear)||cYear<1900||cYear>2200)errorsFound.copyright='Ano de copyright inválido.'
-      if(!platforms.length)errorsFound.platforms='Escolha pelo menos uma plataforma.'
+      if(!effectivePlatforms.length)errorsFound.platforms='Escolha pelo menos uma plataforma.'
       if(!cover)errorsFound.cover='Envie uma capa JPG 3000×3000.'
       if(!rights)errorsFound.rights='Confirme os direitos e autorizações do material.'
     }
@@ -214,7 +224,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         artists:artists.map(a=>({profile_id:a.profile_id,name:a.name.trim(),role:a.role})),
         tracks:payloadTracks,cover_path:coverPath,rights_confirmed:rights,
         label_name:label.trim(),p_line:'℗ '+pYear+' '+pHolder.trim(),
-        c_line:'© '+cYear+' '+cHolder.trim(),platforms
+        c_line:'© '+cYear+' '+cHolder.trim(),platforms:effectivePlatforms
       }
       const {data,error}=await client.rpc('submit_sintone_release',{p:payload})
       if(error||data!==releaseId)throw new Error(error?.message||'O cadastro não foi confirmado. Confira seu catálogo.')
@@ -266,18 +276,19 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         </button>)}
       </div>
       <h3>Dados dos artistas</h3>
-      <p className="mut">Selecione um perfil cadastrado em “Meus Artistas” ou informe o nome manualmente. Cada participante precisa de uma função.</p>
+      <p className="mut">Selecione exclusivamente artistas cadastrados em “Meus Artistas”. Cada participante precisa de uma função.</p>
+      {!profilesLoading&&!profilesError&&profiles.length===0&&<div className="sr-artist-alert" role="alert"><strong>Você precisa cadastrar pelo menos um artista em 'Meus Artistas' para criar um lançamento</strong><Link className="btn" href="/dashboard#profiles"><Plus size={16}/> Cadastrar em Meus Artistas</Link></div>}
+      {profilesLoading&&<p className="mut" role="status">Carregando artistas cadastrados...</p>}
+      {profilesError&&<p className="sr-error" role="alert">Não foi possível carregar os artistas. Recarregue a página.</p>}
       {artists.map((a,i)=><div className="sr-artist-row" key={a.key}>
         <span className="sr-num">{i+1}</span>
         <label>Perfil artístico
           <select value={a.profile_id} onChange={e=>selectProfile(a,e.target.value)}>
-            <option value="">Nome manual</option>
+            <option value="" disabled>Selecione um artista cadastrado</option>
             {profiles.map(p=><option value={p.id} key={p.id}>{p.name}</option>)}
           </select></label>
         <label>Nome do artista
-          <input value={a.name} maxLength={120} className={show('artist.'+a.key)}
-            disabled={!!a.profile_id} onChange={e=>editArtist(a.key,{name:e.target.value})}
-            placeholder="Nome exibido nas plataformas"/>
+          <input value={a.name} className={show('artist.'+a.key)} readOnly aria-readonly="true" placeholder="Selecione um perfil artístico"/>
           {err('artist.'+a.key)}
         </label>
         <label>Função
@@ -287,7 +298,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         {i>0&&<button type="button" className="sr-icon" aria-label="Remover artista" onClick={()=>setArtists(v=>v.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>}
       </div>)}
       {err('artists')}
-      <button type="button" className="btn ghost sm" onClick={addArtist} disabled={artists.length>=20}><Plus size={15}/> Adicionar artista</button>
+      <button type="button" className="btn ghost sm" onClick={addArtist} disabled={artists.length>=20||profilesLoading||profilesError||!profiles.length}><Plus size={15}/> Adicionar artista</button>
     </section>}
 
     {step===1&&<section className="card sr-panel">
@@ -401,10 +412,12 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
           <input maxLength={150} value={cHolder} onChange={e=>setCHolder(e.target.value)}/></label>
       </div>
       {err('copyright')}
-      <h3>Plataformas de distribuição *</h3>
-      <div className="sr-platforms">{DSP.map(v=><label key={v} className="sr-platform">
-        <input type="checkbox" checked={platforms.includes(v)} onChange={e=>setPlatforms(prev=>e.target.checked?[...prev,v]:prev.filter(k=>k!==v))}/>
-        {v}</label>)}</div>
+      <h3>Escolha onde você quer distribuir sua música *</h3>
+       <div className="sr-platform-modes" role="radiogroup" aria-label="Plataformas de distribuição">
+         <label className={platformMode==='all'?'sr-mode active':'sr-mode'}><input type="radio" name="distributionMode" checked={platformMode==='all'} onChange={()=>setPlatformMode('all')}/> Todas as plataformas</label>
+         <label className={platformMode==='selected'?'sr-mode active':'sr-mode'}><input type="radio" name="distributionMode" checked={platformMode==='selected'} onChange={()=>setPlatformMode('selected')}/> Apenas em plataformas selecionadas</label>
+       </div>
+       {platformMode==='selected'&&<button type="button" className="sr-select-platforms" onClick={()=>setPlatformModal(true)}>Selecione as plataformas aqui <span>{platforms.length} selecionadas</span></button>
       {err('platforms')}
       <h3>Capa do lançamento *</h3>
       <label className="sr-cover-picker">
@@ -418,7 +431,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         <span><strong>Formato</strong>{fmtTitle[format]} · {tracks.length} faixas</span>
         <span><strong>Artista principal</strong>{artists.find(a=>a.role==='primary')?.name||'—'}</span>
         <span><strong>Lançamento</strong>{title||'—'}</span>
-        <span><strong>Plataformas</strong>{platforms.length} selecionadas</span>
+        <span><strong>Plataformas</strong>{platformMode==='all'?`Todas (${DSP.length})`:`${platforms.length} selecionadas`}</span>
         <span><strong>Data</strong>{date||'—'}</span>
         <span><strong>Capa</strong>{cover?.name||'Pendente'}</span>
       </div>
@@ -428,12 +441,13 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       {err('rights')}
     </section>}
 
-    {generalError&&<p className="sr-error sr-global" role="alert">{generalError}</p>}
+    {platformModal&&<div className="sr-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPlatformModal(false)}}><section className="sr-modal" role="dialog" aria-modal="true" aria-labelledby="sr-modal-title"><header><div><h3 id="sr-modal-title">Selecionar plataformas</h3><p className="mut">{platforms.length} de {DSP.length} plataformas selecionadas</p></div><button type="button" className="sr-icon" aria-label="Fechar seleção" onClick={()=>setPlatformModal(false)}><X size={20}/></button></header><div className="sr-modal-actions"><button type="button" onClick={()=>setPlatforms([...DSP])}>Selecionar todas</button><button type="button" onClick={()=>setPlatforms([])}>Limpar seleção</button></div><div className="sr-platforms">{DSP.map(v=><label key={v} className="sr-platform"><input type="checkbox" checked={platforms.includes(v)} onChange={e=>setPlatforms(prev=>e.target.checked?[...prev,v]:prev.filter(k=>k!==v))}/>{v}</label>)}</div><footer><button type="button" className="btn" onClick={()=>setPlatformModal(false)}>Concluir seleção ({platforms.length})</button></footer></section></div>}
+     {generalError&&<p className="sr-error sr-global" role="alert">{generalError}</p>}
     {progress&&<p className="sr-progress" role="status">{progress}</p>}
     <div className="sr-footer">
       {step>0&&<button type="button" className="btn ghost" onClick={()=>{setStep(i=>i-1);setErrors({})}} disabled={busy}><ChevronLeft size={16}/> Voltar</button>}
       <span className="mut">Etapa {step+1} de 3</span>
-      {step<2?<button type="button" className="btn" disabled={busy} onClick={next}>Continuar <ChevronRight size={16}/></button>:
+      {step<2?<button type="button" className="btn" disabled={busy||(step===0&&(profilesLoading||profilesError||!profiles.length))} onClick={next}>Continuar <ChevronRight size={16}/></button>:
         <button type="button" className="btn" disabled={busy} onClick={()=>void send()}>{busy?'Enviando arquivos...':'Enviar para revisão'} <Check size={16}/></button>}
     </div>
   </div>

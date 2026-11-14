@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Music2, PlusCircle, BarChart3, Wallet, Handshake, UserRound, LifeBuoy, Settings, LogOut, Menu, ShieldCheck, ArrowLeft, Lock, FileSignature, FileSpreadsheet } from 'lucide-react'
+import { LayoutDashboard, Music2, PlusCircle, BarChart3, Wallet, Handshake, UserRound, LifeBuoy, Settings, LogOut, Menu, ShieldCheck, ArrowLeft, Lock, FileSignature, FileSpreadsheet, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import './dashboard.css'
 import type { Data } from './ui'
@@ -15,6 +15,8 @@ import Artists from './Artists'
 import Support from './Support'
 import Splits from './Splits'
 import { ContractBanner } from './ContractBanner'
+import {PlanCards,type PublicPlan} from '@/components/billing/PlanCards'
+import '@/components/billing/plans.css'
 import { useCanReleaseMusic } from './useCanReleaseMusic'
 
 const NAV: [string, [string, string, any][]][] = [
@@ -25,26 +27,41 @@ const NAV: [string, [string, string, any][]][] = [
   ['Configurações', [['profiles', 'Meus Artistas', UserRound], ['support', 'Suporte', LifeBuoy], ['account', 'Minha Conta', Settings]]],
 ]
 const ADM: [string, [string, string, any][]] = ['Administração', [['admin', 'Painel Admin', ShieldCheck]]]
-const ROUTES = [...NAV, ADM].flatMap(s => s[1].map(i => i[0]))
+const ROUTES = [...NAV, ADM].flatMap(s => s[1].map(i => i[0])).concat('plans')
 const nav = (adm: boolean) => adm ? [...NAV, ADM] : NAV
 
 export default function Dashboard() {
   const [d, setD] = useState<Data | null>(null), [route, setRoute] = useState('overview'), [open, setOpen] = useState(false)
+  const [plans,setPlans]=useState<PublicPlan[]>([])
+  const [subscription,setSubscription]=useState<{plan_id:string;status:string}|null>(null)
+  const [billingLoading,setBillingLoading]=useState(true)
   const load = useCallback(async () => {
     const sb = createClient(); const { data: { user } } = await sb.auth.getUser(); if (!user) { location.href = '/login'; return }
-    const [me, r, rp, w] = await Promise.all([
+    const [me, r, rp, w, bs, catalog] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).single(),
       sb.from('releases').select('*,release_tracks(position,title,isrc,audio_path,composers,producers,lyricists,language,explicit)').eq('artist_id', user.id).order('created_at', { ascending: false }),
       sb.from('reports').select('*').eq('artist_id', user.id),
-      sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false })])
+      sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false }),
+      sb.from('billing_subscriptions').select('plan_id,status').eq('user_id',user.id).order('created_at',{ascending:false}),
+      sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,is_default').eq('published',true).eq('archived',false).order('price_brl')])
     if (me.data?.onboarding_completed === false || me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
+    if(bs.error)console.error('Falha ao consultar modalidade do artista',bs.error.message)
+    if(catalog.error)console.error('Falha ao consultar modalidades',catalog.error.message)
+    const current=(bs.data??[]).find(x=>x.status==='authorized'||x.status==='free')||(bs.data??[]).find(x=>x.status==='expired')||null
+    setSubscription(current)
+    setPlans((catalog.data??[]) as PublicPlan[])
+    setBillingLoading(false)
     setD({ me: me.data, email: user.email ?? '', releases: (r.data ?? []).map(x=>({...x,tracks:(x.release_tracks??[]).sort((a:any,b:any)=>a.position-b.position)})), reports: rp.data ?? [], wds: w.data ?? [] })
   }, [])
   useEffect(() => { load() }, [load])
   useEffect(() => { const f = () => { const h = location.hash.slice(1); if (h === 'admin') { location.replace('/admin'); return } setRoute(ROUTES.includes(h) ? h : 'overview'); setOpen(false); window.scrollTo(0, 0) }; f(); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
   const isAdm = d?.me?.role === 'admin'
-  const gate = useCanReleaseMusic(d?.me), locked = !!d && !gate.canRelease
-  const title = [...NAV, ADM].flatMap(s => s[1]).find(i => i[0] === route)![1]
+  const gate = useCanReleaseMusic(d?.me)
+  const expired=subscription?.status==='expired'
+  const locked=!!d&&(!gate.canRelease||expired||billingLoading)
+  const showUpgrade=expired||plans.some(x=>Number(x.price_brl)>0)
+  const restricted=expired&&!['plans','support','account','financial','catalog'].includes(route)
+  const title = route==='plans'?'Planos':([...NAV, ADM].flatMap(s=>s[1]).find(i=>i[0]===route)?.[1]||'Painel')
   async function out() { await createClient().auth.signOut(); location.href = '/' }
   return (<div className="nd">
     <aside className={'nd-side' + (open ? ' open' : '')}>
@@ -54,13 +71,17 @@ export default function Dashboard() {
     </aside>
     <div className="nd-main">
       <header className="nd-top"><button className="burger" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={20} /></button><h1>{title}</h1>{(route === 'admin' || route === 'contracts' || route === 'royalties') && <a className="btn ghost sm" href="#overview"><ArrowLeft size={15} />Voltar ao Painel de Artista</a>}
-        <div className="who"><span>{d?.me?.artist_name || d?.email}</span></div></header>
+        {showUpgrade&&<a className="btn sm" href="#plans"><CreditCard size={16}/> Upgrade</a>}<div className="who"><span>{d?.me?.artist_name || d?.email}</span></div></header>
       <main>{!d ? <p className="mut">Carregando…</p> : <>
+        {expired&&<div className="banner red" role="alert"><Lock size={20}/><p><strong>Seu plano está expirado, assine algum plano para continuar lançando músicas.</strong> <a href="#plans">Ver planos disponíveis</a>.</p></div>}
         {route !== 'admin' && route !== 'contracts' && route !== 'royalties' && <ContractBanner status={gate.status} signed={!!d.me?.contract_accepted_at} />}
-        {route === 'overview' && <Overview d={d} can={gate.canRelease} />}{route === 'catalog' && <Catalog d={d} can={gate.canRelease} />}
-        {route === 'new' && (gate.canRelease ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
+        {restricted?<div className="card"><h3>Acesso restrito</h3><p>Seu plano está expirado, assine algum plano para continuar lançando músicas.</p><a className="btn" href="#plans">Ver planos</a></div>:<>
+        {route === 'plans' && <div className="card"><h2>Planos da SINTONE</h2><p className="mut">Veja sua modalidade atual e as opções disponíveis.</p><PlanCards plans={plans} context="dashboard" currentPlanId={subscription?.plan_id}/></div>}
+        {route === 'overview' && <Overview d={d} can={!locked} />}{route === 'catalog' && <Catalog d={d} can={!locked} />}
+        {route === 'new' && (!locked ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>{expired?'Seu plano está expirado. Escolha uma nova modalidade para voltar a lançar músicas.':'Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.'}</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
         {route === 'financial' && <Finance d={d} reload={load} />}{route === 'account' && <Account d={d} reload={load} />}
-        {route === 'split' && <Splits d={d} can={gate.canRelease} />}{route === 'profiles' && <Artists d={d} />}{route === 'support' && <Support d={d} />}
+        {route === 'split' && <Splits d={d} can={!locked} />}{route === 'profiles' && <Artists d={d} />}{route === 'support' && <Support d={d} />}
+        </>}
         </>}</main>
     </div></div>)
 }

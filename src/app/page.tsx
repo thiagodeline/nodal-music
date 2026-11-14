@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import './landing.css'
 import '@/components/legal.css'
+import {createClient} from '@/lib/supabase/server'
+import {PlanCards,type PublicPlan} from '@/components/billing/PlanCards'
+import '@/components/billing/plans.css'
+export const dynamic='force-dynamic'
 
 const stores = ['Spotify', 'Apple Music', 'YouTube Music', 'Deezer', 'TikTok', 'Instagram', 'SoundCloud', 'Amazon Music']
 const bars = [38, 52, 44, 70, 62, 88, 76]
@@ -23,11 +27,14 @@ const faq = [
   ['Que arquivos eu preciso enviar?', 'O áudio em WAV ou FLAC e uma capa em JPG ou PNG, no tamanho 3000×3000.'],
 ]
 
-export default function Home() {
+export default async function Home() {
+  const sb=await createClient()
+  const {data}=await sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,is_default').eq('published',true).eq('archived',false).order('price_brl',{ascending:true})
+  const plans=(data||[]) as PublicPlan[]
   return (<>
     <header className="l-head"><div className="wrap l-bar">
       <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
-      <nav className="l-links"><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#faq">Perguntas</a></nav>
+      <nav className="l-links"><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#faq">Perguntas</a>{plans.length>0&&<a href="#planos">Planos</a>}</nav>
       <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/register">Criar conta</Link></div>
     </div></header>
 
@@ -36,7 +43,7 @@ export default function Home() {
         <div>
           <p className="l-pill">Para artistas e selos independentes</p>
           <h1>Sua música no ar, com dados claros e gente do seu lado.</h1>
-          <p className="l-sub">A Nodal distribui seus lançamentos nas maiores plataformas e mostra, em um painel simples, quanto cada stream rendeu.</p>
+          <p className="l-sub">A SINTONE distribui seus lançamentos nas maiores plataformas e mostra, em um painel simples, quanto cada stream rendeu.</p>
           <div className="l-row"><Link className="btn" href="/register">Criar conta grátis</Link><a className="btn ghost" href="#como">Ver como funciona</a></div>
         </div>
         <div className="l-mock" aria-label="Exemplo ilustrativo do painel do artista">
@@ -59,7 +66,7 @@ export default function Home() {
       <section className="l-dark"><div className="wrap">
         <h2>Velhas distribuidoras, velhos problemas</h2>
         <div className="l-grid3">{pains.map(([t, d]) => <div className="l-pain" key={t}><h3>{t}</h3><p>{d}</p></div>)}</div>
-        <p className="l-turn">Na Nodal, o suporte responde, o relatório é legível e o contrato é claro.</p>
+        <p className="l-turn">Na SINTONE, o suporte responde, o relatório é legível e o contrato é claro.</p>
       </div></section>
 
       <section className="wrap l-sec" id="recursos">
@@ -75,6 +82,8 @@ export default function Home() {
           <li><b>Acompanhe e receba</b><span>Veja streams e receita e peça o saque por Pix.</span></li>
         </ol>
       </div></section>
+
+      {plans.length>0&&<section className="wrap st-plan-area" id="planos"><h2>Escolha como distribuir sua música</h2><p>Veja os recursos e condições disponíveis em cada modalidade.</p><PlanCards plans={plans}/></section>}
 
       <section className="wrap l-sec" id="faq">
         <h2>Perguntas frequentes</h2>

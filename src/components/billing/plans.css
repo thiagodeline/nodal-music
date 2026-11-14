@@ -1,0 +1,25 @@
+.st-plan-area{padding-top:68px;padding-bottom:80px}
+.st-plan-area h2{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:10px}
+.st-plan-area>p{margin-bottom:26px;color:#64748b}
+.st-plan-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:22px;align-items:stretch;margin:22px 0}
+.st-plan{background:#fff;border:2px solid #cbd5e1;border-radius:24px;overflow:hidden;min-width:0;position:relative;display:flex;flex-direction:column;color:#0f172a}
+.st-plan-free{border-color:#cbd5e1}.st-plan-featured{border-color:#fa3058}.st-plan-premium{border-color:#41bac9}
+.st-plan-band{height:42px;background:repeating-linear-gradient(130deg,rgba(255,255,255,.16) 0 25px,transparent 25px 50px),#d6dae0}
+.st-plan-featured .st-plan-band{background-color:#fa3058}.st-plan-premium .st-plan-band{background-color:#41bac9}
+.st-plan-content{background:#fff;border-radius:23px 23px 0 0;margin-top:-9px;position:relative;padding:23px 24px 28px;flex:1;display:flex;flex-direction:column}
+.st-plan-content h3{font-size:1.4rem;margin:0 0 7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.st-plan-badge{background:#e5eaff;color:#1d4ed8;padding:4px 8px;border-radius:999px;font-size:11px}
+.st-plan-desc{font-size:14px;color:#64748b;margin:0 0 24px;min-height:42px}
+.st-plan-price{font-size:clamp(1.8rem,3vw,2.2rem);font-weight:800;letter-spacing:-.04em;white-space:nowrap}
+.st-plan-price span{font-size:13px;font-weight:400;letter-spacing:0;color:#64748b}
+.st-plan-cycle{font-size:13px;color:#64748b;margin:0 0 25px}
+.st-plan-action{display:block;text-align:center;background:#151515;color:#fff!important;text-decoration:none;padding:13px;border-radius:999px;font-weight:700;margin:0 0 23px}
+.st-plan-featured .st-plan-action{background:#fa3058}
+.st-plan-current{background:#e2e8f0!important;color:#334155!important}
+.st-plan-unavailable{background:#e2e8f0!important;color:#64748b!important}
+.st-plan ul{padding:0;margin:0;list-style:none;display:grid;gap:13px}
+.st-plan li{display:flex;gap:10px;font-size:13px;line-height:1.5}
+.st-plan li span{font-weight:800;color:#0f172a}
+@media(max-width:640px){.st-plan-grid{grid-template-columns:1fr}.st-plan-desc{min-height:0}}
+
+.st-plan-action{border:0;width:100%;cursor:pointer;font:inherit;font-weight:700}.st-plan-action:disabled{opacity:.6;cursor:wait}.st-plan-error{padding:13px 16px;border:1px solid #fca5a5;background:#fff1f2;color:#9f1239;border-radius:12px;margin:12px 0}

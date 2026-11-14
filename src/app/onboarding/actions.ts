@@ -30,7 +30,7 @@ export async function completeOnboarding(input: unknown): Promise<OnboardingResu
     if (p.status !== 'PENDING_ONBOARDING') return { ok: false, error: 'O seu cadastro já foi concluído.' }
 
     const { data: saved, error } = await sb.from('profiles').update({
-      account_type: v.accountType, artist_name: v.stageName, name: v.fullName, birth_date: v.birthDate, email: v.email,
+      account_type: v.accountType, registration_profile: v.accountType, artist_name: v.stageName, name: v.fullName, birth_date: v.birthDate, email: v.email,
       phone: normPhone(v.phone), address: v.address,                                                  // só números no telefone
       cpf: v.accountType === 'ARTIST' ? digits(v.document) : null,                                   // só números no CPF
       cnpj: v.accountType === 'LABEL' ? normCnpj(v.document) : null,

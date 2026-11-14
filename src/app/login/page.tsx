@@ -30,7 +30,7 @@ export default function Login() {
     } finally { setBusy(false) }
   }
   return (<main className="auth"><div className="card">
-    <img src="/logo.png" alt="Nodal Music" />
+    <img src="/sintone-logo.svg" alt="SINTONE" />
     <h1 style={{ fontSize: '1.8rem', marginBottom: 20 }}>{novo ? 'Criar sua conta' : 'Entrar no painel'}</h1>
     <form className="f" onSubmit={submit}>
       <label>E-mail<input name="email" type="email" autoComplete="email" required /></label>

@@ -1,4 +1,4 @@
-.nd{color-scheme:light;--bg:#f5f7fb;--card:#ffffff;--bd:rgba(11,16,32,.10);--blue:#0045dd;--blue2:#0045dd;--t:#0b1020;--m:#566080;display:grid;grid-template-columns:260px 1fr;min-height:100vh;background:var(--bg);color:var(--t);font-family:var(--inter),system-ui,sans-serif;font-size:14.5px}
+.nd{color-scheme:light;--bg:#f5f7fb;--card:#ffffff;--bd:rgba(11,16,32,.10);--blue:#0646bd;--blue2:#0646bd;--t:#0b1020;--m:#566080;display:grid;grid-template-columns:260px 1fr;min-height:100vh;background:var(--bg);color:var(--t);font-family:var(--inter),system-ui,sans-serif;font-size:14.5px}
 .nd h1,.nd h3,.nd strong{font-family:var(--jakarta),var(--inter),sans-serif}
 .nd *{box-sizing:border-box}
 .nd-side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:22px;padding:22px 16px;background:var(--card);border-right:1px solid var(--bd);overflow-y:auto}
@@ -7,7 +7,7 @@
 .nd-side h4{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--m);margin:0 10px 6px;font-weight:600}
 .nd-side a,.nd-foot button{display:flex;align-items:center;gap:10px;color:var(--m);text-decoration:none;padding:9px 10px;border-radius:10px;border:0;background:none;font:inherit;cursor:pointer;width:100%}
 .nd-side a:hover,.nd-foot button:hover{background:rgba(11,16,32,.05);color:var(--t)}
-.nd-side a.on{background:rgba(0,69,221,.09);color:#0045dd;font-weight:600;box-shadow:inset 2px 0 0 var(--blue)}
+.nd-side a.on{background:rgba(0,69,221,.09);color:#0646bd;font-weight:600;box-shadow:inset 2px 0 0 var(--blue)}
 .nd-foot{margin-top:auto;display:grid;gap:2px;border-top:1px solid var(--bd);padding-top:12px}
 .nd-main{min-width:0}
 .nd-top{display:flex;align-items:center;gap:14px;padding:20px 32px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:rgba(245,247,251,.9);backdrop-filter:blur(10px);z-index:5}
@@ -46,7 +46,7 @@
 .pos{color:#15803d}.neg{color:#b91c1c}
 .chart{width:100%;height:auto;margin-top:12px}
 .bars{display:grid;gap:14px;margin-top:14px}.bar-h{display:flex;justify-content:space-between;margin-bottom:6px}
-.track{height:8px;border-radius:99px;background:rgba(11,16,32,.08)}.track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#0045dd,#5b8def)}
+.track{height:8px;border-radius:99px;background:rgba(11,16,32,.08)}.track i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#0646bd,#5b8def)}
 .donut{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:12px}.donut ul{list-style:none;padding:0;margin:0;display:grid;gap:8px;flex:1;min-width:130px}
 .donut li{display:flex;align-items:center;gap:8px}.donut li i{width:10px;height:10px;border-radius:3px}.donut li b{margin-left:auto}
 .nd .empty{display:grid;justify-items:center;text-align:center;gap:10px;padding:36px 12px}.nd .empty h3{margin:0}.nd .empty p{color:var(--m);margin:0;max-width:42ch}
@@ -54,12 +54,12 @@
 .search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:0 12px;flex:1;min-width:220px;max-width:420px;color:var(--m)}
 .search input{flex:1;background:none;border:0;color:var(--t);padding:10px 0;font:inherit;outline:0}
 .pills{display:flex;gap:6px;flex-wrap:wrap}.pills button{background:none;border:1px solid var(--bd);color:var(--m);padding:7px 14px;border-radius:999px;cursor:pointer;font:inherit}
-.pills button.on{background:rgba(0,69,221,.09);border-color:rgba(0,69,221,.4);color:#0045dd}
+.pills button.on{background:rgba(0,69,221,.09);border-color:rgba(0,69,221,.4);color:#0646bd}
 .sel,.form input,.form select{background:var(--bg);border:1px solid var(--bd);color:var(--t);border-radius:10px;padding:10px 12px;font:inherit}
 .form{display:grid;gap:14px}.form label{display:grid;gap:6px;color:var(--m);font-size:13px}.form .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form .chk{display:flex;align-items:center;gap:8px;color:var(--t)}.form input[type=checkbox]{width:auto}
 .nd .ok{color:#15803d;margin:0}.nd .err{color:#b91c1c;margin:0}
-.nd .hero-card{background:#0045dd;border-color:#0045dd;color:#fff}
+.nd .hero-card{background:#0646bd;border-color:#0646bd;color:#fff}
 .nd .hero-card>small{color:#c7d8ff}.nd .hero-card>strong{display:block;font-size:2.4rem;margin:6px 0 18px}
 .mini{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid rgba(255,255,255,.25);padding-top:14px}.mini small{display:block;color:#c7d8ff}
 .stepper{display:flex;gap:18px;list-style:none;padding:0;margin:0 0 24px;flex-wrap:wrap}

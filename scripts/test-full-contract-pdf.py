@@ -12,14 +12,14 @@ with sync_playwright() as p:
   page.add_script_tag(path='node_modules/html2pdf.js/dist/html2pdf.bundle.min.js')
   encoded=page.evaluate("""async (contract) => {
      const node=document.createElement('article');
-     node.style.cssText='width:750px;padding:42px;background:white;color:#1b2538;font-family:Arial,sans-serif;font-size:13px;line-height:1.75;box-sizing:border-box;position:absolute;left:-100000px;top:0;white-space:normal';
+     node.style.cssText='width:750px;padding:42px;background:white;color:#1b2538;font-family:Arial,sans-serif;font-size:13px;line-height:1.75;box-sizing:border-box;white-space:normal';
      const title=document.createElement('h1');title.textContent='SINTONE - CONTRATO DE DISTRIBUICAO MUSICAL';
      const identity=document.createElement('p');identity.textContent='Artista Teste - Pessoa Teste - CPF 000.000.000-00 - Versao 2026.11-R2';
      const body=document.createElement('div');body.textContent=contract;
      body.style.whiteSpace='pre-wrap';body.style.overflowWrap='anywhere';
      const footer=document.createElement('section');footer.textContent='Esse contrato foi assinado digitalmente por Artista Teste / Pessoa Teste em 14/11/2026 10:00:00.';
      footer.style.cssText='break-inside:avoid;page-break-inside:avoid;border-top:2px solid #0646bd;margin-top:32px;padding-top:18px';
-     node.append(title,identity,body,footer);document.body.appendChild(node);
+     node.append(title,identity,body,footer);
      try{
        const blob=await html2pdf().set({margin:[10,10,12,10],filename:'contract.pdf',image:{type:'jpeg',quality:0.97},html2canvas:{scale:1.7,backgroundColor:'#ffffff',useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(node).outputPdf('blob');
        const array=new Uint8Array(await blob.arrayBuffer());

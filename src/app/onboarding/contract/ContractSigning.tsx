@@ -9,7 +9,7 @@ import './contract.css'
 
 export type ContractRecord = {
   user_id:string; signed_at:string; signed_name:string; artist_name:string|null;
-  cpf:string|null; cnpj:string|null; contract_snapshot:string|null; pdf_status:'pending'|'ready'
+  cpf:string|null; cnpj:string|null; contract_snapshot:string|null; contract_version:string|null; pdf_status:'pending'|'ready'
 }
 type Props = {
   userId:string;accountType:'ARTIST'|'LABEL';artistName:string;fullName:string;
@@ -30,7 +30,7 @@ function createPdfNode(record: ContractAcceptance, accountType:'ARTIST'|'LABEL')
   const identity=document.createElement('section')
   identity.style.cssText='border:1px solid #dbe3ef;padding:14px;margin:0 0 24px;'
   const label=accountType==='ARTIST'?'Nome artístico':'Nome do selo'
-  for(const [key,value] of [[label,record.artist_name||'Não informado'],['Nome completo / responsável',record.signed_name],[accountType==='ARTIST'?'CPF':'CNPJ',accountType==='ARTIST'?(record.cpf||''):(record.cnpj||'')],['Versão do contrato','2026-11']]){
+  for(const [key,value] of [[label,record.artist_name||'Não informado'],['Nome completo / responsável',record.signed_name],[accountType==='ARTIST'?'CPF':'CNPJ',accountType==='ARTIST'?(record.cpf||''):(record.cnpj||'')],['Versão do contrato',record.contract_version]]){
     const p=document.createElement('p');p.style.margin='0 0 6px'
     const strong=document.createElement('strong');strong.textContent=key+': '
     p.appendChild(strong);p.appendChild(document.createTextNode(value));identity.appendChild(p)
@@ -144,7 +144,7 @@ export default function ContractSigning({
       await createAndUpload({
         user_id:record.user_id,signed_at:record.signed_at,signed_name:record.signed_name,
         artist_name:record.artist_name,cpf:record.cpf,cnpj:record.cnpj,
-        contract_snapshot:record.contract_snapshot || contractText,pdf_status:'pending',
+        contract_snapshot:record.contract_snapshot || contractText,contract_version:record.contract_version || contractVersion,pdf_status:'pending',
       })
     }catch(e){setError(e instanceof Error?e.message:'Falha ao recuperar o PDF.')}
     finally{setBusy(false);setPhase('')}

@@ -30,7 +30,7 @@ const ADM: [string, [string, string, any][]] = ['Administração', [['admin', 'P
 const ROUTES = [...NAV, ADM].flatMap(s => s[1].map(i => i[0])).concat('plans')
 const nav = (adm: boolean) => adm ? [...NAV, ADM] : NAV
 
-export default function Dashboard() {
+export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}) {
   const [d, setD] = useState<Data | null>(null), [route, setRoute] = useState('overview'), [open, setOpen] = useState(false)
   const [plans,setPlans]=useState<PublicPlan[]>([])
   const [subscription,setSubscription]=useState<{plan_id:string;status:string}|null>(null)
@@ -43,7 +43,7 @@ export default function Dashboard() {
       sb.from('reports').select('*').eq('artist_id', user.id),
       sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false }),
       sb.from('billing_subscriptions').select('plan_id,status').eq('user_id',user.id).order('created_at',{ascending:false}),
-      sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,is_default').eq('published',true).eq('archived',false).order('price_brl')])
+      sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default').eq('published',true).eq('archived',false).order('price_brl')])
     if (me.data?.onboarding_completed === false || me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
     if(bs.error)console.error('Falha ao consultar modalidade do artista',bs.error.message)
     if(catalog.error)console.error('Falha ao consultar modalidades',catalog.error.message)
@@ -76,7 +76,7 @@ export default function Dashboard() {
         {expired&&<div className="banner red" role="alert"><Lock size={20}/><p><strong>Seu plano está expirado, assine algum plano para continuar lançando músicas.</strong> <a href="#plans">Ver planos disponíveis</a>.</p></div>}
         {route !== 'admin' && route !== 'contracts' && route !== 'royalties' && <ContractBanner status={gate.status} signed={!!d.me?.contract_accepted_at} />}
         {restricted?<div className="card"><h3>Acesso restrito</h3><p>Seu plano está expirado, assine algum plano para continuar lançando músicas.</p><a className="btn" href="#plans">Ver planos</a></div>:<>
-        {route === 'plans' && <div className="card"><h2>Planos da SINTONE</h2><p className="mut">Veja sua modalidade atual e as opções disponíveis.</p><PlanCards plans={plans} context="dashboard" currentPlanId={subscription?.status==='expired'?null:subscription?.plan_id}/></div>}
+        {route === 'plans' && <div className="card"><h2>Planos da SINTONE</h2><p className="mut">Veja sua modalidade atual e as opções disponíveis.</p><PlanCards plans={plans} context="dashboard" checkoutReady={checkoutReady} currentPlanId={subscription?.status==='expired'?null:subscription?.plan_id}/></div>}
         {route === 'overview' && <Overview d={d} can={!locked} />}{route === 'catalog' && <Catalog d={d} can={!locked} />}
         {route === 'new' && (!locked ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>{expired?'Seu plano está expirado. Escolha uma nova modalidade para voltar a lançar músicas.':'Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.'}</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
         {route === 'financial' && <Finance d={d} reload={load} />}{route === 'account' && <Account d={d} reload={load} />}

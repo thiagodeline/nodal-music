@@ -128,7 +128,7 @@ export async function saveBillingDraft(input:BillingDraft,id?:string):Promise<Bi
   const financialChange=Number(previous.price_brl)!==price||previous.frequency!==frequency
   if(previous.active)return {ok:false,message:'Desative o plano antes de editar condições comerciais.'}
   const next={...clean,mp_plan_id:financialChange?null:previous.mp_plan_id,
-   published:financialChange&&price>0?false:previous.published,
+   published:previous.published,
    updated_at:new Date().toISOString()}
   const {data,error}=await ctx.supabase.from('billing_plans').update(next)
    .eq('id',id).eq('active',false).select('id')
@@ -136,9 +136,9 @@ export async function saveBillingDraft(input:BillingDraft,id?:string):Promise<Bi
   return {ok:true,message:financialChange&&previous.mp_plan_id?'Plano atualizado. O vínculo anterior com o Mercado Pago foi desfeito: registre o novo preço antes de publicar.':'Plano atualizado.'}
  }
  const {data,error}=await ctx.supabase.from('billing_plans')
-  .insert({...clean,active:false,published:price===0,archived:false}).select('id').single()
+  .insert({...clean,active:false,published:true,archived:false}).select('id').single()
  if(error)return {ok:false,message:'Falha ao criar o plano: '+error.message}
- return {ok:true,id:data.id,message:'Plano salvo. '+(price===0?'Plano gratuito disponível na vitrine.':'Plano pago em preparação, ainda oculto aos artistas.')}
+ return {ok:true,id:data.id,message:'Plano salvo na vitrine. '+(price===0?'Gratuito.':'O pagamento só ficará disponível após configurar a cobrança.')}
 }
 export async function archiveBillingDraft(id:string):Promise<Result>{
  const ctx=await getAdminContext()
@@ -157,10 +157,6 @@ export async function setBillingPlanPublished(id:string,published:boolean):Promi
  const {data:plan,error:readError}=await ctx.supabase.from('billing_plans')
   .select('price_brl,mp_plan_id,archived').eq('id',id).single()
  if(readError||!plan||plan.archived)return {ok:false,message:'Plano indisponível.'}
- // Planos pagos exigem checkout e confirmação confiável antes de serem vendidos.
- if(published&&Number(plan.price_brl)>0&&(!plan.mp_plan_id||
-    !process.env.MERCADOPAGO_WEBHOOK_SECRET||!process.env.SUPABASE_SERVICE_ROLE_KEY))
-  return {ok:false,message:'Para publicar um plano pago, configure o plano no Mercado Pago, o segredo do webhook e a chave de serviço do Supabase.'}
  const {data,error}=await ctx.supabase.from('billing_plans').update({published,updated_at:new Date().toISOString()})
   .eq('id',id).select('id')
  if(error||!data?.length)return {ok:false,message:'Não foi possível alterar a visibilidade.'}

@@ -29,8 +29,9 @@ const faq = [
 
 export default async function Home() {
   const sb=await createClient()
-  const {data}=await sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,is_default').eq('published',true).eq('archived',false).order('price_brl',{ascending:true})
+  const {data}=await sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default').eq('published',true).eq('archived',false).order('price_brl',{ascending:true})
   const plans=(data||[]) as PublicPlan[]
+  const checkoutReady=!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN)
   return (<>
     <header className="l-head"><div className="wrap l-bar">
       <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
@@ -83,7 +84,7 @@ export default async function Home() {
         </ol>
       </div></section>
 
-      {plans.length>0&&<section className="wrap st-plan-area" id="planos"><h2>Escolha como distribuir sua música</h2><p>Veja os recursos e condições disponíveis em cada modalidade.</p><PlanCards plans={plans}/></section>}
+      {plans.length>0&&<section className="wrap st-plan-area" id="planos"><h2>Escolha como distribuir sua música</h2><p>Veja os recursos e condições disponíveis em cada modalidade.</p><PlanCards plans={plans} checkoutReady={checkoutReady}/></section>}
 
       <section className="wrap l-sec" id="faq">
         <h2>Perguntas frequentes</h2>

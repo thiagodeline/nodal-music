@@ -5,6 +5,7 @@ on:
     branches: [feature/sintone-contract-revision-2026]
     paths:
       - scripts/generate_contract_review_pdf.py
+      - docs/contratos/sintone-contrato-2026-11-r2.txt
       - .github/workflows/contract-r2-generate-pdf.yml
   workflow_dispatch:
 

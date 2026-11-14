@@ -62,4 +62,14 @@ def page(canvas,doc):
     canvas.restoreState()
 doc=SimpleDocTemplate(str(TARGET),pagesize=A4,rightMargin=45,leftMargin=45,topMargin=70,bottomMargin=49,title='SINTONE - Contrato de Distribuição - Minuta 2026.11-R2',author='SINTONE - Minuta preliminar')
 doc.build(story,onFirstPage=page,onLaterPages=page)
-print('PDF_GERADO',TARGET,'BYTES',TARGET.stat().st_size,'SECOES',len(story))
+# Pré-voo: todas as páginas e cláusulas precisam estar presentes e extraíveis.
+import pymupdf
+pdf=pymupdf.open(str(TARGET))
+extracted='\\n'.join(p.get_text() for p in pdf)
+for mark in ('CLÁUSULA 1', 'CLÁUSULA 8', 'CLÁUSULA 14', '75%', '25%', 'FIM DO CONTRATO'):
+    if mark not in extracted:
+        raise RuntimeError('Texto ausente no PDF: '+mark)
+if pdf.page_count<4 or TARGET.stat().st_size<10000:
+    raise RuntimeError('PDF incompleto ou inesperadamente pequeno')
+print('PDF_GERADO',TARGET,'PAGINAS',pdf.page_count,'BYTES',TARGET.stat().st_size,'SECOES',len(story))
+

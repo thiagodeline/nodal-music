@@ -46,6 +46,8 @@ jobs:
         env:
           REGISTER_TEST_URL: http://127.0.0.1:3000/register
         run: python scripts/signup-production-diagnostic.py
+      - name: Validate production compilation
+        run: npm run build
       - name: Print server logs on failure
         if: failure()
         run: cat /tmp/sintone-next.log || true

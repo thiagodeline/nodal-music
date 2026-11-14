@@ -8,7 +8,8 @@ export default function Finance({ d, reload }: { d: Data; reload: () => void }) 
     e.preventDefault(); setMsg(''); const fd = new FormData(e.currentTarget); const a = Number(fd.get('amount'))
     if (a < MIN_SAQUE) return setMsg(`O saque mínimo é ${brl(MIN_SAQUE)}.`)
     if (a > balance) return setMsg('O valor é maior que o seu saldo.')
-    setBusy(true); await requestWithdrawal(fd); setBusy(false); setMsg('Pedido enviado. Acompanhe o status no histórico.'); reload()
+    setBusy(true); const result=await requestWithdrawal(fd); setBusy(false);
+    setMsg(result.message); if(result.ok) reload()
   }
   const hist = [
     ...d.reports.map(r => ({ id: r.id, date: r.month, desc: `Royalties ${r.platform}`, amount: Number(r.revenue), status: 'credited' })),

@@ -1,0 +1,12 @@
+.sa-x-wrap{padding:18px 0}
+.sa-x-note{color:#62718a;font-size:13px;line-height:1.6;margin:8px 0 15px}
+.sa-x-small{display:block;color:#768499;font-size:12px;margin-top:4px}
+.sa-x-link{cursor:pointer;border:0;background:none;color:#0646bd;text-decoration:underline;font-weight:650;padding:8px}
+.sa-x-edit{margin:18px 0;padding:22px;border:1px solid #dce5f3;border-radius:14px;background:#fff;display:grid;gap:11px}
+.sa-x-edit h2,.sa-x-edit h3{margin:0 0 8px}
+.sa-x-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.sa-x-edit label{display:grid;gap:5px;font-size:12px;color:#354761;font-weight:650}
+.sa-x-input{width:100%;border:1px solid #cbd6e8;border-radius:8px;padding:9px;font:inherit;background:#fff;color:#1f2937}
+.sa-x-button{width:max-content;max-width:100%;padding:11px 18px;border:0;border-radius:9px;background:#0646bd;color:#fff;font-weight:700;cursor:pointer}
+.sa-x-button:disabled{opacity:.45;cursor:not-allowed}
+.sa-x-sep{border-top:1px solid #dce5f3;margin:8px 0}

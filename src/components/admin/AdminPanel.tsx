@@ -5,12 +5,15 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, BadgeCheck, CalendarDays, Check, CheckCircle2, ChevronRight,
-  Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, Filter,
+  Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, FileSpreadsheet, Filter,
   Headphones, LayoutDashboard, LoaderCircle, Music2, Search, ShieldCheck,
   UsersRound, X, XCircle
 } from 'lucide-react'
 import { getContractDownloadUrl, getReleaseAudioUrl, moderateRelease } from '@/app/admin/actions'
 import './admin.css'
+import './admin-extras.css'
+import AdminAccounts from './AdminAccounts'
+import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 
 export type AdminRelease = {
   id:string;artist_id:string;title:string;type:string|null;main_artist:string|null;
@@ -21,7 +24,8 @@ export type AdminRelease = {
 }
 export type AdminUser = {
   id:string;name:string|null;artist_name:string|null;email:string|null;role:string;
-  status:string;account_type:string|null;registration_profile:string|null;created_at:string
+  status:string;account_type:string|null;registration_profile:string|null;created_at:string;
+  saldo_disponivel:number;phone:string|null;address:string|null;cpf:string|null;cnpj:string|null;birth_date:string|null
 }
 export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
@@ -49,7 +53,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
 
 export default function AdminPanel({adminLabel,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
-  const [tab,setTab]=useState<'releases'|'artists'>('releases')
+  const [tab,setTab]=useState<'releases'|'artists'|'royalties'>('releases')
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -85,7 +89,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
   const open=(r:AdminRelease)=>{setSelectedId(r.id);setRejecting(false);setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
-  const changeTab=(next:'releases'|'artists')=>{setTab(next);setSearch('');setFeedback(null)}
+  const changeTab=(next:'releases'|'artists'|'royalties')=>{setTab(next);setSearch('');setFeedback(null)}
   async function play(id:string){
     setAudioBusy(true);setAudioError('');setAudio('')
     try {const result=await getReleaseAudioUrl(id)
@@ -130,12 +134,12 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
       <span className="sa-sidebar-label">ÁREA RESTRITA</span>
       <nav aria-label="Navegação administrativa">
         <button className={tab==='releases'?'sa-nav-active':''} onClick={()=>changeTab('releases')}><Music2 size={18}/> Lançamentos</button>
-        <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contratos</button>
+        <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contas</button>
+        <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
       </nav>
       <div className="sa-sidebar-secondary"><span>OUTRAS FERRAMENTAS</span>
-        <Link href="/dashboard#contracts"><FileSignature size={17}/> Contratos pendentes</Link>
-        <Link href="/dashboard#royalties"><LayoutDashboard size={17}/> Importar royalties</Link>
-        <Link href="/dashboard"><ArrowLeft size={17}/> Painel do artista</Link>
+        <button type="button" onClick={()=>changeTab('artists')}><FileSignature size={17}/> Contratos e contas</button>
+        <button type="button" onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Importar royalties</button>
       </div>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
     </aside>
@@ -154,8 +158,9 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           <div className="sa-board-heading"><div className="sa-tabs" role="tablist" aria-label="Módulos de administração">
             <button role="tab" aria-selected={tab==='releases'} className={tab==='releases'?'active':''} onClick={()=>changeTab('releases')}><Music2 size={17}/> Lançamentos</button>
             <button role="tab" aria-selected={tab==='artists'} className={tab==='artists'?'active':''} onClick={()=>changeTab('artists')}><UsersRound size={17}/> Artistas & contratos</button>
-          </div><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length):glyph(filteredUsers.length)} resultados</span></div>
-          <div className="sa-controls">
+            <button role="tab" aria-selected={tab==='royalties'} className={tab==='royalties'?'active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Royalties</button>
+          </div><span className="sa-count">{tab==='royalties' ? 'Importação de planilhas' : (tab==='releases' ? glyph(filteredReleases.length) : glyph(filteredUsers.length))+' resultados'}</span></div>
+          {tab!=='royalties' && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
             <div className="sa-select-wrap"><Filter size={17}/>
               {tab==='releases'?<select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filtrar lançamentos por status">
@@ -164,7 +169,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
                 <option value="all">Todos os contratos</option><option value="signed">Assinados</option><option value="pending">Pendentes</option>
               </select>}
             </div>
-          </div>
+          </div>}
           {feedback&&<div className={'sa-feedback '+feedback.type} role="status">{feedback.type==='success'?<CheckCircle2 size={17}/>:<XCircle size={17}/>} {feedback.text}<button aria-label="Fechar aviso" onClick={()=>setFeedback(null)}><X size={15}/></button></div>}
           {tab==='releases' ? <>
             {truncatedReleases&&<p className="sa-warning">Exibindo os 1.000 lançamentos mais recentes. A contagem dos cards inclui todos os lançamentos.</p>}
@@ -175,19 +180,10 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
                 <td><button className="sa-icon-button" aria-label={'Ver detalhes de '+r.title} onClick={()=>open(r)}><ChevronRight size={19}/></button></td></tr>)}
             </tbody></table></div>
             {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>Nenhum lançamento encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
-          </> : <>
-            {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes. A contagem do card inclui todas as contas.</p>}
-            <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Artista / Responsável</th><th>Perfil</th><th>Cadastro</th><th>Contrato</th><th>Ação</th></tr></thead><tbody>
-              {filteredUsers.map(u=>{const contract=contractsByUser.get(u.id);const pdfReady=contract?.pdf_status==='ready';return <tr key={u.id}>
-                <td><div className="sa-user-cell"><span className="sa-avatar">{(u.artist_name||u.name||'A').slice(0,1).toUpperCase()}</span><div><strong>{u.artist_name||u.name||'Sem nome informado'}</strong><small>{u.email||'E-mail indisponível'}</small></div></div></td>
-                <td>{profileLabels[u.account_type||u.registration_profile||'']||'A definir'}</td><td>{fmtDate(u.created_at)}</td>
-                <td><span className={'sa-tag '+(pdfReady?'sa-tag-approved':'sa-tag-pending')}>{pdfReady?'Assinado':contract?'PDF pendente':'Pendente'}</span>{contract&&<small className="sa-contract-date">{fmtDate(contract.signed_at)}</small>}</td>
-                <td>{pdfReady?<button className="sa-download" disabled={busy===u.id} onClick={()=>downloadContract(u.id)}>{busy===u.id?<LoaderCircle className="sa-spin" size={16}/>:<Download size={16}/>} Baixar contrato PDF</button>:
-                  <span className="sa-muted">{contract?'Aguardando PDF':'Aguardando assinatura'}</span>}</td>
-              </tr>})}
-            </tbody></table></div>
-            {!filteredUsers.length&&<div className="sa-empty"><UsersRound size={36}/><h3>Nenhum artista encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
-          </>}
+          </> : tab==='artists' ? <>
+            {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
+            <AdminAccounts users={filteredUsers} contracts={contracts}/>
+          </> : <AdminRoyaltyUpload/>}
         </div>
       </main>
     </div>

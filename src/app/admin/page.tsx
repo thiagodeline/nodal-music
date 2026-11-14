@@ -10,7 +10,7 @@ export default async function AdminPage() {
   if (!ctx) notFound()
   const sb = ctx.supabase
   const [profiles, releases, contracts, totalUsers, pending, approved, totalReleases] = await Promise.all([
-    sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at').order('created_at',{ascending:false}).range(0,999),
+    sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').order('created_at',{ascending:false}).range(0,999),
     sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason').order('created_at',{ascending:false}).range(0,999),
     sb.from('user_contracts').select('user_id,signed_name,signed_at,pdf_status').order('signed_at',{ascending:false}).range(0,999),
     sb.from('profiles').select('id',{count:'exact',head:true}),
@@ -24,6 +24,7 @@ export default async function AdminPage() {
   const users: AdminUser[] = (profiles.data ?? []).map(p=>({
     id:p.id,name:p.name,artist_name:p.artist_name,email:p.email,role:p.role,status:p.status,
     account_type:p.account_type,registration_profile:p.registration_profile,created_at:p.created_at,
+    saldo_disponivel:Number(p.saldo_disponivel||0),phone:p.phone,address:p.address,cpf:p.cpf,cnpj:p.cnpj,birth_date:p.birth_date,
   }))
   const contractRows: AdminContract[] = (contracts.data ?? []).map(c=>({ user_id:c.user_id,signed_name:c.signed_name,signed_at:c.signed_at,pdf_status:c.pdf_status }))
   const releaseRows: AdminRelease[] = (releases.data ?? []).map(r=>({

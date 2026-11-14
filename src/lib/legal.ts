@@ -1,12 +1,12 @@
-// Dados de identificação comercial extraídos do contrato anterior do usuário (não verificados na Receita).
-// A razão social e o e-mail contratual exigem confirmação antes de habilitar a assinatura.
+// Nome empresarial conferido em bases públicas de CNPJ; confirmar com o CCMEI oficial.
+// O e-mail institucional foi informado pelo responsável. A atividade CNAE precisa de adequação para a distribuição musical antes de liberar aceites reais.
 export const CO = {
   nome: 'SINTONE',
-  razao: 'SINTONE (nome comercial — razão social em conferência)',
+  razao: '64.100.398 THYAGO ESPINDOLA DE MELO (MEI), nome comercial SINTONE',
   cnpj: '64.100.398/0001-10',
   endereco: 'Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004',
-  email: 'canal LGPD em /lgpd ou suporte no painel do usuário',
-  dpo: 'canal de privacidade /lgpd (designação do encarregado a confirmar)',
+  email: 'suporte@sintone.com.br',
+  dpo: 'atendimento à privacidade via suporte@sintone.com.br',
   percentual: '25% das receitas líquidas elegíveis',
   saqueMin: 'R$ 50 até 31/12/2026; R$ 80 a partir de 01/01/2027',
   prazoSaque: '30 dias corridos, observados o efetivo recebimento e a solicitação de saque',

@@ -21,7 +21,7 @@
 
 ## Pontos obrigatórios para fechamento jurídico e ativação
 
-1. **Nome empresarial encontrado nas consultas públicas:** `64.100.398 THYAGO ESPINDOLA DE MELO`, MEI vinculado ao CNPJ `64.100.398/0001-10`. **Confirmar no CCMEI oficial** antes de habilitar assinaturas. O MEI não tem contrato social, mas tem nome empresarial.
+1. **Identificação no contrato:** a SINTONE será indicada como nome comercial de empresário individual (MEI), CNPJ `64.100.398/0001-10`, sem reproduzir o nome empresarial completo na minuta pública. **Revisar juridicamente** se essa qualificação é suficiente para o documento vinculante, e confirmar os dados no CCMEI oficial. O nome empresarial cadastrado continua publicamente consultável pelo CNPJ.
 2. **E-mail institucional informado pelo responsável:** `suporte@sintone.com.br`. É necessário garantir que esta caixa esteja configurada e recebendo mensagens; a entrega não foi testada.
 3. **Regularidade da atividade:** consultas públicas do CNPJ mostram CNAE principal `5320-2/01` (serviços de malote), sem CNAE secundário de música/distribuição. A SINTONE presta serviços de distribuição musical. **Antes de habilitar contratação remunerada, verificar com contador a adequação dos CNAEs, possibilidade de exercício como MEI e eventual necessidade de desenquadramento.** Confirmar também o endereço no CCMEI.
 4. **Revisão jurídica humana** recomendada por profissional habilitado para as particularidades de direitos autorais, direito do consumidor, tributação, LGPD, distribuição e cobrança de royalties.

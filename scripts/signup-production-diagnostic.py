@@ -44,6 +44,16 @@ with sync_playwright() as p:
   flags=response.json()
   print('EMAIL_AUTH_AVAILABLE',bool(flags.get('external',{}).get('email',False)))
   print('DISABLE_SIGNUP',flags.get('disable_signup','not_reported'))
+  browser_check=page.evaluate("""async ({url,key}) => {
+    try {
+      const r = await fetch(url, {headers:{'apikey':key}})
+      return {status:r.status}
+    } catch(e) {
+      return {status:0,error:String(e)}
+    }
+  }""",{'url':'https://'+project_ref+'.supabase.co/auth/v1/settings','key':key_match.group(0)})
+  print('BROWSER_TO_SUPABASE_SETTINGS_STATUS',browser_check['status'])
+  assert browser_check['status']==200, 'Browser could not fetch Supabase GoTrue: '+str(browser_check)
   assert flags.get('external',{}).get('email',True), 'Login por e-mail desabilitado no Supabase'
 
   login=browser.new_page(viewport={'width': 1200, 'height': 900})

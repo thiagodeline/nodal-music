@@ -9,9 +9,9 @@ const js=ts.transpileModule(src,{
   reportDiagnostics:true,
 })
 if(js.diagnostics?.length) throw new Error(js.diagnostics.map(x=>ts.flattenDiagnosticMessageText(x.messageText,' ')).join('\n'))
-const module={exports:{}}
-vm.runInNewContext(js.outputText,{module,exports:module.exports}, {filename:'onboarding-route.js'})
-const {onboardingRedirect: next}=module.exports
+const sandboxModule={exports:{}}
+vm.runInNewContext(js.outputText,{module:sandboxModule,exports:sandboxModule.exports}, {filename:'onboarding-route.js'})
+const {onboardingRedirect: next}=sandboxModule.exports
 if(typeof next!=='function')throw new Error('Helper não exportado')
 
 const cases=[

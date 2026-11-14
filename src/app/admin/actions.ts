@@ -50,8 +50,8 @@ export async function getContractDownloadUrl(userId: string): Promise<Result> {
   if (!ctx) return forbidden
   if (!isUuid(userId)) return { ok: false, message: 'Usuário inválido.' }
   const { data: contract, error: queryError } = await ctx.supabase.from('user_contracts')
-    .select('signed_at,pdf_url').eq('user_id', userId).maybeSingle()
-  if (queryError || !contract?.signed_at) return { ok: false, message: 'O usuário não tem um contrato assinado.' }
+    .select('signed_at,pdf_url,pdf_status').eq('user_id', userId).maybeSingle()
+  if (queryError || !contract?.signed_at || contract.pdf_status !== 'ready') return { ok: false, message: 'O usuário não tem um contrato assinado.' }
   // O contrato é salvo em contracts/<userId>/contrato_assinado.pdf.
   const expected = userId + '/contrato_assinado.pdf'
   const stored = contract.pdf_url || expected

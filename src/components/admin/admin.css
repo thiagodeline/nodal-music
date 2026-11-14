@@ -146,3 +146,5 @@
 .sa-billing-form .sa-approve{justify-self:start;border:0;padding:11px 18px;border-radius:10px}
 .sa-billing-msg{padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#1d4ed8}
 @media(max-width:640px){.sa-billing-grid{grid-template-columns:1fr}}
+
+.sa-billing-buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sa-billing-buttons button{display:inline-flex;align-items:center;gap:6px}.sa-billing-form textarea{width:100%;padding:12px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;resize:vertical}

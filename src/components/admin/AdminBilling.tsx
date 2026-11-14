@@ -1,70 +1,107 @@
 'use client'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { createBillingPlan,registerMercadoPagoPlan,testMercadoPagoConnection } from '@/app/admin/actions'
-import { CreditCard, LoaderCircle } from 'lucide-react'
-type Plan={id:string;name:string;description:string;price_brl:number;frequency:number;frequency_type:string;active:boolean;mp_plan_id:string|null}
+import {useCallback,useEffect,useMemo,useState} from 'react'
+import {createClient} from '@/lib/supabase/client'
+import {saveBillingDraft,archiveBillingDraft,registerMercadoPagoPlan,testMercadoPagoConnection} from '@/app/admin/actions'
+import {CreditCard,LoaderCircle,Pencil,Archive} from 'lucide-react'
+type Plan={id:string;name:string;description:string;price_brl:number;frequency:number;active:boolean;archived:boolean;mp_plan_id:string|null;benefits:string[]}
 export default function AdminBilling(){
  const sb=useMemo(()=>createClient(),[])
  const [plans,setPlans]=useState<Plan[]>([])
  const [loading,setLoading]=useState(true)
  const [busy,setBusy]=useState('')
  const [msg,setMsg]=useState('')
+ const [editing,setEditing]=useState<string|null>(null)
  const [name,setName]=useState('')
  const [description,setDescription]=useState('')
  const [price,setPrice]=useState('')
  const [frequency,setFrequency]=useState<1|12>(1)
+ const [benefits,setBenefits]=useState('')
  const [connectionStatus,setConnectionStatus]=useState('')
  const load=useCallback(async()=>{
   const {data,error}=await sb.from('billing_plans')
-    .select('id,name,description,price_brl,frequency,frequency_type,active,mp_plan_id')
-    .order('created_at',{ascending:false})
-  if(error)setMsg('Falha ao carregar os planos: '+error.message)
+   .select('id,name,description,price_brl,frequency,active,archived,mp_plan_id,benefits')
+   .order('created_at',{ascending:false})
+  if(error)setMsg('Falha ao carregar planos: '+error.message)
   else setPlans((data??[]) as Plan[])
   setLoading(false)
  },[sb])
  useEffect(()=>{void load()},[load])
+ const reset=()=>{setEditing(null);setName('');setDescription('');setPrice('');setBenefits('');setFrequency(1)}
+ function edit(p:Plan){
+  if(p.mp_plan_id||p.active)return
+  setEditing(p.id);setName(p.name);setDescription(p.description)
+  setPrice(String(p.price_brl));setFrequency(p.frequency===12?12:1)
+  setBenefits((p.benefits??[]).join('\n'))
+ }
  async function save(e:React.FormEvent){
-  e.preventDefault()
-  if(busy)return
-  setBusy('create');setMsg('')
+  e.preventDefault();if(busy)return
+  setBusy('saving');setMsg('')
   try{
-   const result=await createBillingPlan({name,description,price:Number(price.replace(',','.')),frequency})
+   const result=await saveBillingDraft({
+    name,description,price:Number(price.replace(',','.')),frequency,
+    benefits:benefits.split('\n').map(s=>s.trim()).filter(Boolean)
+   },editing||undefined)
    setMsg(result.message||'')
-   if(result.ok){setName('');setDescription('');setPrice('');await load()}
-  }finally{setBusy('')}
+   if(result.ok){reset();await load()}
+  }catch{setMsg('Não foi possível salvar o rascunho.')}
+  finally{setBusy('')}
+ }
+ async function archive(id:string){
+  if(busy||!confirm('Arquivar este rascunho?'))return
+  setBusy(id);setMsg('')
+  try{
+   const result=await archiveBillingDraft(id);setMsg(result.message||'')
+   if(result.ok){if(editing===id)reset();await load()}
+  }catch{setMsg('Falha ao arquivar.')}
+  finally{setBusy('')}
  }
  async function testConnection(){
   if(busy)return
   setBusy('connection');setConnectionStatus('')
-  try{
-   const result=await testMercadoPagoConnection()
-   setConnectionStatus(result.message||'')
-  }catch{setConnectionStatus('Não foi possível testar a conexão.')}
+  try{const r=await testMercadoPagoConnection();setConnectionStatus(r.message||'')}
+  catch{setConnectionStatus('Não foi possível testar a conexão.')}
   finally{setBusy('')}
  }
  async function sync(id:string){
+  if(busy||!confirm('Registrar o plano no Mercado Pago? Após registrar, preços e benefícios financeiros não poderão ser editados por aqui. Não haverá cobrança automática.'))return
   setBusy(id);setMsg('')
-  try{const result=await registerMercadoPagoPlan(id);setMsg(result.message||'');await load()}
+  try{const r=await registerMercadoPagoPlan(id);setMsg(r.message||'');await load()}
+  catch{setMsg('Falha ao registrar o plano.')}
   finally{setBusy('')}
  }
  return <div className="sa-billing">
-  <div className="sa-billing-heading"><CreditCard size={24}/><div><h2>Planos e assinaturas</h2><p>Mercado Pago · Catálogo em preparação. Planos novos ficam inativos até a integração de cobrança ser validada.</p></div></div>
-  <div className="sa-billing-form"><h3>Conexão Mercado Pago</h3><p className="sa-x-note">Validação somente leitura. Não cria pagamentos.</p><button type="button" className="sa-download" disabled={!!busy} onClick={()=>void testConnection()}>Testar conexão</button>{connectionStatus&&<p role="status">{connectionStatus}</p>}</div>
+  <div className="sa-billing-heading"><CreditCard size={24}/><div><h2>Gestão interna de planos</h2><p>Preparação para lançamento futuro. Não há planos publicados, checkout nem cobrança habilitados aos artistas.</p></div></div>
+  <div className="sa-billing-form"><h3>Mercado Pago</h3><p className="sa-x-note">Conexão reservada à equipe. O teste não gera pagamentos.</p>
+   <button type="button" className="sa-download" disabled={!!busy} onClick={()=>void testConnection()}>Testar conexão</button>
+   {connectionStatus&&<p role="status">{connectionStatus}</p>}</div>
   <form className="sa-billing-form" onSubmit={e=>void save(e)}>
-   <h3>Criar plano</h3>
+   <h3>{editing?'Editar rascunho':'Criar rascunho de plano'}</h3>
    <div className="sa-billing-grid">
-    <label>Nome do plano<input required maxLength={80} value={name} onChange={e=>setName(e.target.value)} placeholder="Ex.: Profissional"/></label>
-    <label>Preço em reais<input required inputMode="decimal" value={price} onChange={e=>setPrice(e.target.value)} placeholder="Ex.: 29,90"/></label>
-    <label>Periodicidade<select value={frequency} onChange={e=>setFrequency(Number(e.target.value) as 1|12)}><option value={1}>Mensal</option><option value={12}>Anual</option></select></label>
+    <label>Nome<input required maxLength={80} value={name} onChange={e=>setName(e.target.value)}/></label>
+    <label>Preço (R$)<input required inputMode="decimal" value={price} onChange={e=>setPrice(e.target.value)} placeholder="29,90"/></label>
+    <label>Recorrência<select value={frequency} onChange={e=>setFrequency(Number(e.target.value) as 1|12)}><option value={1}>Mensal</option><option value={12}>Anual</option></select></label>
    </div>
    <label>Descrição<input maxLength={500} value={description} onChange={e=>setDescription(e.target.value)}/></label>
-   <button type="submit" className="sa-approve" disabled={!!busy}>{busy==='create'?<LoaderCircle size={16}/>:null} Salvar rascunho</button>
+   <label>Benefícios (um por linha, até 20)<textarea rows={5} value={benefits} onChange={e=>setBenefits(e.target.value)} maxLength={3500} placeholder="Distribuição digital&#10;Relatórios de desempenho"/></label>
+   <div className="sa-billing-buttons"><button className="sa-approve" disabled={!!busy} type="submit">{busy==='saving'?<LoaderCircle size={16}/>:null} Salvar rascunho</button>
+    {editing&&<button type="button" className="sa-download" onClick={reset}>Cancelar edição</button>}</div>
   </form>
   {msg&&<p role="status" className="sa-billing-msg">{msg}</p>}
-  <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Plano</th><th>Preço</th><th>Período</th><th>Integração</th><th>Status</th><th>Ação</th></tr></thead>
-   <tbody>{plans.map(p=><tr key={p.id}><td><strong>{p.name}</strong><small className="sa-ticket-email">{p.description}</small></td><td>{Number(p.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td>{p.frequency===12?'Anual':'Mensal'}</td><td>{p.mp_plan_id?'Registrado':'Não vinculado'}</td><td>{p.active?'Ativo':'Rascunho'}</td><td>{!p.mp_plan_id&&<button type="button" className="sa-download" disabled={!!busy} onClick={()=>void sync(p.id)}>Registrar no Mercado Pago</button>}</td></tr>)}</tbody>
-  </table></div>
-  {!loading&&!plans.length&&<div className="sa-empty"><CreditCard size={32}/><h3>Nenhum plano cadastrado</h3><p>Crie o primeiro plano acima. Nenhuma cobrança será efetuada.</p></div>}
+  {loading?<p>Carregando planos...</p>:<div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Plano</th><th>Preço</th><th>Periodicidade</th><th>Benefícios</th><th>Mercado Pago</th><th>Status</th><th>Ações</th></tr></thead>
+   <tbody>{plans.filter(p=>!p.archived).map(p=><tr key={p.id}>
+    <td><strong>{p.name}</strong><small className="sa-ticket-email">{p.description}</small></td>
+    <td>{Number(p.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+    <td>{p.frequency===12?'Anual':'Mensal'}</td>
+    <td>{p.benefits?.length||0} cadastrados</td>
+    <td>{p.mp_plan_id?'Vinculado':'Não vinculado'}</td>
+    <td><span className="sa-tag sa-tag-draft">{p.active?'Ativo':'Rascunho interno'}</span></td>
+    <td><div className="sa-billing-buttons">
+     {!p.mp_plan_id&&!p.active&&<>
+      <button type="button" className="sa-download" disabled={!!busy} onClick={()=>edit(p)}><Pencil size={15}/> Editar</button>
+      <button type="button" className="sa-download" disabled={!!busy} onClick={()=>void archive(p.id)}><Archive size={15}/> Arquivar</button>
+      <button type="button" className="sa-download" disabled={!!busy} onClick={()=>void sync(p.id)}>Registrar no MP</button>
+     </>}</div></td>
+   </tr>)}</tbody></table></div>}
+  {!loading&&!plans.some(p=>!p.archived)&&<div className="sa-empty"><CreditCard size={32}/><h3>Nenhum plano preparado</h3><p>Você pode criar rascunhos sem exibir preços aos artistas.</p></div>}
  </div>
 }

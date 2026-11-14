@@ -98,6 +98,48 @@ export async function closeTicket(id: string): Promise<Result> {
 }
 
 type BillingResult = Result & { id?: string }
+type BillingDraft = {name:string;description:string;price:number;frequency:1|12;benefits:string[]}
+function validateBillingDraft(input:BillingDraft){
+ const name=typeof input?.name==='string'?input.name.trim():''
+ const description=typeof input?.description==='string'?input.description.trim():''
+ const price=Number(input?.price),frequency=input?.frequency
+ const benefits=Array.isArray(input?.benefits)?input.benefits.map(x=>typeof x==='string'?x.trim():''):[]
+ if(name.length<2||name.length>80||description.length>500||!Number.isFinite(price)||
+   price<=0||Math.abs(Math.round(price*100)-price*100)>0.001||(frequency!==1&&frequency!==12)||
+   benefits.length>20||benefits.some(x=>x.length<1||x.length>160))return null
+ return {name,description,price_brl:price,frequency,frequency_type:'months',benefits}
+}
+export async function saveBillingDraft(input:BillingDraft,id?:string):Promise<BillingResult>{
+ const ctx=await getAdminContext()
+ if(!ctx)return forbidden
+ const clean=validateBillingDraft(input)
+ if(!clean)return {ok:false,message:'Verifique nome, preço, periodicidade e benefícios.'}
+ if(id){
+  if(!isUuid(id))return {ok:false,message:'Plano inválido.'}
+  const {data,error}=await ctx.supabase.from('billing_plans').update({...clean,updated_at:new Date().toISOString()})
+    .eq('id',id).eq('active',false).eq('archived',false).is('mp_plan_id',null).select('id')
+  if(error||!data?.length)return {ok:false,message:'Este plano não pode ser editado. Planos vinculados ao Mercado Pago estão bloqueados para alterações de preço.'}
+  revalidatePath('/admin')
+  return {ok:true,message:'Rascunho atualizado.'}
+ }
+ const {data,error}=await ctx.supabase.from('billing_plans').insert({...clean,active:false,archived:false})
+  .select('id').single()
+ if(error)return {ok:false,message:'Não foi possível cadastrar o plano: '+error.message}
+ revalidatePath('/admin')
+ return {ok:true,id:data.id,message:'Plano salvo como rascunho. Nenhuma cobrança ativada.'}
+}
+export async function archiveBillingDraft(id:string):Promise<Result>{
+ const ctx=await getAdminContext()
+ if(!ctx)return forbidden
+ if(!isUuid(id))return {ok:false,message:'Plano inválido.'}
+ const {data,error}=await ctx.supabase.from('billing_plans')
+   .update({archived:true,updated_at:new Date().toISOString()})
+   .eq('id',id).eq('active',false).is('mp_plan_id',null).select('id')
+ if(error||!data?.length)return {ok:false,message:'Só é possível arquivar rascunhos sem vínculo com o Mercado Pago.'}
+ revalidatePath('/admin')
+ return {ok:true,message:'Rascunho arquivado.'}
+}
+
 export async function createBillingPlan(input:{name:string;description:string;price:number;frequency:1|12}):Promise<BillingResult>{
   const ctx=await getAdminContext()
   if(!ctx)return forbidden

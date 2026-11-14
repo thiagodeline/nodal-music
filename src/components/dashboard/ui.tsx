@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-export type Release = { id: string; title: string; type: string; main_artist: string | null; genre: string | null; credits: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
+export type Release = { id: string; title: string; type: string; main_artist: string | null; genre: string | null; subgenre?: string | null; featured_artists?: string | null; composers?: string | null; producers?: string | null; lyricists?: string | null; rejection_reason?: string | null; credits: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
 export type Report = { id: string; release_id: string | null; platform: string; month: string; streams: number; revenue: number; country: string | null }
 export type Wd = { id: string; amount: number; pix_key: string; status: string; created_at: string }
 export type Data = { me: any; email: string; releases: Release[]; reports: Report[]; wds: Wd[] }

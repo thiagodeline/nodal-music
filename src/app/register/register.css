@@ -1,7 +1,7 @@
 .rg-page{min-height:100vh;background:#f4f7fc;color:#121c33;padding:24px;display:grid;place-items:center;font-family:var(--body),system-ui,sans-serif}
 .rg-container{width:min(1140px,100%);display:grid;grid-template-columns:42% 58%;background:#fff;border:1px solid #dce5f2;border-radius:26px;overflow:hidden;box-shadow:0 25px 80px rgba(20,47,95,.1)}
-.rg-aside{background:#0646bd;color:white;padding:42px;display:flex;flex-direction:column;min-height:790px;position:relative;isolation:isolate}
-.rg-aside:after{content:"";position:absolute;inset:auto -170px -120px auto;width:480px;height:480px;border:85px solid rgba(255,255,255,.06);border-radius:50%;z-index:-1}
+.rg-aside{background:#0646bd;color:white;padding:42px;display:flex;flex-direction:column;min-height:790px;position:relative;isolation:isolate;overflow:hidden}
+.rg-aside:after{content:"";position:absolute;inset:auto -170px -120px auto;width:480px;height:480px;border:85px solid rgba(255,255,255,.06);border-radius:50%;z-index:-1;pointer-events:none}
 .rg-aside>a{display:inline-flex;background:#fff;padding:12px 17px;border-radius:12px;align-self:flex-start}
 .rg-aside>a img{height:27px;width:auto;max-width:170px}
 .rg-aside-content{margin:auto 0;max-width:360px}
@@ -12,7 +12,7 @@
 .rg-points{display:grid;gap:16px;margin-top:38px;color:#f0f6ff;font-size:.91rem}
 .rg-points span{display:flex;gap:11px;align-items:center}
 .rg-aside-foot{color:#b8cffd;font-size:.82rem}
-.rg-panel{padding:48px clamp(26px,5vw,74px);display:flex;align-items:center;justify-content:center}
+.rg-panel{padding:48px clamp(26px,5vw,74px);display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
 .rg-form-wrap{width:100%;max-width:520px}
 .rg-heading{margin-bottom:28px}
 .rg-heading h1,.rg-success h1{font-size:2.3rem;letter-spacing:-.05em;margin:0 0 10px}

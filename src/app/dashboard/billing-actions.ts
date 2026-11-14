@@ -10,7 +10,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
  const secret=process.env.SUPABASE_SERVICE_ROLE_KEY
  const webhookSecret=process.env.MERCADOPAGO_WEBHOOK_SECRET
  const site=process.env.SINTONE_SITE_URL
- if(!token||!secret||!webhookSecret||!site)
+ if(process.env.SINTONE_ENABLE_PAID_CHECKOUT!=='true'||!token||!secret||!webhookSecret||!site)
   return {ok:false,message:'A contratação ainda não está habilitada. A equipe está concluindo a integração de pagamentos.'}
  if(!/^[0-9a-f-]{36}$/i.test(planId))return {ok:false,message:'Plano inválido.'}
  const {data:plan,error}=await sb.from('billing_plans')

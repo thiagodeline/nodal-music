@@ -1,21 +1,11 @@
 'use client'
 import Link from 'next/link'
 import {useState} from 'react'
-import {startBillingCheckout} from '@/app/dashboard/billing-actions'
+import {SubscriptionCardForm} from './SubscriptionCardForm'
 export type PublicPlan={id:string;name:string;description:string|null;price_brl:number;frequency:number;benefits:string[]|null;mp_plan_id?:string|null;is_default?:boolean}
 export function PlanCards({plans,context='home',currentPlanId,checkoutReady=false}:{plans:PublicPlan[];context?:'home'|'dashboard';currentPlanId?:string|null;checkoutReady?:boolean}){
- const [busy,setBusy]=useState<string|null>(null)
- const [error,setError]=useState('')
- async function subscribe(id:string){
-  if(busy)return
-  setBusy(id);setError('')
-  try{const result=await startBillingCheckout(id)
-   if(result.ok)window.location.assign(result.url)
-   else setError(result.message)
-  }catch{setError('Não foi possível iniciar a assinatura.')}
-  finally{setBusy(null)}
- }
- return <div>{error&&<p className="st-plan-error" role="alert">{error}</p>}<div className="st-plan-grid">
+ const [selected,setSelected]=useState<PublicPlan|null>(null)
+ return <div><div className="st-plan-grid">
  {plans.map((plan,i)=>{
   const free=Number(plan.price_brl)===0
   const current=currentPlanId===plan.id
@@ -32,10 +22,10 @@ export function PlanCards({plans,context='home',currentPlanId,checkoutReady=fals
     {context==='home'?(free||sellable?<Link className="st-plan-action" href="/register">{free?'Criar conta grátis':'Conhecer o plano'}</Link>:<span className="st-plan-action st-plan-unavailable">Em breve</span>):
      current?<span className="st-plan-action st-plan-current">Plano atual</span>:
       free?<span className="st-plan-action st-plan-unavailable">Grátis</span>:
-      sellable?<button className="st-plan-action" type="button" disabled={!!busy} onClick={()=>void subscribe(plan.id)}>{busy===plan.id?'Redirecionando...':'Assinar plano'}</button>:<span className="st-plan-action st-plan-unavailable">Em breve</span>}
+      sellable?<button className="st-plan-action" type="button" onClick={()=>setSelected(plan)}>Assinar plano</button>:<span className="st-plan-action st-plan-unavailable">Em breve</span>}
     <ul>{(Array.isArray(plan.benefits)?plan.benefits:[]).map((item,index)=><li key={index}><span aria-hidden="true">✓</span>{item}</li>)}</ul>
    </div>
   </article>
  })}
- </div></div>
+ </div>{selected&&<SubscriptionCardForm key={selected.id} plan={selected} onClose={()=>setSelected(null)}/>}</div>
 }

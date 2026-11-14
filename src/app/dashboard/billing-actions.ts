@@ -1,8 +1,8 @@
 'use server'
 import {createClient as createAdminClient} from '@supabase/supabase-js'
 import {createClient} from '@/lib/supabase/server'
-type Result={ok:true;url:string}|{ok:false;message:string}
-export async function startBillingCheckout(planId:string):Promise<Result>{
+type Result={ok:true;message:string}|{ok:false;message:string}
+export async function startBillingCheckout(planId:string,cardToken:string):Promise<Result>{
  const sb=await createClient()
  const {data:{user},error:authError}=await sb.auth.getUser()
  if(authError||!user||!user.email)return {ok:false,message:'Faça login para contratar um plano.'}
@@ -13,6 +13,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
  if(process.env.SINTONE_ENABLE_PAID_CHECKOUT!=='true'||!token||!secret||!webhookSecret||!site)
   return {ok:false,message:'A contratação ainda não está habilitada. A equipe está concluindo a integração de pagamentos.'}
  if(!/^[0-9a-f-]{36}$/i.test(planId))return {ok:false,message:'Plano inválido.'}
+ if(typeof cardToken!=='string'||!/^[a-zA-Z0-9_-]{16,256}$/.test(cardToken))return {ok:false,message:'Cartão não validado. Confira os dados e tente novamente.'}
  const {data:plan,error}=await sb.from('billing_plans')
   .select('id,name,price_brl,mp_plan_id').eq('id',planId).eq('published',true).eq('archived',false).single()
  if(error||!plan||Number(plan.price_brl)<=0||!plan.mp_plan_id)
@@ -40,7 +41,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
   if(prev.ok){
    const mp=await prev.json() as {init_point?:string;status?:string}
    if(existing&&mp.status==='authorized')return {ok:false,message:'Você já possui uma assinatura para esse plano.'}
-   if(mp.init_point&&mp.init_point.startsWith('https://www.mercadopago.com'))return {ok:true,url:mp.init_point}
+   if(mp.status==='pending')return {ok:false,message:'Já existe uma assinatura pendente para este plano. Aguarde a confirmação ou fale com o suporte.'}
   }
  }
  if(existing)return {ok:false,message:'Uma contratação desse plano já está em andamento. Procure o suporte antes de tentar novamente.'}
@@ -54,6 +55,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-Idempotency-Key':row.id},
    body:JSON.stringify({preapproval_plan_id:plan.mp_plan_id,reason:'SINTONE - '+plan.name,
     external_reference:row.id,payer_email:user.email,
+    card_token_id:cardToken,status:'authorized',
     back_url:new URL('/dashboard#plans',site).toString()}),cache:'no-store'
   })
   const payload=await response.json().catch(()=>({})) as {
@@ -69,17 +71,14 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
    throw new Error('Mercado Pago (HTTP '+response.status+'): '+detail)
   }
   if(payload.id)remoteCreated=true
-  if(!payload.id||!payload.init_point)throw new Error('Mercado Pago não retornou link de checkout. Entre em contato com o suporte antes de tentar novamente.')
-  const url=new URL(payload.init_point)
-  if(url.protocol!=='https:'||!['mercadopago.com.br','www.mercadopago.com.br','mercadopago.com','www.mercadopago.com'].includes(url.hostname))
-   throw new Error('URL de pagamento inválida.')
+  if(!payload.id)throw new Error('Mercado Pago não retornou um identificador de assinatura. Fale com o suporte antes de tentar novamente.')
   const {error:updateError}=await admin.from('billing_subscriptions')
     .update({mp_preapproval_id:payload.id}).eq('id',row.id)
   if(updateError){
    console.error('[billing] Não foi possível armazenar vínculo com assinatura', {subscriptionId:row.id,code:updateError.code})
    throw new Error('A assinatura foi criada no Mercado Pago, mas houve falha ao sincronizar o cadastro. Contate o suporte antes de tentar novamente.')
   }
-  return {ok:true,url:url.toString()}
+  return {ok:true,message:'Assinatura solicitada. Aguarde a confirmação do pagamento; a liberação do plano não é imediata.'}
  }catch(e){
   const reason=e instanceof Error?e.message:'Falha inesperada de comunicação.'
   // Se o provedor criou a assinatura, não cancelar cegamente o registro local:
@@ -88,7 +87,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
    await admin.from('billing_subscriptions').update({status:'cancelled'}).eq('id',row.id)
   else console.error('[billing] Assinatura criada no provedor requer conciliação manual',{subscriptionId:row.id})
   return {ok:false,message:reason.startsWith('Mercado Pago (HTTP ')||reason.includes('Contate o suporte')||
-    reason.includes('link de checkout')||reason.includes('URL de pagamento')?reason:
+    reason.includes('identificador de assinatura')?reason:
     'Não foi possível iniciar o checkout: '+reason.slice(0,180)}
  }
 }

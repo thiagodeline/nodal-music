@@ -24,7 +24,7 @@
 .rg-group input:not([type=checkbox]){width:100%;border:1px solid #d7e0ed;border-radius:11px;padding:13px 14px;font:inherit;font-size:.91rem;background:#fff;color:#121c33;outline:0;transition:border-color .15s,box-shadow .15s}
 .rg-group input:focus{border-color:#0646bd;box-shadow:0 0 0 3px rgba(6,70,189,.11)}
 .rg-group input[aria-invalid=true]{border-color:#d94b5b}
-.rg-profiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.rg-profiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .rg-profile{background:#fff;border:1px solid #dce4ef;border-radius:13px;text-align:left;min-height:109px;padding:13px 11px;display:flex;flex-direction:column;gap:5px;position:relative;cursor:pointer;font:inherit;color:#1f2a42}
 .rg-profile svg{color:#6c7c96}
 .rg-profile strong{font-size:.82rem}

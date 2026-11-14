@@ -53,7 +53,19 @@ export default function Register() {
           terms_version: '2026-11',
         } },
       })
-      if (error) { setFeedback('Não foi possível criar a conta: ' + error.message); return }
+      if (error) {
+        const msg = error.message || 'Falha desconhecida'
+        if (/fetch|network|connection|timeout/i.test(msg)) {
+          setFeedback('Não foi possível conectar ao serviço de autenticação. Tente novamente em instantes.')
+        } else if (/rate limit|too many requests|email rate limit/i.test(msg)) {
+          setFeedback('Muitas tentativas de cadastro. Aguarde alguns minutos antes de tentar novamente.')
+        } else if (/already registered|already exists|user already registered/i.test(msg)) {
+          setFeedback('Este e-mail já pode estar cadastrado. Tente entrar na sua conta.')
+        } else {
+          setFeedback('Não foi possível criar a conta: ' + msg)
+        }
+        return
+      }
       if (data.session && data.user) {
         const created = await ensureProfile(sb, data.user)
         if (created.error) {
@@ -64,8 +76,10 @@ export default function Register() {
         return
       }
       setDone(true)
-    } catch {
-      setFeedback('Falha de conexão. Verifique a internet e tente novamente.')
+    } catch (err) {
+      // Um erro inesperado pode indicar configuração inválida e não falta de Internet.
+      console.error('Cadastro SINTONE: erro inesperado na autenticação', err)
+      setFeedback('Serviço de cadastro temporariamente indisponível. Tente novamente ou entre em contato com o suporte.')
     }
   }
 

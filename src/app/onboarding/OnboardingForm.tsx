@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Mic2, Building2 } from 'lucide-react'
@@ -18,7 +17,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 export default function OnboardingForm({ email, initialName = '', initialType = 'ARTIST', isProducer = false }: { email: string; initialName?: string; initialType?: 'ARTIST' | 'LABEL'; isProducer?: boolean }) {
-  const router = useRouter(); const [serverError, setServerError] = useState(''), [detail, setDetail] = useState('')
+  const [serverError, setServerError] = useState(''), [detail, setDetail] = useState('')
   const { register, handleSubmit, watch, setValue, setError, clearErrors, formState: { errors, isSubmitting } } = useForm<OnboardingValues>({
     resolver: zodResolver(onboardingSchema), mode: 'onTouched',
     defaultValues: { accountType: initialType, stageName: '', fullName: initialName, birthDate: '', email, phone: '', address: '', document: '' },
@@ -36,7 +35,9 @@ export default function OnboardingForm({ email, initialName = '', initialType = 
       Object.entries(r.fieldErrors ?? {}).forEach(([k, message]) => setError(k as keyof OnboardingValues, { message }))
       return setServerError(r.error)
     }
-    router.push('/onboarding/contract'); router.refresh()
+    // Full navigation avoids a race between router.refresh() and the status
+    // transition saved by the Server Action.
+    window.location.replace('/onboarding/contract')
   }
   return (<main className="ob"><div className="ob-wrap">
     <img src="/sintone-logo.svg" alt="SINTONE" className="ob-logo" />

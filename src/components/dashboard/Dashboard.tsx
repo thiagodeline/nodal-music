@@ -51,7 +51,7 @@ export default function Dashboard() {
   async function out() { await createClient().auth.signOut(); location.href = '/' }
   return (<div className="nd">
     <aside className={'nd-side' + (open ? ' open' : '')}>
-      <Link href="/"><img src="/logo.png" alt="Nodal Music" /></Link>
+      <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
       <nav>{nav(isAdm).map(([s, items]) => <div key={s}><h4>{s}</h4>{items.map(([k, l, Ic]) => k === 'new' && locked ? <span key={k} className="nav-lock" aria-disabled="true" title="Disponível depois que o contrato assinado for aprovado"><Lock size={17} />{l}</span> : <a key={k} href={'#' + k} className={route === k ? 'on' : ''}><Ic size={17} />{l}</a>)}</div>)}</nav>
       <div className="nd-foot"><button onClick={out}><LogOut size={17} />Sair</button></div>
     </aside>

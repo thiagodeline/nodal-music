@@ -14,7 +14,7 @@ export function onboardingRedirect(
   profile: OnboardingRouteProfile | null,
   contractPdfReady = false,
 ): string | null {
-  const dataPending = !profile || profile.onboarding_completed !== true ||
+  const dataPending = !profile || profile.onboarding_completed === false ||
     profile.status === 'PENDING_ONBOARDING'
 
   if (dataPending) return pathname === '/onboarding' ? null : '/onboarding'

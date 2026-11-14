@@ -1,43 +1,58 @@
-import json, re, asyncio
-from playwright.async_api import async_playwright
+import os, json
+from playwright.sync_api import sync_playwright, expect
 
-async def main():
- async with async_playwright() as p:
-  browser=await p.chromium.launch(headless=True,args=['--no-sandbox'])
-  page=await browser.new_page(viewport={'width': 1250,'height':920})
-  faults=[]; requests=[]; logs=[]
-  page.on('pageerror',lambda e:faults.append(str(e)))
-  page.on('requestfailed',lambda r:requests.append({'url':r.url.split('?')[0].split('/auth/v1')[0], 'failure':r.failure}))
-  page.on('console',lambda c: logs.append({'type':c.type,'text':c.text[:300]}) if c.type=='error' else None)
-  async def intercept(route):
-   print('SIGNUP_HTTP_ATTEMPT', route.request.url.split('/auth/v1/')[0]+"/auth/v1/signup")
-   await route.abort('blockedbyclient') # Never create a test account
-  await page.route('**/auth/v1/signup*',intercept)
-  resp=await page.goto('https://sintone.vercel.app/register',wait_until='networkidle',timeout=60000)
-  print('HTTP',resp.status,'TITLE',await page.title())
-  scripts=await page.locator('script[src]').evaluate_all('(els)=>els.map(el=>el.src)')
-  urls=[]
-  for src in scripts:
-   try:
-    body=await (await page.request.get(src,timeout=10000)).text()
-    for u in re.findall(r'https?://[a-z0-9.-]+\\.supabase\\.co',body,re.I):
-     if u not in urls: urls.append(u)
-   except Exception as e: print('SCRIPT_FETCH_FAILED',type(e).__name__)
-  print('SUPABASE_URLS_EMBEDDED',json.dumps(urls))
-  for k,v in [('rg-name','Teste Diagnostico'),('rg-email','teste.diagnostico+blocked@example.org'),('rg-password','TesteSenhaForte123!'),('rg-confirm','TesteSenhaForte123!')]:
-   await page.locator('#'+k).fill(v)
-  cb=page.get_by_role('checkbox')
-  await cb.click()
-  print('TERMS_CHECKED',await cb.get_attribute('aria-checked'))
-  button=page.get_by_role('button',name='Criar conta grátis')
-  print('SUBMIT_ENABLED',await button.is_enabled())
-  if await button.is_enabled():
-   await button.click()
-   await page.wait_for_timeout(2000)
-   print('FEEDBACK', (await page.locator('.rg-alert').all_text_contents())[:4])
-  print('PAGE_ERRORS',json.dumps(faults[:5]))
-  print('FAILED_REQUESTS',json.dumps(requests[:8]))
-  print('CONSOLE_ERRORS',json.dumps(logs[:5]))
-  await browser.close()
+url = os.environ.get('REGISTER_TEST_URL', 'http://127.0.0.1:3000/register')
+project_ref = 'jklitdqichsuymgspvbe'
+attempts = []
+errors = []
 
-asyncio.run(main())
+with sync_playwright() as p:
+  browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+  page = browser.new_page(viewport={'width': 1200, 'height': 900})
+  page.on('pageerror', lambda e: errors.append(str(e)))
+  def block_signup(route):
+    attempts.append(route.request.url)
+    route.abort('blockedbyclient') # nunca cria uma conta de teste
+  page.route('**/auth/v1/signup*', block_signup)
+  resp = page.goto(url, wait_until='networkidle', timeout=60000)
+  assert resp and resp.status == 200, f'HTTP cadastro: {resp.status if resp else "no response"}'
+  page.locator('#rg-name').fill('Teste Diagnostico')
+  page.locator('#rg-email').fill('teste.diagnostico+blocked@example.org')
+  page.locator('#rg-password').fill('TesteSenhaForte123!')
+  page.locator('#rg-confirm').fill('TesteSenhaForte123!')
+  toggle=page.get_by_role('checkbox')
+  toggle.click()
+  expect(toggle).to_have_attribute('aria-checked','true')
+  submit=page.get_by_role('button',name='Criar conta grátis')
+  expect(submit).to_be_enabled()
+  submit.click()
+  page.wait_for_timeout(1400)
+  assert len(attempts)==1,f'Nenhum cadastro tentou acessar Supabase; erro={json.dumps(errors)} alerta={page.locator(".rg-alert").all_text_contents()}'
+  assert project_ref+'.supabase.co/auth/v1/signup' in attempts[0], 'O site tentou cadastro em um projeto Supabase incorreto'
+  print('REGISTRATION_CLIENT_OK: request to correct Supabase endpoint was intercepted without sending data')
+  assert not errors,f'Browser JS errors: {errors}'
+  alert=page.locator('.rg-alert').all_text_contents()
+  print('SIGNUP_FEEDBACK_AFTER_SIMULATED_NETWORK_FAILURE',json.dumps(alert,ensure_ascii=False))
+
+  response=page.request.get('https://'+project_ref+'.supabase.co/auth/v1/settings',timeout=15000)
+  print('AUTH_SETTINGS_STATUS',response.status)
+  assert response.ok, 'Endpoint público de autenticação Supabase não respondeu'
+  flags=response.json()
+  print('EMAIL_AUTH_AVAILABLE',bool(flags.get('external',{}).get('email',False)))
+  print('DISABLE_SIGNUP',flags.get('disable_signup','not_reported'))
+  assert flags.get('external',{}).get('email',True), 'Login por e-mail desabilitado no Supabase'
+
+  login=browser.new_page(viewport={'width': 1200, 'height': 900})
+  login_hits=[]
+  def block_login(route):
+    login_hits.append(route.request.url)
+    route.abort('blockedbyclient')
+  login.route('**/auth/v1/token*',block_login)
+  login.goto(url.replace('/register','/login'),wait_until='networkidle',timeout=60000)
+  login.locator('#login-email').fill('teste.diagnostico+blocked@example.org')
+  login.locator('#login-password').fill('TesteSenhaForte123!')
+  login.get_by_role('button',name='Entrar',exact=True).click()
+  login.wait_for_timeout(1000)
+  assert login_hits, 'Tela de login não chamou Supabase'
+  print('LOGIN_CLIENT_OK: request intercepted without any authentication attempt')
+  browser.close()

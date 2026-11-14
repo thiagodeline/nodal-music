@@ -1,0 +1,134 @@
+CONTRATO DE ADESÃO AOS SERVIÇOS DE DISTRIBUIÇÃO DIGITAL DE FONOGRAMAS
+SINTONE — VERSÃO 2026.11-R2 — MINUTA PARA REVISÃO FINAL
+
+QUALIFICAÇÃO DAS PARTES
+
+DISTRIBUIDORA: pessoa jurídica operadora da marca SINTONE, inscrita no CNPJ 64.100.398/0001-10, sediada na Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004, razão social a confirmar no cadastro da Receita Federal: [PREENCHER: RAZÃO SOCIAL CONSTANTE NO CNPJ], doravante denominada "SINTONE" ou "DISTRIBUIDORA".
+
+LICENCIANTE: pessoa física artista, ou pessoa jurídica selo/gravadora, que cria uma conta na SINTONE, identifica-se por nome civil ou empresarial, nome artístico ou nome do selo, CPF ou CNPJ e demais informações fornecidas no cadastro. Quando se tratar de pessoa jurídica, a pessoa física que realiza o aceite declara possuir poderes de representação. Os dados individualizados constarão do registro eletrônico de assinatura e do PDF.
+
+CANAL DE COMUNICAÇÃO CONTRATUAL DA SINTONE: [PREENCHER: E-MAIL INSTITUCIONAL OPERACIONAL E MONITORADO].
+
+As partes ajustam as disposições seguintes:
+
+CLÁUSULA 1 — OBJETO E NATUREZA DO SERVIÇO
+
+1.1. A SINTONE presta serviços de recepção, organização, análise e, quando tecnicamente disponível, entrega de gravações sonoras (fonogramas) e seus metadados a plataformas digitais de música e lojas parceiras ("DSPs"), com disponibilização de informações sobre lançamentos e receitas em painel eletrônico.
+
+1.2. A disponibilização do site, a criação de conta e a assinatura deste instrumento não constituem garantia de aceitação por qualquer DSP, de prazo exato de publicação, de obtenção de streams, inserção em playlists ou recebimento de valores.
+
+1.3. Distribuição de videofonogramas, gestão editorial, subedição, sincronização, monetização de conteúdo gerado por usuários (UGC), YouTube Content ID, campanhas e outros serviços não descritos expressamente no item 1.1 dependem de disponibilidade, condições específicas e aceite separado. Nenhuma dessas operações é contratada automaticamente por este instrumento.
+
+CLÁUSULA 2 — TITULARIDADE, LICENÇA E TERRITÓRIO
+
+2.1. O LICENCIANTE permanece titular dos direitos sobre obras e fonogramas que efetivamente lhe pertençam. O presente contrato NÃO transfere a propriedade de direitos autorais, conexos ou de masters à SINTONE.
+
+2.2. Para executar a distribuição solicitada, o LICENCIANTE concede à SINTONE licença NÃO EXCLUSIVA, limitada à vigência da disponibilidade do respectivo lançamento, para receber, armazenar, reproduzir tecnicamente, codificar, converter, transmitir, disponibilizar e entregar os arquivos, capas, créditos e metadados às DSPs selecionadas, no Brasil e no exterior. Incluem-se usos promocionais razoáveis de trechos e capas estritamente vinculados à divulgação do próprio lançamento.
+
+2.3. O LICENCIANTE pode contratar outras distribuidoras para outros lançamentos e serviços, desde que evite a entrega concorrente da MESMA gravação com metadados conflitantes às mesmas DSPs, situação capaz de gerar duplicidades, disputas de titularidade e bloqueios. A coordenação operacional dessa situação não transforma a licença em exclusiva.
+
+2.4. Usos comerciais distintos da distribuição contratada, inclusive sincronização publicitária, licenciamento editorial independente e coleta de direitos fora do escopo da distribuição, exigem autorização específica, com identificação dos direitos, remuneração e prazo.
+
+CLÁUSULA 3 — DIREITOS DE TERCEIROS E RESPONSABILIDADES DO LICENCIANTE
+
+3.1. O LICENCIANTE declara ter pelo menos 18 anos, ou atuar por representante legal habilitado, e possuir a titularidade ou todas as autorizações necessárias para explorar e entregar cada gravação, composição, participação, sample, versão, fotografia, capa, nome e imagem que submeter.
+
+3.2. Cabe ao LICENCIANTE fornecer créditos completos, dados verdadeiros, informações sobre conteúdo explícito, documentação de autorizações e divisões de direitos; atualizar dados relevantes; e obter as licenças de terceiros quando necessárias. O uso autorizado de material de terceiros deve ser informado; não se presume que toda obra seja totalmente original.
+
+3.3. O LICENCIANTE responde por danos comprovadamente causados por falsidade, infração de direitos ou descumprimento de suas obrigações, observado o nexo causal, o contraditório e a legislação aplicável. A SINTONE permanece responsável pelos atos próprios, não sendo admitida exoneração genérica de responsabilidade.
+
+3.4. Para selos e gravadoras, o signatário declara que a pessoa jurídica está regularmente constituída e que dispõe de autorização dos artistas e titulares representados. A documentação poderá ser solicitada de modo fundamentado.
+
+CLÁUSULA 4 — REMUNERAÇÃO, BASE DE CÁLCULO E TRANSPARÊNCIA
+
+4.1. Sobre as RECEITAS LÍQUIDAS da distribuição abrangida por este instrumento, o LICENCIANTE recebe 75% (setenta e cinco por cento) e a SINTONE retém 25% (vinte e cinco por cento) como remuneração do serviço.
+
+4.2. "Receitas Líquidas" são os valores efetivamente recebidos pela SINTONE das DSPs atribuíveis aos fonogramas do LICENCIANTE, após valores que as DSPs já tenham retido na fonte e após deduções obrigatórias e comprováveis diretamente relacionadas àqueles rendimentos (tais como impostos retidos, direitos de terceiros legalmente devidos e estornos efetivos). Um valor já descontado pela DSP não poderá ser descontado uma segunda vez.
+
+4.3. A SINTONE disponibilizará, sempre que os dados forem fornecidos pelos parceiros, demonstrativo identificando período, plataforma, receita reportada, deduções, base líquida, comissão de 25%, participação de 75% e valores pagos ou em análise. Os demonstrativos não substituem as obrigações fiscais de cada parte.
+
+4.4. Taxas bancárias ou cambiais de intermediários externos, se efetivamente cobradas, serão comunicadas antes da operação de pagamento e apresentadas de forma discriminada. Nenhuma penalidade, taxa extraordinária, serviço adicional ou nova porcentagem poderá ser criada retroativamente ou cobrada sem fundamento contratual ou legal.
+
+4.5. O LICENCIANTE é responsável pelos tributos que lhe sejam legalmente atribuíveis. A SINTONE efetuará retenções quando obrigatórias, com informação e documentação pertinente. As regras fiscais de operações internacionais dependerão da legislação e situação tributária concretas; não se aplica automaticamente uma retenção fixa de 30% a todo titular de conta nos Estados Unidos.
+
+CLÁUSULA 5 — RELATÓRIOS, PRAZOS DE REPASSE E SAQUES
+
+5.1. As DSPs costumam processar relatórios e pagamentos com atraso. A SINTONE não controla o calendário de cada DSP e não garante data certa para valores ainda não recebidos.
+
+5.2. Após o efetivo recebimento e a identificação dos valores, a SINTONE disponibilizará o saldo elegível ao LICENCIANTE e efetuará o repasse em até 30 (trinta) dias, respeitadas a solicitação de saque, a verificação dos dados de pagamento e as condições do item 5.3. Se o pedido for feito após o recebimento, o prazo de pagamento será contado da solicitação válida.
+
+5.3. Para solicitações realizadas até 31/12/2026, o saldo mínimo de saque é de R$ 50,00. Para solicitações a partir de 01/01/2027, o saldo mínimo é de R$ 80,00. Valores abaixo do limite permanecem acumulados na conta, sem perda do direito a recebê-los. Em encerramento definitivo, saldo positivo devido poderá ser pago independentemente do mínimo, após conciliação e deduções lícitas.
+
+5.4. Pagamentos serão realizados por Pix ou outro meio informado como disponível e aceito pelo LICENCIANTE. A conta de destino deve observar a titularidade e controles de segurança exigíveis. Se houver estorno legítimo ou correção de relatório, a SINTONE informará os fundamentos e ajustará a conciliação, sem retenção indiscriminada de valores não envolvidos.
+
+CLÁUSULA 6 — CADASTRO GRATUITO E SERVIÇOS ADICIONAIS
+
+6.1. A criação de conta e a solicitação de distribuição padrão não exigem mensalidade ou taxa de cadastro nas condições aqui descritas. A remuneração da SINTONE decorre da participação prevista na Cláusula 4.
+
+6.2. Uma eventual oferta futura de planos pagos, adiantamentos, promoção, Content ID ou outros serviços será facultativa, informada previamente e submetida a contratação específica. A mera atualização do site não gera cobrança automática.
+
+CLÁUSULA 7 — MODERAÇÃO, FRAUDES E RECLAMAÇÕES
+
+7.1. A SINTONE poderá solicitar correções, recusar ou suspender conteúdo diante de indícios razoáveis de fraude, manipulação artificial de streams, infração de direitos, metadados falsos ou descumprimento de regras das DSPs, inclusive preventivamente quando necessário para mitigar risco real.
+
+7.2. Sempre que possível e sem prejudicar medida urgente, a SINTONE informará ao LICENCIANTE os motivos, o conteúdo atingido, os documentos disponíveis e um canal para contestação. O LICENCIANTE poderá apresentar esclarecimentos e provas em até 15 (quinze) dias corridos da comunicação. A análise ocorrerá em prazo razoável.
+
+7.3. Suspensões de pagamentos devem limitar-se, sempre que tecnicamente possível, aos valores relacionados à ocorrência investigada. Retenções, compensações e custos de terceiros exigem comprovação, fundamento contratual ou legal e demonstrativo ao LICENCIANTE. A SINTONE não poderá declarar automaticamente a perda de todas as receitas sem apuração.
+
+7.4. Não haverá multa automática por número de notificações, cancelamento de conta ou solicitação de retirada. Prejuízos efetivos causados por dolo, fraude ou violação comprovada poderão ser reclamados nos termos da lei, com direito de defesa.
+
+CLÁUSULA 8 — VIGÊNCIA, CANCELAMENTO E RETIRADA DOS LANÇAMENTOS
+
+8.1. Este contrato vige por prazo INDETERMINADO a partir do aceite eletrônico. Qualquer parte poderá solicitar o encerramento sem multa de fidelização, com aviso prévio de 30 (trinta) dias corridos por canal oficial. A SINTONE poderá encerrar imediatamente acesso ou entregas quando houver risco grave de fraude ou ordem legal, informando o motivo quando permitido.
+
+8.2. O LICENCIANTE poderá solicitar a retirada de um ou mais lançamentos a qualquer tempo. A SINTONE transmitirá o pedido às DSPs em prazo operacional razoável, preferencialmente até 30 (trinta) dias úteis após a identificação correta do catálogo, ressalvados entraves técnicos, disputas de titularidade e exigências das plataformas. A remoção efetiva dependerá dos processos de cada DSP.
+
+8.3. A retirada ou rescisão NÃO sujeita o LICENCIANTE a multa correspondente a faturamento futuro estimado, nem autoriza recusa arbitrária de takedown. Permanecem exigíveis obrigações e valores legitimamente constituídos até a data efetiva da retirada, inclusive relatórios recebidos depois do encerramento.
+
+8.4. Encerrada a contratação, a SINTONE deixará de promover novas entregas do conteúdo e solicitará a retirada de arquivos ativos sob sua administração, preservando somente registros exigidos por lei, pela prestação de contas ou pela defesa de direitos.
+
+CLÁUSULA 9 — DISPONIBILIDADE DO SERVIÇO E LIMITAÇÃO EQUILIBRADA DE RESPONSABILIDADE
+
+9.1. A SINTONE empregará diligência e medidas proporcionais de segurança, mas poderá depender da disponibilidade das DSPs, provedores de infraestrutura e sistemas de pagamento. Não garante êxito comercial, números de reproduções, playlists ou continuidade de todas as plataformas parceiras.
+
+9.2. Nenhuma cláusula exclui responsabilidade da SINTONE por seus próprios atos ilícitos, falha comprovada na prestação de serviço ou deveres legais irrenunciáveis. As partes devem mitigar danos e buscar solução proporcional, conforme a legislação aplicável.
+
+CLÁUSULA 10 — DADOS PESSOAIS E REGISTRO DA ASSINATURA
+
+10.1. Para manter a conta, prestar a distribuição, pagar royalties, prevenir fraudes e comprovar o aceite, a SINTONE tratará dados fornecidos no onboarding (incluindo nome, CPF ou CNPJ, e-mail e endereço), dados técnicos e registros de autenticação, conforme a Lei Geral de Proteção de Dados (LGPD) e sua Política de Privacidade.
+
+10.2. A SINTONE guardará a identificação do signatário, o texto e a versão aceitos, data e hora de servidor, IP observado pela infraestrutura e comprovante eletrônico do aceite. O arquivo PDF assinado ficará em armazenamento privado com controle de acesso e links de download temporários.
+
+10.3. A finalidade do registro de IP e dos demais metadados é auxiliar na segurança e na prova da manifestação de vontade; isoladamente, esses dados não asseguram verificação inequívoca de identidade. O acesso, retenção e exclusão observarão hipóteses legais e políticas de segurança aplicáveis.
+
+CLÁUSULA 11 — ASSINATURA ELETRÔNICA E PROVA DO ACEITE
+
+11.1. O LICENCIANTE declara ter tido acesso ao texto completo deste instrumento, aos valores e às condições da contratação, podendo rolar e consultar todo o conteúdo antes da confirmação.
+
+11.2. O clique identificado no botão "Aceito os termos do contrato", em sessão autenticada, constitui manifestação eletrônica de vontade do signatário. A SINTONE registra a data e hora oficiais do servidor, associa o texto integral aceito à conta e disponibiliza cópia do comprovante em PDF.
+
+11.3. As partes reconhecem o aceite como forma de assinatura eletrônica simples para este relacionamento, sem afirmar que se trata de assinatura qualificada com certificado digital ICP-Brasil. A validade, a autoria e a força probatória serão apreciadas conforme a legislação aplicável e as circunstâncias concretas.
+
+CLÁUSULA 12 — ALTERAÇÕES DAS CONDIÇÕES
+
+12.1. Alterações que atinjam remuneração, licenças, prazo, responsabilidades, tratamento de dados ou outras condições essenciais serão comunicadas previamente, com destaque do texto alterado e disponibilização de nova versão para aceite. A ausência de novo aceite não autoriza aplicação retroativa de condições prejudiciais a contratos ou receitas já constituídos.
+
+12.2. Ajustes operacionais e de segurança sem impacto material sobre direitos econômicos poderão ser comunicados pelos canais da plataforma, respeitada a lei. O LICENCIANTE poderá encerrar a contratação sem penalidade caso não concorde com alteração essencial.
+
+CLÁUSULA 13 — SOLUÇÃO DE CONFLITOS E LEI APLICÁVEL
+
+13.1. As partes buscarão resolver dúvidas e controvérsias de boa-fé pelos canais oficiais da SINTONE, com resposta em prazo razoável e possibilidade de encaminhamento de documentos.
+
+13.2. Aplica-se a legislação brasileira. Fica eleito o foro da Comarca de Viamão/RS quando legalmente permitido, preservadas as regras de competência obrigatória e o direito do consumidor de recorrer ao foro de seu domicílio nos casos previstos em lei.
+
+CLÁUSULA 14 — DISPOSIÇÕES FINAIS
+
+14.1. A nulidade de uma disposição não invalida automaticamente as demais, quando for possível preservar o objeto e o equilíbrio contratual.
+
+14.2. Este instrumento não cria vínculo empregatício, sociedade, representação comercial ampla ou exclusividade geral entre as partes. A SINTONE só atuará nos limites da licença expressamente concedida.
+
+14.3. O documento individual de assinatura e os registros eletrônicos associados integram este instrumento. O signatário poderá baixar cópia do contrato aceito.
+
+FIM DO CONTRATO — SINTONE — 2026.11-R2
+
+STATUS DA VERSÃO: MINUTA SUJEITA A CONFERÊNCIA DA RAZÃO SOCIAL, DO CANAL CONTRATUAL E A REVISÃO JURÍDICA FINAL. NÃO LIBERAR ACEITES ENQUANTO RESTAREM CAMPOS [PREENCHER].

@@ -34,7 +34,7 @@ async function exportExcel(r:AdminRelease,format:'xlsx'|'xls'){
  wsGeral['!cols']=[{wch:31},{wch:74}]
  XLSX.utils.book_append_sheet(wb,wsGeral,'Lançamento')
 
- const faixas=[[
+ const faixas:unknown[][]=[[
    'ID lançamento','ID faixa','Ordem','Título da faixa','ISRC',
    'Participações','Compositores','Produtores','Letristas','Créditos',
    'Colaboradores','Explícito','Idioma','Caminho áudio'
@@ -49,7 +49,7 @@ async function exportExcel(r:AdminRelease,format:'xlsx'|'xls'){
   faixas.push([r.id,t.id,t.position,t.title,t.isrc,
    t.featured_artists,t.composers,t.producers,t.lyricists,t.credits,
    (t.contributors||[]).map(c=>c.name+' ('+c.role+')').join('; '),
-   t.explicit,t.language,t.audio_path].map(v=>v==null?'':v) as string[])
+   t.explicit,t.language,t.audio_path])
  }
  const wsTracks=XLSX.utils.aoa_to_sheet(rows(faixas))
  wsTracks['!cols']=[{wch:38},{wch:38},{wch:8},{wch:35},{wch:17},{wch:24},

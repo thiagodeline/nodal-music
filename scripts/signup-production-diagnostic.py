@@ -1,4 +1,5 @@
-import os, json
+import os, json, re
+from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
 url = os.environ.get('REGISTER_TEST_URL', 'http://127.0.0.1:3000/register')
@@ -34,7 +35,10 @@ with sync_playwright() as p:
   alert=page.locator('.rg-alert').all_text_contents()
   print('SIGNUP_FEEDBACK_AFTER_SIMULATED_NETWORK_FAILURE',json.dumps(alert,ensure_ascii=False))
 
-  response=page.request.get('https://'+project_ref+'.supabase.co/auth/v1/settings',timeout=15000)
+  public_config=Path('src/lib/supabase/public-config.ts').read_text()
+  key_match=re.search(r"sb_publishable_[A-Za-z0-9_-]+",public_config)
+  assert key_match, 'Não foi possível verificar a chave publicável'
+  response=page.request.get('https://'+project_ref+'.supabase.co/auth/v1/settings',headers={'apikey':key_match.group(0)},timeout=15000)
   print('AUTH_SETTINGS_STATUS',response.status)
   assert response.ok, 'Endpoint público de autenticação Supabase não respondeu'
   flags=response.json()

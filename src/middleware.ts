@@ -1,3 +1,4 @@
+import { onboardingRedirect } from './lib/onboarding-route'
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './lib/supabase/public-config'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
@@ -25,10 +26,17 @@ export async function middleware(req: NextRequest) {
   const { data: profile, error } = await sb.from('profiles').select('status, onboarding_completed').eq('id', user.id).maybeSingle()
   if (error) return res // se o banco falhar, não prende o usuário; o RLS continua protegendo os dados
 
-  const pending = !profile || profile.onboarding_completed === false || profile.status === 'PENDING_ONBOARDING'
-  const inOnboarding = path === '/onboarding' || path.startsWith('/onboarding/')
-  if (pending && !inOnboarding) return go('/onboarding')   // /dashboard, /admin e subrotas
-  if (!pending && inOnboarding) return go('/dashboard')    // onboarding já concluído
+  let contractPdfReady = false
+  if (profile?.status === 'PENDING_CONTRACT' && path !== '/onboarding/contract') {
+    // The second step of onboarding ends only after the signed document is
+    // uploaded and verified. A profile status alone is not enough.
+    const { data: contract, error: contractError } = await sb.from('user_contracts')
+      .select('pdf_status').eq('user_id', user.id).maybeSingle()
+    if (contractError) console.error('Middleware: erro ao verificar PDF contratual', contractError.code)
+    contractPdfReady = !contractError && contract?.pdf_status === 'ready'
+  }
+  const next = onboardingRedirect(path, profile, contractPdfReady)
+  if (next && next !== path) return go(next)
   return res
 }
 export const config = { matcher: ['/dashboard/:path*', '/admin/:path*', '/onboarding/:path*'] }

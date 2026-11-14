@@ -58,7 +58,7 @@ export default function Dashboard() {
       <header className="nd-top"><button className="burger" onClick={() => setOpen(!open)} aria-label="Menu"><Menu size={20} /></button><h1>{title}</h1>{(route === 'admin' || route === 'contracts' || route === 'royalties') && <a className="btn ghost sm" href="#overview"><ArrowLeft size={15} />Voltar ao Painel de Artista</a>}
         <div className="who"><span>{d?.me?.artist_name || d?.email}</span></div></header>
       <main>{!d ? <p className="mut">Carregando…</p> : <>
-        {route !== 'admin' && route !== 'contracts' && route !== 'royalties' && <ContractBanner status={gate.status} />}
+        {route !== 'admin' && route !== 'contracts' && route !== 'royalties' && <ContractBanner status={gate.status} signed={!!d.me?.contract_accepted_at} />}
         {route === 'overview' && <Overview d={d} can={gate.canRelease} />}{route === 'catalog' && <Catalog d={d} can={gate.canRelease} />}
         {route === 'new' && (gate.canRelease ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
         {route === 'financial' && <Finance d={d} reload={load} />}{route === 'account' && <Account d={d} reload={load} />}

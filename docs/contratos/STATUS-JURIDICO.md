@@ -1,46 +1,40 @@
-# SINTONE — Revisão contratual 2026.11-R2
+# SINTONE — contrato de distribuição digital 2026.11-R2
 
-## Status
+## Estado operacional em 14/11/2026
 
-- Texto revisto: **sim**.
-- Página de leitura /onboarding/contract: **integrada**.
-- Integração de assinatura eletrônica, carimbo, PDF e Storage: **integrada**.
-- PDF completo de conferência: `docs/contratos/CONTRATO_SINTONE_2026-11_R2_MINUTA.pdf`.
-- **Versão aprovada para receber assinaturas reais: NÃO.** A base `contract_templates` permanece com `active=false`.
+**Ativo para aceites eletrônicos:** SIM, após aprovação expressa do titular da SINTONE.
 
-## Condições definidas a partir do instrumento fornecido e das mudanças solicitadas
+- Supabase `contract_templates`: `active=true` para **ARTIST** e **LABEL**, versão `2026.11-R2`.
+- Fonte do documento: `docs/contratos/sintone-contrato-2026-11-r2.txt` (15.135 caracteres).
+- Nome comercial exibido: **SINTONE**, MEI de CNPJ **64.100.398/0001-10**. O nome empresarial completo não é impresso.
+- Contato contratual exibido: **suporte@sintone.com.br**.
+- Contrato de adesão com distribuição **não exclusiva**, 75% do líquido ao artista e 25% à SINTONE, saques conforme as condições contratuais, prazo indeterminado e rescisão com aviso de 30 dias.
+- Forma de assinatura: **aceite eletrônico simples**, com snapshot de documento, identidade informada, hash SHA-256 do texto, horário de servidor e IP observado. Não é assinatura qualificada ICP-Brasil.
+- Geração de PDF via `html2pdf.js`, upload para bucket privado `contracts/<user_id>/contrato_assinado.pdf`, verificação e hash SHA-256 de arquivo no servidor e URL temporária para download.
+- Política de Storage de contratos exige registro de aceite `pdf_status='pending'` para permitir upload.
 
-- Licença: distribuição digital não exclusiva, sem transferência de titularidade.
-- Vigência: prazo indeterminado; cancelamento por qualquer parte, com aviso de 30 dias, sem multa por projeção de faturamento.
-- Repasse: 75% ao licenciante, 25% à SINTONE, sobre receitas líquidas definidas no contrato.
-- Prazo: até 30 dias do recebimento/solicitação elegível, com reconciliação e limites de saque.
-- Mínimo: R$ 50 até 31/12/2026 (mesmo mínimo atual do código), R$ 80 a partir de 01/01/2027 (conforme contrato anterior).
-- Fraudes e reclamações: medidas motivadas, possibilidade de contestação, deduções comprovadas.
-- Outros serviços (Content ID, edição, sincronização, vídeos): adesão específica, nunca incluídos automaticamente.
-- Assinatura: aceite eletrônico simples, sem pretensão de certificado ICP-Brasil.
+O PDF de consulta salvo em `docs/contratos/CONTRATO_SINTONE_2026-11_R2_MINUTA.pdf` mantém a marca de minuta porque foi produzido antes da aprovação. A versão **vinculante** é exclusivamente o texto integral de `contract_templates.body` capturado em `user_contracts.contract_snapshot` no momento do aceite. O PDF entregue ao artista é gerado a partir desse texto imutável e não contém a marca gráfica de minuta.
 
-## Pontos obrigatórios para fechamento jurídico e ativação
+## Aprovação e limitações
 
-1. **Identificação no contrato:** a SINTONE será indicada como nome comercial de empresário individual (MEI), CNPJ `64.100.398/0001-10`, sem reproduzir o nome empresarial completo na minuta pública. **Revisar juridicamente** se essa qualificação é suficiente para o documento vinculante, e confirmar os dados no CCMEI oficial. O nome empresarial cadastrado continua publicamente consultável pelo CNPJ.
-2. **E-mail institucional informado pelo responsável:** `suporte@sintone.com.br`. É necessário garantir que esta caixa esteja configurada e recebendo mensagens; a entrega não foi testada.
-3. **Regularidade da atividade:** consultas públicas do CNPJ mostram CNAE principal `5320-2/01` (serviços de malote), sem CNAE secundário de música/distribuição. A SINTONE presta serviços de distribuição musical. **Antes de habilitar contratação remunerada, verificar com contador a adequação dos CNAEs, possibilidade de exercício como MEI e eventual necessidade de desenquadramento.** Confirmar também o endereço no CCMEI.
-4. **Revisão jurídica humana** recomendada por profissional habilitado para as particularidades de direitos autorais, direito do consumidor, tributação, LGPD, distribuição e cobrança de royalties.
-5. Confirmar se a regra de pagamento e saque é operacionalmente praticável, inclusive para saldos pós-encerramento.
+O titular **aprovou a ativação operacional** do texto apresentado. Isso **não representa homologação jurídica por profissional habilitado**. Continuam recomendadas verificações de:
 
-## Procedimento para ativação após confirmação
+1. Compatibilidade da atividade econômica/CNAE do MEI com a distribuição musical e eventual necessidade de reenquadramento.
+2. Identificação da parte contratante no contrato (marca + CNPJ), endereço e documentação empresarial oficial.
+3. Funcionamento da caixa postal `suporte@sintone.com.br`.
+4. Revisão do contrato por advogado com experiência em direitos autorais, distribuição, LGPD e direito contratual.
+5. Funcionalidade dos repasses/royalties nas condições acordadas, inclusive em caso de cancelamento.
 
-- Os dois campos antigos de identificação e e-mail foram preenchidos no texto R2. Confirmar o nome empresarial no CCMEI, a funcionalidade do e-mail e a adequação da atividade/CNAE antes de aprovar o modelo.
-- Se o texto for alterado de modo substancial, criar a versão `2026.11-R3` em vez de sobrescrever uma versão **já assinada**. Não há assinaturas no banco no momento desta atualização.
-- Conferir que o corpo integral exibido ao artista corresponde ao corpo salvo no banco.
-- Ativar uma versão por tipo somente após aprovação, preservando as versões anteriores para auditoria.
-- Testar com uma conta de staging, incluindo download do PDF e assinatura idempotente, antes de habilitar o público real.
-- Corrigir a Política de Privacidade com a identificação e o canal oficial de contato confirmados.
+## Testes e limites da validação
 
-## Testes já feitos
+- Código da assinatura publicado em Next.js/Vercel anteriormente à ativação.
+- Template R2 comparado **integralmente** com o texto versionado no GitHub, para ambos os perfis.
+- Bucket `contracts` privado, limite 10 MB para PDFs.
+- Concessão `EXECUTE` do RPC de assinatura apenas a `authenticated`, com verificação do usuário, status do onboarding e versão ativa.
+- Build de produção e geração de PDF integral já validados em GitHub Actions.
+- **Ainda não foi comprovado o fluxo completo em uma conta real de teste** (aceite, upload e download em produção). Recomenda-se fazê-lo antes de incentivar inscrições em massa, sem presumir que um teste de build garanta todo o fluxo.
+- Nenhum registro contratual preexistente foi alterado por essa ativação.
 
-- Compilação do Next.js em GitHub Actions.
-- Geração do PDF integral via html2pdf.js: 6 páginas, cerca de 3,2 MB; primeira e última página não vazias.
-- Correção do erro de PDF de uma página em branco causado por renderização a `left:-100000px`.
-- Verificação de que templates R2 existem no Supabase e permanecem inativos. Os dois campos de identificação e contato foram preenchidos, mas a habilitação jurídica ainda depende de regularidade cadastral e revisão final.
+## Alterações futuras
 
-Este documento não é parecer jurídico nem substitui a confirmação de dados da pessoa jurídica.
+Uma versão assinada **não deve ser editada**. Para alterações materiais, publicar e ativar uma nova versão R3, com o consentimento aplicável, preservando a R2 nas tabelas de auditoria. O `contract_hash` e `contract_snapshot` de cada assinatura são permanentes.

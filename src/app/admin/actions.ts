@@ -96,3 +96,55 @@ export async function closeTicket(id: string): Promise<Result> {
   revalidatePath('/dashboard')
   return {ok:true,message:'Ticket fechado.'}
 }
+
+type BillingResult = Result & { id?: string }
+export async function createBillingPlan(input:{name:string;description:string;price:number;frequency:1|12}):Promise<BillingResult>{
+  const ctx=await getAdminContext()
+  if(!ctx)return forbidden
+  const name=typeof input?.name==='string'?input.name.trim():''
+  const description=typeof input?.description==='string'?input.description.trim():''
+  const price=Number(input?.price)
+  const frequency=input?.frequency
+  if(name.length<2||name.length>80||description.length>500||
+    !Number.isFinite(price)||price<=0||Math.round(price*100)!==price*100||
+    (frequency!==1&&frequency!==12))return {ok:false,message:'Confira nome, preço e periodicidade do plano.'}
+  const {data,error}=await ctx.supabase.from('billing_plans')
+    .insert({name,description,price_brl:price,frequency,frequency_type:'months',active:false})
+    .select('id').single()
+  if(error)return {ok:false,message:'Não foi possível salvar o plano: '+error.message}
+  revalidatePath('/admin')
+  return {ok:true,id:data.id,message:'Plano salvo como rascunho. Nenhuma cobrança foi ativada.'}
+}
+
+export async function registerMercadoPagoPlan(id:string):Promise<Result>{
+  const ctx=await getAdminContext()
+  if(!ctx)return forbidden
+  if(!isUuid(id))return {ok:false,message:'Plano inválido.'}
+  const token=process.env.MERCADOPAGO_ACCESS_TOKEN
+  const site=process.env.SINTONE_SITE_URL
+  if(!token||!site||!/^https:\/\//.test(site))return {ok:false,message:'Configure MERCADOPAGO_ACCESS_TOKEN e SINTONE_SITE_URL na Vercel antes de registrar planos.'}
+  const {data:plan,error:readError}=await ctx.supabase.from('billing_plans')
+    .select('id,name,price_brl,frequency,frequency_type,mp_plan_id,active').eq('id',id).single()
+  if(readError||!plan)return {ok:false,message:'Plano não encontrado.'}
+  if(plan.mp_plan_id)return {ok:false,message:'Este plano já está vinculado ao Mercado Pago.'}
+  if(plan.active)return {ok:false,message:'O plano precisa estar inativo para o registro inicial.'}
+  try{
+    const response=await fetch('https://api.mercadopago.com/preapproval_plan',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-Idempotency-Key':id},
+      body:JSON.stringify({
+        reason:'SINTONE - '+plan.name,
+        auto_recurring:{frequency:plan.frequency,frequency_type:plan.frequency_type,
+          transaction_amount:Number(plan.price_brl),currency_id:'BRL'},
+        back_url:new URL('/dashboard#account',site).toString()
+      }),cache:'no-store'
+    })
+    const payload=await response.json() as {id?:string;message?:string}
+    if(!response.ok||!payload.id)return {ok:false,message:'Mercado Pago não confirmou o cadastro do plano (HTTP '+response.status+').'}
+    const {error}=await ctx.supabase.from('billing_plans').update({mp_plan_id:payload.id,updated_at:new Date().toISOString()})
+      .eq('id',id).is('mp_plan_id',null)
+    if(error)return {ok:false,message:'Plano criado no Mercado Pago, mas não foi associado no banco. Não recrie o plano sem conciliar o ID: '+payload.id}
+    revalidatePath('/admin')
+    return {ok:true,message:'Plano registrado no Mercado Pago. Permanece inativo até a etapa de pagamentos.'}
+  }catch{return {ok:false,message:'Falha de conexão com a API do Mercado Pago.'}}
+}

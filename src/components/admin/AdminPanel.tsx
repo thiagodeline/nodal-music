@@ -16,6 +16,7 @@ import AdminAccounts from './AdminAccounts'
 import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 import AdminReleaseTracks from './AdminReleaseTracks'
 import AdminTickets from './AdminTickets'
+import AdminBilling from './AdminBilling'
 
 export type AdminReleaseTrack = {
   id:string;release_id:string;position:number;title:string;isrc:string|null;audio_path:string;
@@ -194,7 +195,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <div className="sa-plans-empty"><div className="sa-plans-icon"><CreditCard size={28}/></div><h2>Gestão de Planos &amp; Assinaturas</h2><p>Nenhum plano ativo configurado. O módulo de assinaturas será ativado em breve.</p><div className="sa-plan-placeholder" aria-label="Estrutura futura da tabela de planos"><span>Plano</span><span>Preço</span><span>Assinantes</span><span>Status</span></div><small>Pagamentos de assinaturas serão processados pelo Stripe após configuração do módulo.</small></div> : <AdminTickets/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <AdminBilling/> : <AdminTickets/>}
         </div>
       </main>
     </div>

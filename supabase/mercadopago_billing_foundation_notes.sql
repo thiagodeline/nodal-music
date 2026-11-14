@@ -1,0 +1,6 @@
+-- Migração aplicada no Supabase: sintone_mercadopago_billing_foundation
+-- A implantação cria billing_plans e billing_subscriptions com RLS.
+-- A documentação do Mercado Pago está em https://www.mercadopago.com.br/developers/pt/docs/subscriptions/overview
+-- Variáveis de ambiente servidor (NUNCA NEXT_PUBLIC_):
+-- MERCADOPAGO_ACCESS_TOKEN e SINTONE_SITE_URL.
+-- Nenhum plano é ativado automaticamente.

@@ -136,3 +136,13 @@
 .sr-ticket-link{border:0;background:none;color:#0646bd;text-decoration:underline;cursor:pointer}
 .sr-ticket-history{margin:12px 0;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;max-width:440px;white-space:pre-wrap;overflow-wrap:anywhere}
 .sr-ticket-history p{margin:6px 0 12px}
+
+.sa-billing{padding:20px}.sa-billing-heading{display:flex;gap:14px;align-items:flex-start;color:#0646bd;margin:6px 0 24px}
+.sa-billing-heading h2{font-size:20px;color:#0b1020;margin:0}.sa-billing-heading p{margin:5px 0;color:#566080}
+.sa-billing-form{border:1px solid #cbd5e1;background:#f8fafc;border-radius:14px;padding:20px;margin-bottom:20px;display:grid;gap:14px}
+.sa-billing-form h3{margin:0}.sa-billing-form label{display:grid;gap:6px;font-weight:650;color:#334155}
+.sa-billing-form input,.sa-billing-form select{background:white;padding:10px 12px;width:100%}
+.sa-billing-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.sa-billing-form .sa-approve{justify-self:start;border:0;padding:11px 18px;border-radius:10px}
+.sa-billing-msg{padding:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;color:#1d4ed8}
+@media(max-width:640px){.sa-billing-grid{grid-template-columns:1fr}}

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check, CircleCheck, Eye, EyeOff, Headphones, Mic2, Building2, LoaderCircle, LockKeyhole } from 'lucide-react'
+import { Check, CircleCheck, Eye, EyeOff, Mic2, Building2, LoaderCircle, LockKeyhole } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ensureProfile } from '@/lib/profile'
 import './register.css'
@@ -14,15 +14,15 @@ const schema = z.object({
   email: z.string().trim().toLowerCase().email('Digite um e-mail válido.').max(160),
   password: z.string().min(8, 'A senha deve ter ao menos 8 caracteres.').max(72).regex(/[A-Za-z]/, 'Inclua pelo menos uma letra.').regex(/[0-9]/, 'Inclua pelo menos um número.'),
   confirmPassword: z.string().min(1, 'Confirme sua senha.'),
-  profile: z.enum(['ARTIST', 'PRODUCER', 'LABEL']),
+  profile: z.enum(['artista', 'selo']),
   terms: z.boolean().refine(Boolean, 'É necessário aceitar os termos.'),
 }).refine(v => v.password === v.confirmPassword, { path: ['confirmPassword'], message: 'As senhas não coincidem.' })
+type Profile = 'artista' | 'selo'
 type Values = z.infer<typeof schema>
 const profiles = [
-  { value: 'ARTIST', label: 'Artista', desc: 'Quero lançar minhas músicas', Icon: Mic2 },
-  { value: 'PRODUCER', label: 'Produção', desc: 'Produzo e gerencio gravações', Icon: Headphones },
-  { value: 'LABEL', label: 'Selo', desc: 'Gerencio artistas e catálogo', Icon: Building2 },
-] as const
+  { value: 'artista', label: 'Artista', desc: 'Quero lançar minhas músicas', Icon: Mic2 },
+  { value: 'selo', label: 'Selo', desc: 'Gerencio artistas e catálogo', Icon: Building2 },
+] as const satisfies ReadonlyArray<{ value: Profile; label: string; desc: string; Icon: typeof Mic2 }>
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
@@ -31,7 +31,7 @@ export default function Register() {
   const [done, setDone] = useState(false)
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
     resolver: zodResolver(schema), mode: 'onChange',
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', profile: 'ARTIST', terms: false },
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', profile: 'artista', terms: false },
   })
   const password = watch('password') || ''
   const confirmPassword = watch('confirmPassword') || ''
@@ -47,7 +47,7 @@ export default function Register() {
         email: values.email.trim().toLowerCase(),
         password: values.password,
         options: { data: {
-          full_name: values.fullName.trim(), registration_profile: values.profile,
+          full_name: values.fullName.trim(), registration_profile: values.profile === 'artista' ? 'ARTIST' : 'LABEL',
           terms_version: '2026-11',
         } },
       })

@@ -18,6 +18,32 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
  if(error||!plan||Number(plan.price_brl)<=0||!plan.mp_plan_id)
   return {ok:false,message:'Este plano não está disponível para contratação.'}
  const admin=createAdminClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,secret,{auth:{autoRefreshToken:false,persistSession:false}})
+ // Confirme que o plano pertence às credenciais de produção e mantém o preço anunciado.
+ try{
+  const check=await fetch('https://api.mercadopago.com/preapproval_plan/'+encodeURIComponent(plan.mp_plan_id),{
+   headers:{Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(10000)
+  })
+  if(!check.ok)return {ok:false,message:'Plano indisponível no Mercado Pago de produção. Verifique o vínculo no Admin.'}
+  const remote=await check.json() as {auto_recurring?:{transaction_amount?:string|number;currency_id?:string}}
+  if(remote.auto_recurring?.currency_id!=='BRL'||
+    Math.abs(Number(remote.auto_recurring?.transaction_amount)-Number(plan.price_brl))>0.01)
+   return {ok:false,message:'Preço do Mercado Pago não corresponde ao plano da SINTONE. Contratação bloqueada.'}
+ }catch{return {ok:false,message:'Não foi possível validar o plano no Mercado Pago.'}}
+ // Não crie contratos recorrentes duplicados em cliques repetidos.
+ const {data:existing}=await admin.from('billing_subscriptions')
+  .select('id,mp_preapproval_id').eq('user_id',user.id).eq('plan_id',plan.id)
+  .in('status',['pending','authorized']).order('created_at',{ascending:false}).limit(1).maybeSingle()
+ if(existing?.mp_preapproval_id){
+  const prev=await fetch('https://api.mercadopago.com/preapproval/'+encodeURIComponent(existing.mp_preapproval_id),{
+   headers:{Authorization:'Bearer '+token},cache:'no-store'
+  })
+  if(prev.ok){
+   const mp=await prev.json() as {init_point?:string;status?:string}
+   if(existing&&mp.status==='authorized')return {ok:false,message:'Você já possui uma assinatura para esse plano.'}
+   if(mp.init_point&&mp.init_point.startsWith('https://www.mercadopago.com'))return {ok:true,url:mp.init_point}
+  }
+ }
+ if(existing)return {ok:false,message:'Uma contratação desse plano já está em andamento. Procure o suporte antes de tentar novamente.'}
  const {data:row,error:insertError}=await admin.from('billing_subscriptions')
   .insert({user_id:user.id,plan_id:plan.id,status:'pending',price_at_signup:Number(plan.price_brl)})
   .select('id').single()
@@ -34,7 +60,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
   const {error:updateError}=await admin.from('billing_subscriptions')
     .update({mp_preapproval_id:payload.id}).eq('id',row.id)
   if(updateError)throw new Error('Falha ao registrar a assinatura')
-  if(!/^https:\/\//.test(payload.init_point))throw new Error('URL inválida')
+  if(!payload.init_point.startsWith('https://www.mercadopago.com'))throw new Error('URL inválida')
   return {ok:true,url:payload.init_point}
  }catch{
   await admin.from('billing_subscriptions').update({status:'cancelled'}).eq('id',row.id)

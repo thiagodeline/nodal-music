@@ -1,27 +1,31 @@
-from playwright.sync_api import sync_playwright
-import json
-URL = 'https://sintone.vercel.app/register'
+from playwright.sync_api import sync_playwright, expect
+import os, json
+
+url = os.environ.get('REGISTER_TEST_URL', 'http://127.0.0.1:3000/register')
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
-    page = browser.new_page(viewport={'width': 1200, 'height': 900})
-    errors=[]
-    page.on('pageerror', lambda exc: errors.append(str(exc)))
-    resp = page.goto(URL, wait_until='domcontentloaded', timeout=60000)
-    page.wait_for_timeout(2000)
-    print("STATUS", resp.status if resp else None, "URL", page.url)
-    print("TITLE", page.title())
-    print("ERRORS", json.dumps(errors, ensure_ascii=False))
-    print("CURRENT_CHECKBOX", page.locator('[role="checkbox"]').count(), "NATIVE_CHECKBOX", page.locator('input[type=checkbox]').count())
-    print("TERMS_HTML", page.locator('.rg-terms').first.evaluate("(el) => el.outerHTML")[:4000] if page.locator('.rg-terms').count() else "NOT FOUND")
-    if page.locator('[role="checkbox"]').count():
-        btn=page.get_by_role('checkbox').first
-        print("BEFORE", btn.get_attribute("aria-checked"),"VISIBLE",btn.is_visible())
-        print("STYLE",btn.evaluate("""e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {rect:[r.x,r.y,r.width,r.height],pointerEvents:s.pointerEvents,visibility:s.visibility,display:s.display,elementAtCenter:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.outerHTML?.slice(0,500)}}"""))
-        btn.click(timeout=8000)
-        page.wait_for_timeout(300)
-        print("AFTER_CLICK", btn.get_attribute("aria-checked"))
-        page.get_by_role('button',name="Li e aceito os").click(timeout=8000)
-        page.wait_for_timeout(300)
-        print("AFTER_TEXT_CLICK",btn.get_attribute("aria-checked"))
-        print("LAST_ERRORS",json.dumps(errors,ensure_ascii=False))
+    for width, height in [(1200, 900), (390, 844)]:
+        page = browser.new_page(viewport={'width': width, 'height': height})
+        errors = []
+        page.on('pageerror', lambda err: errors.append(str(err)))
+        response = page.goto(url, wait_until='domcontentloaded', timeout=60000)
+        assert response and response.status == 200, f'Falha HTTP em {url}'
+        toggle = page.get_by_role('checkbox', name='Aceito os Termos de Serviço e a Política de Privacidade')
+        toggle.wait_for(state='visible', timeout=25000)
+        expect(toggle).to_have_attribute('aria-checked', 'false')
+        rect = toggle.bounding_box()
+        center = page.evaluate('''([x,y]) => {
+          const element = document.elementFromPoint(x, y)
+          return element ? (element.outerHTML || '').slice(0,200) : 'none'
+        }''', [rect['x'] + rect['width']/2, rect['y'] + rect['height']/2])
+        print('VIEWPORT', width, height, 'HTTP', response.status, 'CENTER_TARGET', center)
+        toggle.click(timeout=10000)
+        expect(toggle).to_have_attribute('aria-checked', 'true', timeout=5000)
+        page.get_by_role('button', name='Li e aceito os').click(timeout=10000)
+        expect(toggle).to_have_attribute('aria-checked', 'false', timeout=5000)
+        toggle.click(timeout=10000)
+        expect(toggle).to_have_attribute('aria-checked', 'true', timeout=5000)
+        assert not errors, f'JS errors: {json.dumps(errors, ensure_ascii=False)}'
+        print('PASSOU: clique na caixa e no texto, alternância de estado e zero erros JS')
+        page.close()
     browser.close()

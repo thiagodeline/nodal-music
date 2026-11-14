@@ -14,7 +14,7 @@ export function money(d: Data) {
   const earned = d.reports.reduce((s, r) => s + Number(r.revenue), 0)
   const paid = d.wds.filter(w => w.status === 'paid').reduce((s, w) => s + Number(w.amount), 0)
   const held = d.wds.filter(w => w.status !== 'rejected').reduce((s, w) => s + Number(w.amount), 0)
-  return { earned, paid, balance: earned - held }
+  return { earned, paid, balance: Number(d.me?.saldo_disponivel ?? earned-held) }
 }
 export const sum = (a: Report[], k: 'streams' | 'revenue') => a.reduce((s, r) => s + Number(r[k]), 0)
 export const group = (a: Report[], key: (r: Report) => string) => { const m: Record<string, number> = {}; a.forEach(r => { const k = key(r) || 'Outros'; m[k] = (m[k] || 0) + Number(r.streams) }); return Object.entries(m).sort((x, y) => y[1] - x[1]) }

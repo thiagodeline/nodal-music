@@ -2,7 +2,7 @@ name: Generate SINTONE contract review PDF
 
 on:
   push:
-    branches: [feature/sintone-contract-revision-2026, fix/sintone-mei-contract-identity]
+    branches: [feature/sintone-contract-revision-2026, fix/sintone-mei-contract-identity, fix/sintone-cnpj-only-contract]
     paths:
       - scripts/generate_contract_review_pdf.py
       - docs/contratos/sintone-contrato-2026-11-r2.txt

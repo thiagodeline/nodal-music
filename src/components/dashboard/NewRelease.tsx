@@ -417,7 +417,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
          <label className={platformMode==='all'?'sr-mode active':'sr-mode'}><input type="radio" name="distributionMode" checked={platformMode==='all'} onChange={()=>setPlatformMode('all')}/> Todas as plataformas</label>
          <label className={platformMode==='selected'?'sr-mode active':'sr-mode'}><input type="radio" name="distributionMode" checked={platformMode==='selected'} onChange={()=>setPlatformMode('selected')}/> Apenas em plataformas selecionadas</label>
        </div>
-       {platformMode==='selected'&&<button type="button" className="sr-select-platforms" onClick={()=>setPlatformModal(true)}>Selecione as plataformas aqui <span>{platforms.length} selecionadas</span></button>
+       {platformMode==='selected'&&<button type="button" className="sr-select-platforms" onClick={()=>setPlatformModal(true)}>Selecione as plataformas aqui <span>{platforms.length} selecionadas</span></button>}
       {err('platforms')}
       <h3>Capa do lançamento *</h3>
       <label className="sr-cover-picker">

@@ -41,10 +41,16 @@
 .rg-hints span.passed,.rg-match{color:#168351}
 .rg-match{display:inline-flex;gap:5px;align-items:center;font-size:.77rem}
 .rg-terms{display:grid;gap:4px;font-size:.79rem;color:#596782}
-.rg-terms .rg-terms-label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
-.rg-terms input[type="checkbox"]{appearance:auto;-webkit-appearance:checkbox;display:block;box-sizing:border-box;width:18px;height:18px;min-width:18px;min-height:18px;padding:0;margin:2px 0 0;flex:0 0 18px;accent-color:#0646bd;cursor:pointer;border-radius:4px}
-.rg-terms input[type="checkbox"]:focus-visible{outline:3px solid rgba(6,70,189,.32);outline-offset:3px}
-.rg-terms .rg-terms-label span{line-height:1.55;cursor:pointer}
+.rg-terms-row{display:flex;align-items:flex-start;gap:10px}
+.rg-terms .rg-terms-check{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;min-width:20px;margin-top:1px;background:#fff;border:2px solid #8391a8;border-radius:5px;color:#fff;cursor:pointer;transition:background .13s,border-color .13s}
+.rg-terms .rg-terms-check:hover{border-color:#0646bd}
+.rg-terms .rg-terms-check.is-checked{background:#0646bd;border-color:#0646bd}
+.rg-terms .rg-terms-check:focus-visible{outline:3px solid rgba(6,70,189,.3);outline-offset:3px}
+.rg-terms .rg-terms-check[aria-invalid=true]{border-color:#d94b5b}
+.rg-terms-copy{min-width:0;flex:1;line-height:1.6}
+.rg-terms .rg-terms-text-toggle{all:unset;display:inline;cursor:pointer;color:inherit;font:inherit}
+.rg-terms .rg-terms-text-toggle:hover{text-decoration:underline}
+.rg-terms .rg-terms-text-toggle:focus-visible{outline:2px solid #0646bd;outline-offset:2px}
 .rg-terms a,.rg-login a{font-weight:750;color:#0646bd;text-decoration:none}
 .rg-submit{width:100%;display:flex;gap:10px;align-items:center;justify-content:center;border:0;border-radius:12px;background:#0646bd;padding:15px;color:white;text-decoration:none;font:inherit;font-size:.95rem;font-weight:750;cursor:pointer;transition:transform .15s,background .15s}
 .rg-submit:hover:not(:disabled){background:#033ba6;transform:translateY(-1px)}

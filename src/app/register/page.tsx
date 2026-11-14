@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Check, CircleCheck, Eye, EyeOff, Mic2, Building2, LoaderCircle, LockKeyhole } from 'lucide-react'
@@ -29,13 +29,15 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [done, setDone] = useState(false)
-  const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
     resolver: zodResolver(schema), mode: 'onChange',
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', profile: 'artista', terms: false },
   })
   const password = watch('password') || ''
   const confirmPassword = watch('confirmPassword') || ''
   const profile = watch('profile')
+  const termsAccepted = watch('terms') === true
+  const toggleTerms = () => setValue('terms', !termsAccepted, { shouldValidate: true, shouldDirty: true, shouldTouch: true })
   const passes = [password.length >= 8, /[A-Za-z]/.test(password), /[0-9]/.test(password)]
   const field = (id: string, label: string, error?: string) => <div className="rg-caption"><label htmlFor={id}>{label}</label>{error && <small id={id + '-error'} role="alert">{error}</small>}</div>
 
@@ -116,26 +118,26 @@ export default function Register() {
               {confirmPassword && password === confirmPassword && <small className="rg-match"><CircleCheck size={13}/> As senhas coincidem</small>}
             </div>
             <div className="rg-terms">
-              <Controller
-                name="terms"
-                control={control}
-                render={({ field }) => (
-                  <label className="rg-terms-label" htmlFor="rg-terms-checkbox">
-                    <input
-                      id="rg-terms-checkbox"
-                      type="checkbox"
-                      name={field.name}
-                      ref={field.ref}
-                      checked={field.value === true}
-                      onBlur={field.onBlur}
-                      onChange={(event) => field.onChange(event.target.checked)}
-                      aria-invalid={!!errors.terms}
-                      aria-describedby={errors.terms ? 'rg-terms-error' : undefined}
-                    />
-                    <span>Li e aceito os <Link href="/termos" target="_blank">Termos de Serviço</Link> e a <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.</span>
-                  </label>
-                )}
-              />
+              <div className="rg-terms-row">
+                <button
+                  type="button"
+                  className={'rg-terms-check' + (termsAccepted ? ' is-checked' : '')}
+                  role="checkbox"
+                  aria-label="Aceito os Termos de Serviço e a Política de Privacidade"
+                  aria-checked={termsAccepted}
+                  aria-invalid={!!errors.terms}
+                  aria-describedby={errors.terms ? 'rg-terms-error' : undefined}
+                  onClick={toggleTerms}
+                >
+                  {termsAccepted && <Check size={15} strokeWidth={3} aria-hidden="true" />}
+                </button>
+                <div className="rg-terms-copy">
+                  <button type="button" className="rg-terms-text-toggle" onClick={toggleTerms}>Li e aceito os</button>{' '}
+                  <Link href="/termos" target="_blank" rel="noopener noreferrer">Termos de Serviço</Link>
+                  {' '}e a{' '}
+                  <Link href="/privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</Link>.
+                </div>
+              </div>
               {errors.terms && <small id="rg-terms-error" role="alert">{errors.terms.message}</small>}
             </div>
             {feedback && <div className="rg-alert" role="alert">{feedback}</div>}

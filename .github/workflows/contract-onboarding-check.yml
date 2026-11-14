@@ -1,0 +1,44 @@
+name: Validate SINTONE contract onboarding
+
+on:
+  push:
+    branches:
+      - feature/onboarding-contract-acceptance
+    paths:
+      - .github/workflows/contract-onboarding-check.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: feature/onboarding-contract-acceptance
+          persist-credentials: true
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Update dependency lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit lockfile changes
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Lock html2pdf.js dependency for contract flow"
+            git push origin HEAD:feature/onboarding-contract-acceptance
+          fi
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build Next.js production
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-public-placeholder
+        run: npm run build

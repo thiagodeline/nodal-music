@@ -1,0 +1,41 @@
+name: Validate SINTONE Cloudflare build
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - package.json
+      - package-lock.json
+      - next.config.js
+      - open-next.config.ts
+      - wrangler.jsonc
+      - src/**
+      - public/**
+      - .github/workflows/cloudflare-prepare.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-worker:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-only-placeholder
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build Next.js for Cloudflare Workers
+        run: npm run cf:build
+      - name: Verify worker bundle without publishing
+        run: npx wrangler deploy --dry-run

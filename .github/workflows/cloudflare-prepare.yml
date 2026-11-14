@@ -1,4 +1,4 @@
-name: Prepare SINTONE Cloudflare build
+name: Validate SINTONE Cloudflare build
 
 on:
   push:
@@ -6,44 +6,39 @@ on:
       - migration/sintone-cloudflare-workers
     paths:
       - package.json
-      - .github/workflows/cloudflare-prepare.yml
+      - package-lock.json
       - next.config.js
+      - open-next.config.ts
       - wrangler.jsonc
+      - src/**
+      - public/**
+      - .github/workflows/cloudflare-prepare.yml
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  prepare:
+  check-worker:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-only-placeholder
     steps:
-      - name: Checkout migration branch
+      - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          persist-credentials: true
-          ref: migration/sintone-cloudflare-workers
-      - name: Install Node.js
+          persist-credentials: false
+      - name: Node.js 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
-      - name: Update dependency lockfile
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Commit reproducible lockfile
-        run: |
-          if ! git diff --quiet -- package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package-lock.json
-            git commit -m "Lock Cloudflare build dependencies"
-            git push origin HEAD:migration/sintone-cloudflare-workers
-          fi
-      - name: Install packages from lockfile
+          cache: npm
+      - name: Install pinned dependencies
         run: npm ci --no-audit --no-fund
       - name: Build Next.js for Cloudflare Workers
         run: npm run cf:build
-      - name: Check Worker bundle size without publishing
+      - name: Verify worker bundle without publishing
         run: npx wrangler deploy --dry-run

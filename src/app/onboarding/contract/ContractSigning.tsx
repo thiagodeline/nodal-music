@@ -81,11 +81,10 @@ export default function ContractSigning({
   const createAndUpload = async (accepted: ContractAcceptance) => {
     setError('')
     setPhase('Gerando PDF do contrato…')
+    // html2pdf cria seu próprio contêiner temporário.
+    // Não posicione o HTML em -100000px: isso produz um PDF branco de uma página.
+    // O nó destacado é clonado pelo html2pdf e mantém todas as páginas legíveis.
     const printNode=createPdfNode(accepted,accountType)
-    printNode.style.position='absolute'
-    printNode.style.left='-100000px'
-    printNode.style.top='0'
-    document.body.appendChild(printNode)
     let blob:Blob
     try {
       const module=await import('html2pdf.js')

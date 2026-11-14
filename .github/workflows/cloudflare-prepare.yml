@@ -1,9 +1,8 @@
 name: Validate SINTONE Cloudflare build
 
 on:
-  push:
-    branches:
-      - migration/sintone-cloudflare-workers
+  pull_request:
+    branches: [main]
     paths:
       - package.json
       - package-lock.json
@@ -13,8 +12,6 @@ on:
       - src/**
       - public/**
       - .github/workflows/cloudflare-prepare.yml
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -8,6 +8,7 @@ on:
       - package.json
       - .github/workflows/cloudflare-prepare.yml
       - next.config.js
+      - wrangler.jsonc
   workflow_dispatch:
 
 permissions:

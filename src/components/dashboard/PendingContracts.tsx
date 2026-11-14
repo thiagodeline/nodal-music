@@ -29,13 +29,13 @@ export default function PendingContracts() {
     setBusy(p.id); setErr(''); const r = await approveContract(p.id); setBusy('')
     if (!r.ok) setErr(r.error); load()
   }
-  return (<div className="card"><div className="head-row"><div><h3>Contratos pendentes</h3><p className="mut" style={{ margin: 0 }}>Baixe os dados, preencha o contrato, envie ao artista e aprove quando voltar assinado.</p></div></div>
+  return (<div className="card"><div className="head-row"><div><h3>Contratos pendentes</h3><p className="mut" style={{ margin: 0 }}>Os artistas assinam diretamente na plataforma. Confira o PDF assinado no painel administrativo antes de liberar lançamentos.</p></div></div>
     {err && <p className="err">{err}</p>}
     {rows === null ? <p className="mut">Carregando…</p> : rows.length ? <div className="scroll"><table><thead><tr><th>Tipo</th><th>Nome artístico / Selo</th><th>Responsável</th><th>CPF / CNPJ</th><th>E-mail</th><th>Cadastro</th><th>Ações</th></tr></thead><tbody>
       {rows.map(p => <tr key={p.id}><td><span className="bd blue">{p.account_type === 'ARTIST' ? 'Artista' : 'Selo'}</span></td><td>{p.artist_name}</td><td>{p.name}</td><td className="mono">{doc(p)}</td><td>{p.email}</td><td>{dt(p.created_at)}</td>
         <td><div className="acts"><button className="btn ghost sm" onClick={() => setSel(p)}><Eye size={14} />Ver dados</button><button className="btn ghost sm" onClick={() => download(p)}><Download size={14} />Baixar Dados</button>
           <button className="btn green sm" disabled={busy === p.id} onClick={() => approve(p)}><CheckCircle2 size={14} />{busy === p.id ? 'Liberando…' : 'Aprovar Contrato & Liberar Acesso'}</button></div></td></tr>)}</tbody></table></div>
-      : <Empty title="Nenhum contrato pendente" text="Quem concluir o cadastro aparece aqui até o contrato assinado voltar." />}
+      : <Empty title="Nenhum contrato pendente" text="Quem concluir os dados aparece aqui até o aceite digital e a revisão administrativa." />}
     {sel && <div className="modal" onClick={() => setSel(null)}><div className="sheet" onClick={e => e.stopPropagation()}><button className="x" onClick={() => setSel(null)} aria-label="Fechar"><X size={18} /></button>
       <h3>{sel.artist_name}</h3><dl>{[['Tipo', sel.account_type === 'ARTIST' ? 'Artista' : 'Selo'], ['Nome completo', sel.name], [sel.account_type === 'ARTIST' ? 'CPF' : 'CNPJ', doc(sel)], ['Nascimento / Fundação', dt(sel.birth_date)], ['E-mail', sel.email], ['Telefone', sel.phone], ['Endereço', sel.address]].map(([k, v]) => <div key={k as string}><dt>{k}</dt><dd>{v || '—'}</dd></div>)}</dl>
       <button className="btn" onClick={() => download(sel)}><Download size={14} style={{ verticalAlign: -2 }} /> Baixar Dados (JSON)</button></div></div>}

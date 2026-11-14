@@ -34,8 +34,13 @@ export async function approveContract(userId: string): Promise<{ ok: true } | { 
     if (!user) return { ok: false, error: 'Sua sessão expirou. Entre novamente.' }
     const { data: me } = await sb.from('profiles').select('role').eq('id', user.id).single()
     if (me?.role !== 'admin') return { ok: false, error: 'Acesso restrito a administradores.' }
+    // A aprovação exige documento assinado e PDF finalizado — sem liberação manual antecipada.
+    const { data: signed } = await sb.from('user_contracts')
+      .select('signed_at,pdf_status').eq('user_id', userId).maybeSingle()
+    if (!signed?.signed_at || signed.pdf_status !== 'ready')
+      return { ok: false, error: 'O usuário ainda não concluiu a assinatura e o envio do PDF.' }
     const { data, error } = await sb.from('profiles')
-      .update({ status: 'ACTIVE', can_release_music: true, contract_accepted_at: new Date().toISOString() })
+      .update({ status: 'ACTIVE', can_release_music: true, contract_accepted_at: signed.signed_at })
       .eq('id', userId).eq('status', 'PENDING_CONTRACT').select('id')
     if (error) return { ok: false, error: 'Não foi possível aprovar: ' + error.message }
     if (!data?.length) return { ok: false, error: 'Essa conta não está aguardando contrato.' }

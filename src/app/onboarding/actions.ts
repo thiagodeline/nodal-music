@@ -42,6 +42,7 @@ export async function completeOnboarding(input: unknown): Promise<OnboardingResu
     }
     if (!saved?.length) return fail('update', { message: 'Nenhuma linha atualizada (RLS ou status diferente de PENDING_ONBOARDING).' }, 'Não foi possível salvar os seus dados. Saia e entre de novo.')
     revalidatePath('/dashboard')
+    revalidatePath('/onboarding/contract')
     return { ok: true }
   } catch (e: any) {
     console.error('Erro detalhado (inesperado):', e)

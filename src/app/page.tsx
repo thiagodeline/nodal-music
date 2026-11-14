@@ -28,7 +28,7 @@ export default function Home() {
     <header className="l-head"><div className="wrap l-bar">
       <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
       <nav className="l-links"><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#faq">Perguntas</a></nav>
-      <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/login?novo=1">Criar conta</Link></div>
+      <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/register">Criar conta</Link></div>
     </div></header>
 
     <main>
@@ -37,7 +37,7 @@ export default function Home() {
           <p className="l-pill">Para artistas e selos independentes</p>
           <h1>Sua música no ar, com dados claros e gente do seu lado.</h1>
           <p className="l-sub">A Nodal distribui seus lançamentos nas maiores plataformas e mostra, em um painel simples, quanto cada stream rendeu.</p>
-          <div className="l-row"><Link className="btn" href="/login?novo=1">Criar conta grátis</Link><a className="btn ghost" href="#como">Ver como funciona</a></div>
+          <div className="l-row"><Link className="btn" href="/register">Criar conta grátis</Link><a className="btn ghost" href="#como">Ver como funciona</a></div>
         </div>
         <div className="l-mock" aria-label="Exemplo ilustrativo do painel do artista">
           <div className="l-mock-top"><span>Saldo disponível</span><em>Exemplo ilustrativo</em></div>
@@ -52,7 +52,7 @@ export default function Home() {
       <section className="wrap l-split">
         <div><h2>Distribuição rápida, sem perder o timing do lançamento</h2>
           <p>Envie a faixa assim que ela estiver pronta. Nossa equipe revisa os arquivos e leva o lançamento às lojas, para você não perder a onda de uma música que está crescendo.</p>
-          <Link className="btn" href="/login?novo=1">Enviar minha primeira faixa</Link></div>
+          <Link className="btn" href="/register">Enviar minha primeira faixa</Link></div>
         <div className="l-card big"><h3>Atendimento de gente de verdade</h3><p>Deu dúvida no meio do lançamento? Você fala com uma pessoa que entende de música independente, não com um robô.</p></div>
       </section>
 
@@ -84,7 +84,7 @@ export default function Home() {
       <section className="wrap"><div className="l-cta">
         <h2>Pronto para lançar?</h2>
         <p>Crie sua conta e envie sua primeira faixa hoje.</p>
-        <Link className="btn" href="/login?novo=1">Criar conta de artista</Link>
+        <Link className="btn" href="/register">Criar conta de artista</Link>
       </div></section>
     </main>
 

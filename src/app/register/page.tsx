@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Check, CircleCheck, Eye, EyeOff, Mic2, Building2, LoaderCircle, LockKeyhole } from 'lucide-react'
@@ -29,7 +29,7 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [done, setDone] = useState(false)
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
+  const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
     resolver: zodResolver(schema), mode: 'onChange',
     defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', profile: 'artista', terms: false },
   })
@@ -115,7 +115,29 @@ export default function Register() {
               </div>
               {confirmPassword && password === confirmPassword && <small className="rg-match"><CircleCheck size={13}/> As senhas coincidem</small>}
             </div>
-            <div className="rg-terms"><label><input type="checkbox" {...register('terms')} /><span>Li e aceito os <Link href="/termos" target="_blank">Termos de Serviço</Link> e a <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.</span></label>{errors.terms && <small role="alert">{errors.terms.message}</small>}</div>
+            <div className="rg-terms">
+              <Controller
+                name="terms"
+                control={control}
+                render={({ field }) => (
+                  <label className="rg-terms-label" htmlFor="rg-terms-checkbox">
+                    <input
+                      id="rg-terms-checkbox"
+                      type="checkbox"
+                      name={field.name}
+                      ref={field.ref}
+                      checked={field.value === true}
+                      onBlur={field.onBlur}
+                      onChange={(event) => field.onChange(event.target.checked)}
+                      aria-invalid={!!errors.terms}
+                      aria-describedby={errors.terms ? 'rg-terms-error' : undefined}
+                    />
+                    <span>Li e aceito os <Link href="/termos" target="_blank">Termos de Serviço</Link> e a <Link href="/privacidade" target="_blank">Política de Privacidade</Link>.</span>
+                  </label>
+                )}
+              />
+              {errors.terms && <small id="rg-terms-error" role="alert">{errors.terms.message}</small>}
+            </div>
             {feedback && <div className="rg-alert" role="alert">{feedback}</div>}
             <button className="rg-submit" type="submit" disabled={isSubmitting || !isValid}>{isSubmitting ? <><LoaderCircle className="rg-spin" size={18}/> Criando conta…</> : <><LockKeyhole size={17}/> Criar conta grátis</>}</button>
           </form>

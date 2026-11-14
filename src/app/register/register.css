@@ -41,8 +41,10 @@
 .rg-hints span.passed,.rg-match{color:#168351}
 .rg-match{display:inline-flex;gap:5px;align-items:center;font-size:.77rem}
 .rg-terms{display:grid;gap:4px;font-size:.79rem;color:#596782}
-.rg-terms label{display:flex;align-items:flex-start;gap:9px}
-.rg-terms input{width:16px;height:16px;accent-color:#0646bd;flex:none;margin-top:2px}
+.rg-terms .rg-terms-label{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.rg-terms input[type="checkbox"]{appearance:auto;-webkit-appearance:checkbox;display:block;box-sizing:border-box;width:18px;height:18px;min-width:18px;min-height:18px;padding:0;margin:2px 0 0;flex:0 0 18px;accent-color:#0646bd;cursor:pointer;border-radius:4px}
+.rg-terms input[type="checkbox"]:focus-visible{outline:3px solid rgba(6,70,189,.32);outline-offset:3px}
+.rg-terms .rg-terms-label span{line-height:1.55;cursor:pointer}
 .rg-terms a,.rg-login a{font-weight:750;color:#0646bd;text-decoration:none}
 .rg-submit{width:100%;display:flex;gap:10px;align-items:center;justify-content:center;border:0;border-radius:12px;background:#0646bd;padding:15px;color:white;text-decoration:none;font:inherit;font-size:.95rem;font-weight:750;cursor:pointer;transition:transform .15s,background .15s}
 .rg-submit:hover:not(:disabled){background:#033ba6;transform:translateY(-1px)}

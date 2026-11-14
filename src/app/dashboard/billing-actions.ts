@@ -55,15 +55,38 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
     external_reference:row.id,payer_email:user.email,
     back_url:new URL('/dashboard#plans',site).toString()}),cache:'no-store'
   })
-  const payload=await response.json() as {id?:string;init_point?:string}
-  if(!response.ok||!payload.id||!payload.init_point)throw new Error('Checkout indisponível')
+  const payload=await response.json().catch(()=>({})) as {
+   id?:string;init_point?:string;message?:string;error?:string;
+   cause?:Array<{code?:string;description?:string}>
+  }
+  if(!response.ok){
+   const code=String(payload.cause?.[0]?.code||payload.error||'unknown').slice(0,80)
+   // Nunca registrar o token, e-mail do comprador ou o corpo bruto da API.
+   console.error('[billing] Mercado Pago rejeitou criação de assinatura', {status:response.status,code})
+   const detail=String(payload.cause?.[0]?.description||payload.message||'Solicitação rejeitada.')
+     .slice(0,240)
+   throw new Error('Mercado Pago (HTTP '+response.status+'): '+detail)
+  }
+  if(!payload.id||!payload.init_point)throw new Error('Mercado Pago não retornou link de checkout.')
+  const url=new URL(payload.init_point)
+  if(url.protocol!=='https:'||!['mercadopago.com.br','www.mercadopago.com.br','mercadopago.com','www.mercadopago.com'].includes(url.hostname))
+   throw new Error('URL de pagamento inválida.')
   const {error:updateError}=await admin.from('billing_subscriptions')
     .update({mp_preapproval_id:payload.id}).eq('id',row.id)
-  if(updateError)throw new Error('Falha ao registrar a assinatura')
-  if(!payload.init_point.startsWith('https://www.mercadopago.com'))throw new Error('URL inválida')
-  return {ok:true,url:payload.init_point}
- }catch{
-  await admin.from('billing_subscriptions').update({status:'cancelled'}).eq('id',row.id)
-  return {ok:false,message:'Não foi possível iniciar o checkout. Nenhuma assinatura foi ativada.'}
+  if(updateError){
+   console.error('[billing] Não foi possível armazenar vínculo com assinatura', {subscriptionId:row.id,code:updateError.code})
+   throw new Error('A assinatura foi criada no Mercado Pago, mas houve falha ao sincronizar o cadastro. Contate o suporte antes de tentar novamente.')
+  }
+  return {ok:true,url:url.toString()}
+ }catch(e){
+  const reason=e instanceof Error?e.message:'Falha inesperada de comunicação.'
+  // Se o provedor criou a assinatura, não cancelar cegamente o registro local:
+  // um cancelamento sem conciliação pode deixar uma assinatura cobrando no provedor.
+  const {data:stored}=await admin.from('billing_subscriptions').select('mp_preapproval_id').eq('id',row.id).single()
+  if(!stored?.mp_preapproval_id)
+   await admin.from('billing_subscriptions').update({status:'cancelled'}).eq('id',row.id)
+  return {ok:false,message:reason.startsWith('Mercado Pago (HTTP ')||reason.includes('Contate o suporte')||
+    reason.includes('link de checkout')||reason.includes('URL de pagamento')?reason:
+    'Não foi possível iniciar o checkout: '+reason.slice(0,180)}
  }
 }

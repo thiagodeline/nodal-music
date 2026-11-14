@@ -32,7 +32,7 @@ jobs:
           python-version: '3.12'
       - name: Install application and browser
         run: |
-          npm ci --no-audit --no-fund
+          npm install --no-audit --no-fund
           python -m pip install playwright
           python -m playwright install --with-deps chromium
       - name: Start Next.js and wait for readiness
@@ -49,4 +49,4 @@ jobs:
         run: python scripts/check_register_live.py
       - name: Show Next.js logs on failure
         if: failure()
-        run: cat /tmp/sintone-next.log
+        run: cat /tmp/sintone-next.log || true

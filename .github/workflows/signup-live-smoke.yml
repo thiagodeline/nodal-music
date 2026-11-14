@@ -3,7 +3,7 @@ name: SINTONE live registration smoke check
 on:
   push:
     branches: [qa/signup-live-sintone]
-    paths: [.github/workflows/signup-live-smoke.yml]
+    paths: [.github/workflows/signup-live-smoke.yml, scripts/signup-production-diagnostic.py]
   workflow_dispatch:
 
 permissions:

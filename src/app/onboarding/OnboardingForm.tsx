@@ -36,7 +36,7 @@ export default function OnboardingForm({ email, initialName = '', initialType = 
       Object.entries(r.fieldErrors ?? {}).forEach(([k, message]) => setError(k as keyof OnboardingValues, { message }))
       return setServerError(r.error)
     }
-    router.push('/dashboard'); router.refresh()
+    router.push('/onboarding/contract'); router.refresh()
   }
   return (<main className="ob"><div className="ob-wrap">
     <img src="/sintone-logo.svg" alt="SINTONE" className="ob-logo" />

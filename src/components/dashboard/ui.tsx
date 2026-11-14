@@ -8,7 +8,8 @@ export type Data = { me: any; email: string; releases: Release[]; reports: Repor
 export const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 export const num = (n: number) => n.toLocaleString('pt-BR')
 export const dt = (s?: string | null) => s ? new Date(s.length <= 10 ? s + 'T00:00:00' : s).toLocaleDateString('pt-BR') : '—'
-export const MIN_SAQUE = 50
+// Valor efetivo em São Paulo (UTC-3), conforme versão contratual 2026.11-R2.
+export const MIN_SAQUE = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) >= '2027-01-01' ? 80 : 50
 export function money(d: Data) {
   const earned = d.reports.reduce((s, r) => s + Number(r.revenue), 0)
   const paid = d.wds.filter(w => w.status === 'paid').reduce((s, w) => s + Number(w.amount), 0)

@@ -12,6 +12,7 @@ export type ContractAcceptance = {
   cpf: string | null
   cnpj: string | null
   contract_snapshot: string
+  contract_version: string
   pdf_status: 'pending' | 'ready'
   user_id: string
 }

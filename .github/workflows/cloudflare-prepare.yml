@@ -45,3 +45,5 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Build Next.js for Cloudflare Workers
         run: npm run cf:build
+      - name: Check Worker bundle size without publishing
+        run: npx wrangler deploy --dry-run

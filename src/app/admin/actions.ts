@@ -11,7 +11,7 @@ export async function moderateRelease(id: string, decision: 'approved' | 'reject
   const ctx = await getAdminContext()
   if (!ctx) return forbidden
   if (!isUuid(id) || !['approved', 'rejected'].includes(decision)) return { ok: false, message: 'Dados inválidos.' }
-  const cleanReason = reason.trim()
+  const cleanReason = typeof reason === 'string' ? reason.trim() : ''
   if (decision === 'rejected' && (cleanReason.length < 10 || cleanReason.length > 1500)) {
     return { ok: false, message: 'Informe um motivo de rejeição com 10 a 1.500 caracteres.' }
   }

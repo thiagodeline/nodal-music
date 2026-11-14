@@ -7,6 +7,7 @@ on:
     paths:
       - package.json
       - .github/workflows/cloudflare-prepare.yml
+      - next.config.js
   workflow_dispatch:
 
 permissions:
@@ -15,6 +16,9 @@ permissions:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-build-only-placeholder
     steps:
       - name: Checkout migration branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262

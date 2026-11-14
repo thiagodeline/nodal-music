@@ -2,7 +2,7 @@ name: Generate SINTONE contract review PDF
 
 on:
   push:
-    branches: [feature/sintone-contract-revision-2026]
+    branches: [feature/sintone-contract-revision-2026, fix/sintone-mei-contract-identity]
     paths:
       - scripts/generate_contract_review_pdf.py
       - docs/contratos/sintone-contrato-2026-11-r2.txt
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: feature/sintone-contract-revision-2026
+          ref: ${{ github.ref_name }}
           persist-credentials: true
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -34,5 +34,5 @@ jobs:
           git add docs/contratos/CONTRATO_SINTONE_2026-11_R2_MINUTA.pdf
           if ! git diff --cached --quiet; then
             git commit -m 'Add complete SINTONE R2 contract PDF for review'
-            git push origin HEAD:feature/sintone-contract-revision-2026
+            git push origin HEAD:${{ github.ref_name }}
           fi

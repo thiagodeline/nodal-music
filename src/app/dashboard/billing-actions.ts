@@ -9,7 +9,8 @@ type OrderResponse={
  id?:string;status?:string;status_detail?:string;external_reference?:string;
  total_amount?:string;total_paid_amount?:string;currency_id?:string;
  transactions?:{payments?:Array<{status?:string;status_detail?:string;paid_amount?:string;payment_method?:{qr_code?:string;qr_code_base64?:string;ticket_url?:string}}>}
- error?:string;message?:string
+ error?:string;message?:string;
+ errors?:Array<{code?:string;message?:string;description?:string}>;
 }
 const allowed=()=>process.env.SINTONE_PAYMENT_MODE==='one_time'&&
  process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'
@@ -92,15 +93,38 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):
    })
   })
   const body=await response.json().catch(()=>({})) as OrderResponse
+  // HTTP 402 pode significar ordem CRIADA com transação recusada.
+  // Vincule o ID remoto antes de avaliar falhas: nunca descarte esse vínculo.
+  if(body.id){
+   createdId=body.id
+   const {error:link}=await db.from('billing_one_time_orders')
+     .update({mp_order_id:body.id}).eq('id',local.id).is('mp_order_id',null)
+   if(link)throw Error('Não foi possível vincular o pedido do Mercado Pago. Contate o suporte.')
+  }
   if(!response.ok||!body.id){
-   if(response.status>=400&&response.status<500&&response.status!==408&&response.status!==429)
-    await db.from('billing_one_time_orders').update({status:'rejected'}).eq('id',local.id)
-   console.error('[billing] Orders API rejected payment',{http:response.status,code:String(body.error||'unknown').slice(0,60)})
-   throw Error('O Mercado Pago não aceitou o pagamento (HTTP '+response.status+'). Confira os dados ou escolha outro meio.')
+   const mpErrors=(body.errors||[]).slice(0,3).map(x=>({
+    code:String(x.code||'unknown').slice(0,80),
+    detail:String(x.message||x.description||'').slice(0,160)
+   }))
+   console.error('[billing] Orders API rejected payment',{
+    http:response.status,orderLinked:!!body.id,status:body.status||null,
+    statusDetail:body.status_detail||null,
+    codes:mpErrors
+   })
+   // 402 é um estado de processamento; a API pode ter criado um pedido.
+   // Não permita novas tentativas antes da reconciliação se faltarem dados conclusivos.
+   if(response.status===402 && body.id){
+    const rejected=body.status==='failed'||body.status==='rejected'||
+      (body.transactions?.payments||[]).some(p=>['rejected','failed'].includes(p.status||''))
+    if(rejected)await db.from('billing_one_time_orders').update({status:'rejected'}).eq('id',local.id)
+   }else if(response.status>=400&&response.status<500&&response.status!==408&&response.status!==429&&!body.id){
+    // Rejeição explícita por validação (exceto 402).
+    if(response.status!==402)await db.from('billing_one_time_orders').update({status:'rejected'}).eq('id',local.id)
+   }
+   const code=mpErrors[0]?.code||String(body.error||body.status_detail||'sem_codigo')
+   throw Error('Mercado Pago (HTTP '+response.status+', código '+code+'). Acompanhe o pedido no painel antes de tentar de novo.')
   }
   createdId=body.id
-  const {error:linkError}=await db.from('billing_one_time_orders').update({mp_order_id:body.id}).eq('id',local.id).is('mp_order_id',null)
-  if(linkError)throw Error('Pagamento criado, mas não conciliado. Entre em contato com o suporte antes de tentar novamente.')
   const paid=await reconcile(body.id,local.id,amount)
   if(paid)return {ok:true,status:'paid',message:'Pagamento confirmado. Seu acesso foi renovado por 30 dias.',orderId:local.id}
   if(body.status==='rejected'||body.status==='failed'||body.status==='canceled'){
@@ -116,8 +140,9 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod):
  }catch(e){
   // Se a API pode ter processado o pagamento, não marque como recusado nem permita duplicação.
   if(!createdId)console.error('[billing] Orders API failed or was rejected; review pending status',{localId:local.id})
-  return {ok:false,message:createdId?
-   'O Mercado Pago recebeu o pagamento, mas houve falha ao registrar o resultado. Contate o suporte antes de tentar novamente.':
+  const reason=e instanceof Error?e.message:''
+  return {ok:false,message:reason.startsWith('Mercado Pago (HTTP ')?reason:createdId?
+   'O Mercado Pago criou um pedido, mas a conclusão não foi confirmada. Fale com o suporte antes de tentar novamente.':
    'Não foi possível concluir a solicitação. Verifique o histórico antes de tentar novamente.'}
  }
 }

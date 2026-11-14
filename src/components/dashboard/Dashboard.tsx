@@ -34,11 +34,11 @@ export default function Dashboard() {
     const sb = createClient(); const { data: { user } } = await sb.auth.getUser(); if (!user) { location.href = '/login'; return }
     const [me, r, rp, w] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).single(),
-      sb.from('releases').select('*').eq('artist_id', user.id).order('created_at', { ascending: false }),
+      sb.from('releases').select('*,release_tracks(position,title,isrc,audio_path,composers,producers,lyricists,language,explicit)').eq('artist_id', user.id).order('created_at', { ascending: false }),
       sb.from('reports').select('*').eq('artist_id', user.id),
       sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false })])
     if (me.data?.onboarding_completed === false || me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
-    setD({ me: me.data, email: user.email ?? '', releases: r.data ?? [], reports: rp.data ?? [], wds: w.data ?? [] })
+    setD({ me: me.data, email: user.email ?? '', releases: (r.data ?? []).map(x=>({...x,tracks:(x.release_tracks??[]).sort((a:any,b:any)=>a.position-b.position)})), reports: rp.data ?? [], wds: w.data ?? [] })
   }, [])
   useEffect(() => { load() }, [load])
   useEffect(() => { const f = () => { const h = location.hash.slice(1); if (h === 'admin') { location.replace('/admin'); return } setRoute(ROUTES.includes(h) ? h : 'overview'); setOpen(false); window.scrollTo(0, 0) }; f(); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])

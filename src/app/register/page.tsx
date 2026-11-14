@@ -37,7 +37,7 @@ export default function Register() {
   const confirmPassword = watch('confirmPassword') || ''
   const profile = watch('profile')
   const passes = [password.length >= 8, /[A-Za-z]/.test(password), /[0-9]/.test(password)]
-  const field = (id: string, label: string, error?: string) => <div className="rg-caption"><span>{label}</span>{error && <small id={id + '-error'} role="alert">{error}</small>}</div>
+  const field = (id: string, label: string, error?: string) => <div className="rg-caption"><label htmlFor={id}>{label}</label>{error && <small id={id + '-error'} role="alert">{error}</small>}</div>
 
   async function onSubmit(values: Values) {
     setFeedback('')

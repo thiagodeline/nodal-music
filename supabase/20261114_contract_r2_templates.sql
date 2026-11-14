@@ -1,13 +1,12 @@
--- Modelo R2 da SINTONE, atualizado com nome empresarial MEI e e-mail contratual.
--- Não ativa assinaturas enquanto a regularidade da atividade empresarial não for confirmada.
--- Preserva eventuais versões assinadas e ignora conflitos ao semear dados novos.
-INSERT INTO public.contract_templates (version, account_type, body, active) VALUES
-  ('2026.11-R2','ARTIST','CONTRATO DE ADESÃO AOS SERVIÇOS DE DISTRIBUIÇÃO DIGITAL DE FONOGRAMAS
+-- Versão R2 pública: SINTONE (nome comercial do MEI) + CNPJ.
+-- Não altera documentos já assinados nem autoriza ativação jurídica.
+INSERT INTO public.contract_templates(version,account_type,body,active) VALUES
+('2026.11-R2','ARTIST','CONTRATO DE ADESÃO AOS SERVIÇOS DE DISTRIBUIÇÃO DIGITAL DE FONOGRAMAS
 SINTONE — VERSÃO 2026.11-R2
 
 QUALIFICAÇÃO DAS PARTES
 
-DISTRIBUIDORA: 64.100.398 THYAGO ESPINDOLA DE MELO, empresário individual enquadrado como Microempreendedor Individual (MEI), inscrito no CNPJ 64.100.398/0001-10, que atua sob o nome comercial SINTONE, com endereço na Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004, doravante denominado "SINTONE" ou "DISTRIBUIDORA".
+DISTRIBUIDORA: SINTONE, nome comercial utilizado por empresário individual enquadrado como Microempreendedor Individual (MEI), inscrito no CNPJ nº 64.100.398/0001-10, com endereço na Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004, doravante denominado "SINTONE" ou "DISTRIBUIDORA". O empresário individual responsável pode ser identificado por meio da consulta pública dos dados cadastrais do referido CNPJ.
 
 LICENCIANTE: pessoa física artista, ou pessoa jurídica selo/gravadora, que cria uma conta na SINTONE, identifica-se por nome civil ou empresarial, nome artístico ou nome do selo, CPF ou CNPJ e demais informações fornecidas no cadastro. Quando se tratar de pessoa jurídica, a pessoa física que realiza o aceite declara possuir poderes de representação. Os dados individualizados constarão do registro eletrônico de assinatura e do PDF.
 
@@ -134,12 +133,12 @@ CLÁUSULA 14 — DISPOSIÇÕES FINAIS
 14.3. O documento individual de assinatura e os registros eletrônicos associados integram este instrumento. O signatário poderá baixar cópia do contrato aceito.
 
 FIM DO CONTRATO — SINTONE — 2026.11-R2',false),
-  ('2026.11-R2','LABEL','CONTRATO DE ADESÃO AOS SERVIÇOS DE DISTRIBUIÇÃO DIGITAL DE FONOGRAMAS
+('2026.11-R2','LABEL','CONTRATO DE ADESÃO AOS SERVIÇOS DE DISTRIBUIÇÃO DIGITAL DE FONOGRAMAS
 SINTONE — VERSÃO 2026.11-R2
 
 QUALIFICAÇÃO DAS PARTES
 
-DISTRIBUIDORA: 64.100.398 THYAGO ESPINDOLA DE MELO, empresário individual enquadrado como Microempreendedor Individual (MEI), inscrito no CNPJ 64.100.398/0001-10, que atua sob o nome comercial SINTONE, com endereço na Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004, doravante denominado "SINTONE" ou "DISTRIBUIDORA".
+DISTRIBUIDORA: SINTONE, nome comercial utilizado por empresário individual enquadrado como Microempreendedor Individual (MEI), inscrito no CNPJ nº 64.100.398/0001-10, com endereço na Rua das Orquídeas, 455, Águas Claras, Viamão/RS, CEP 94575-004, doravante denominado "SINTONE" ou "DISTRIBUIDORA". O empresário individual responsável pode ser identificado por meio da consulta pública dos dados cadastrais do referido CNPJ.
 
 LICENCIANTE: pessoa física artista, ou pessoa jurídica selo/gravadora, que cria uma conta na SINTONE, identifica-se por nome civil ou empresarial, nome artístico ou nome do selo, CPF ou CNPJ e demais informações fornecidas no cadastro. Quando se tratar de pessoa jurídica, a pessoa física que realiza o aceite declara possuir poderes de representação. Os dados individualizados constarão do registro eletrônico de assinatura e do PDF.
 
@@ -266,4 +265,4 @@ CLÁUSULA 14 — DISPOSIÇÕES FINAIS
 14.3. O documento individual de assinatura e os registros eletrônicos associados integram este instrumento. O signatário poderá baixar cópia do contrato aceito.
 
 FIM DO CONTRATO — SINTONE — 2026.11-R2',false)
-ON CONFLICT(version, account_type) DO NOTHING;
+ON CONFLICT (version,account_type) DO NOTHING;

@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install PDF generator
-        run: python -m pip install 'reportlab==4.4.4'
+        run: python -m pip install 'reportlab==4.4.4' 'pymupdf==1.26.6'
       - name: Generate complete draft PDF
         run: python scripts/generate_contract_review_pdf.py
       - name: Commit full-text PDF (no secrets)

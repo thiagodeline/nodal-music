@@ -48,6 +48,7 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
   .insert({user_id:user.id,plan_id:plan.id,status:'pending',price_at_signup:Number(plan.price_brl)})
   .select('id').single()
  if(insertError||!row)return {ok:false,message:'Não foi possível iniciar sua contratação.'}
+ let remoteCreated=false
  try{
   const response=await fetch('https://api.mercadopago.com/preapproval',{
    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-Idempotency-Key':row.id},
@@ -67,7 +68,8 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
      .slice(0,240)
    throw new Error('Mercado Pago (HTTP '+response.status+'): '+detail)
   }
-  if(!payload.id||!payload.init_point)throw new Error('Mercado Pago não retornou link de checkout.')
+  if(payload.id)remoteCreated=true
+  if(!payload.id||!payload.init_point)throw new Error('Mercado Pago não retornou link de checkout. Entre em contato com o suporte antes de tentar novamente.')
   const url=new URL(payload.init_point)
   if(url.protocol!=='https:'||!['mercadopago.com.br','www.mercadopago.com.br','mercadopago.com','www.mercadopago.com'].includes(url.hostname))
    throw new Error('URL de pagamento inválida.')
@@ -82,9 +84,9 @@ export async function startBillingCheckout(planId:string):Promise<Result>{
   const reason=e instanceof Error?e.message:'Falha inesperada de comunicação.'
   // Se o provedor criou a assinatura, não cancelar cegamente o registro local:
   // um cancelamento sem conciliação pode deixar uma assinatura cobrando no provedor.
-  const {data:stored}=await admin.from('billing_subscriptions').select('mp_preapproval_id').eq('id',row.id).single()
-  if(!stored?.mp_preapproval_id)
+  if(!remoteCreated)
    await admin.from('billing_subscriptions').update({status:'cancelled'}).eq('id',row.id)
+  else console.error('[billing] Assinatura criada no provedor requer conciliação manual',{subscriptionId:row.id})
   return {ok:false,message:reason.startsWith('Mercado Pago (HTTP ')||reason.includes('Contate o suporte')||
     reason.includes('link de checkout')||reason.includes('URL de pagamento')?reason:
     'Não foi possível iniciar o checkout: '+reason.slice(0,180)}

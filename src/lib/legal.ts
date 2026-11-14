@@ -1,5 +1,5 @@
 // Nome empresarial cadastrado não é reproduzido nas páginas públicas; a pessoa responsável continua identificável na consulta pública do CNPJ.
-// O e-mail institucional foi informado pelo responsável. A atividade CNAE precisa de adequação para a distribuição musical antes de liberar aceites reais.
+// O e-mail institucional foi informado pelo responsável. A versão R2 foi ativada por aprovação expressa do titular; o enquadramento CNAE ainda merece conferência contábil.
 export const CO = {
   nome: 'SINTONE',
   razao: 'SINTONE (nome comercial de empresário individual — MEI)',

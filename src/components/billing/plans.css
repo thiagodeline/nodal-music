@@ -35,3 +35,5 @@
 .st-secure-field{padding:0 8px;overflow:hidden}
 .st-checkout-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .st-checkout-success{padding:16px;background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:12px}
+
+.st-checkout-methods{display:flex;gap:8px;margin:18px 0}.st-checkout-methods button{flex:1;background:#fff;border:1px solid #cbd5e1;padding:11px;border-radius:9px;cursor:pointer}.st-checkout-methods button[aria-pressed=true]{background:#eff6ff;border:2px solid #2563eb;color:#1d4ed8;font-weight:700}.st-checkout-success textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:9px;overflow-wrap:anywhere}

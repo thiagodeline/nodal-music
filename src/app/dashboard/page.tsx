@@ -1,3 +1,3 @@
 import Dashboard from '@/components/dashboard/Dashboard'
 export const metadata = { title: 'Painel do Artista | SINTONE' }
-export default function Page() { const checkoutReady=process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'&&!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN);return <Dashboard checkoutReady={checkoutReady}/> }
+export default function Page() { const checkoutReady=process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'&&process.env.SINTONE_PAYMENT_MODE==='one_time'&&!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN);return <Dashboard checkoutReady={checkoutReady}/> }

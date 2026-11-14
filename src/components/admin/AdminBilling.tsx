@@ -78,7 +78,7 @@ export default function AdminBilling(){
  }
  return <div className="sa-billing">
   <div className="sa-billing-heading"><CreditCard size={24}/><div><h2>Gestão de planos</h2><p>Cadastre planos gratuitos ou pagos, edite os benefícios e controle quais aparecem na vitrine. Nenhum pagamento é ativado automaticamente.</p></div></div>
-  <div className="sa-billing-form"><h3>Mercado Pago</h3><p className="sa-x-note">Conexão reservada à equipe. O teste não gera pagamentos.</p>
+  <div className="sa-billing-form"><h3>Mercado Pago</h3><p className="sa-x-note">Checkout Transparente: pagamentos avulsos de 30 dias. O cadastro de planos recorrentes não é necessário.</p>
    <button type="button" className="sa-download" disabled={!!busy} onClick={()=>void testConnection()}>Testar conexão</button>
    {connectionStatus&&<p role="status">{connectionStatus}</p>}</div>
   <form className="sa-billing-form" onSubmit={e=>void save(e)}>
@@ -86,7 +86,7 @@ export default function AdminBilling(){
    <div className="sa-billing-grid">
     <label>Nome<input required maxLength={80} value={name} onChange={e=>setName(e.target.value)}/></label>
     <label>Preço (R$)<input required inputMode="decimal" value={price} onChange={e=>setPrice(e.target.value)} placeholder="0,00 para Grátis"/></label>
-    <label>Recorrência<select value={frequency} onChange={e=>setFrequency(Number(e.target.value) as 1|12)}><option value={1}>Mensal</option><option value={12}>Anual</option></select></label>
+    <label>Validade<select value={frequency} onChange={e=>setFrequency(Number(e.target.value) as 1|12)}><option value={1}>30 dias</option></select></label>
    </div>
    <label>Descrição<input maxLength={500} value={description} onChange={e=>setDescription(e.target.value)}/></label>
    <label>Benefícios (um por linha, até 20)<textarea rows={5} value={benefits} onChange={e=>setBenefits(e.target.value)} maxLength={3500} placeholder="Distribuição digital&#10;Relatórios de desempenho"/></label>
@@ -98,16 +98,16 @@ export default function AdminBilling(){
    <tbody>{plans.filter(p=>!p.archived).map(p=><tr key={p.id}>
     <td><strong>{p.name}</strong><small className="sa-ticket-email">{p.description}</small></td>
     <td>{Number(p.price_brl)===0?'Grátis':Number(p.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
-    <td>{p.frequency===12?'Anual':'Mensal'}</td>
+    <td>{'30 dias'}</td>
     <td>{p.benefits?.length||0} cadastrados</td>
-    <td>{p.mp_plan_id?'Vinculado':'Não vinculado'}</td>
+    <td>{'Checkout Transparente'}</td>
     <td><span className={'sa-tag '+(p.published?'sa-tag-approved':'sa-tag-draft')}>{p.published?'Visível':'Oculto'}</span>{p.is_default&&<small className="sa-ticket-email">Plano padrão</small>}</td>
     <td><div className="sa-billing-buttons">
      {!p.active&&<>
       <button type="button" className="sa-download" disabled={!!busy} onClick={()=>edit(p)}><Pencil size={15}/> Editar</button>
       <button type="button" className="sa-download" disabled={!!busy} onClick={()=>void togglePublished(p)}>{p.published?'Ocultar':'Publicar'}</button>
       {!p.is_default&&<button type="button" className="sa-download" disabled={!!busy} onClick={()=>void archive(p.id)}><Archive size={15}/> Arquivar</button>}
-      {Number(p.price_brl)>0&&!p.mp_plan_id&&<button type="button" className="sa-download" disabled={!!busy} onClick={()=>void sync(p.id)}>Registrar no MP</button>}
+
      </>}</div></td>
    </tr>)}</tbody></table></div>}
   {!loading&&!plans.some(p=>!p.archived)&&<div className="sa-empty"><CreditCard size={32}/><h3>Nenhum plano preparado</h3><p>Cadastre um plano. Planos gratuitos são publicados por padrão; os pagos precisam de configuração de cobrança.</p></div>}

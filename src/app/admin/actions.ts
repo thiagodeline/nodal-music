@@ -108,7 +108,7 @@ export async function saveBillingDraft(input:BillingDraft,id?:string):Promise<Bi
  const frequency=input?.frequency
  const benefits=Array.isArray(input?.benefits)?input.benefits.map(x=>typeof x==='string'?x.trim():''):[]
  if(name.length<2||name.length>80||description.length>500||!Number.isFinite(price)||price<0||
-   Math.abs(Math.round(price*100)-price*100)>0.001||(frequency!==1&&frequency!==12)||
+   Math.abs(Math.round(price*100)-price*100)>0.001||(frequency!==1)||
    benefits.length>20||benefits.some(x=>x.length<1||x.length>160))
    return {ok:false,message:'Verifique nome, valor, periodicidade e benefícios.'}
  const clean={name,description,price_brl:price,frequency,frequency_type:'months',benefits}
@@ -133,7 +133,7 @@ export async function saveBillingDraft(input:BillingDraft,id?:string):Promise<Bi
   const {data,error}=await ctx.supabase.from('billing_plans').update(next)
    .eq('id',id).eq('active',false).select('id')
   if(error||!data?.length)return {ok:false,message:'Não foi possível atualizar o plano: '+(error?.message||'Recarregue a lista.')}
-  return {ok:true,message:financialChange&&previous.mp_plan_id?'Plano atualizado. O vínculo anterior com o Mercado Pago foi desfeito: registre o novo preço antes de publicar.':'Plano atualizado.'}
+  return {ok:true,message:financialChange&&previous.mp_plan_id?'Plano atualizado; mudanças de preço não alteram pagamentos anteriores.':'Plano atualizado.'}
  }
  const {data,error}=await ctx.supabase.from('billing_plans')
   .insert({...clean,active:false,published:true,archived:false}).select('id').single()

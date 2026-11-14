@@ -1,91 +1,104 @@
 'use client'
 import Script from 'next/script'
 import {useCallback,useEffect,useRef,useState} from 'react'
-import {startBillingCheckout} from '@/app/dashboard/billing-actions'
-declare global{interface Window{MercadoPago?:new(key:string)=>{cardForm:(options:unknown)=>{getCardFormData:()=>{token?:string};unmount?:()=>void}}}}
+import {checkOneTimeOrder,startOneTimeCheckout} from '@/app/dashboard/billing-actions'
 type Plan={id:string;name:string;price_brl:number;frequency:number}
+type BrickForm={token:string;payment_method_id:string;installments:number;payer:{identification:{type:string;number:string}}}
+type Controller={unmount:()=>void}
+type MP={bricks:()=>{create:(name:string,id:string,settings:unknown)=>Promise<Controller>}}
+declare global{interface Window{MercadoPago?:new (key:string,opts?:{locale:string})=>MP}}
 export function SubscriptionCardForm({plan,onClose}:{plan:Plan;onClose:()=>void}){
+ const [method,setMethod]=useState<'card'|'pix'>('card')
  const [sdkReady,setSdkReady]=useState(false)
- const [ready,setReady]=useState(false)
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
  const [message,setMessage]=useState('')
- const instance=useRef<{unmount?:()=>void}|null>(null)
- const active=useRef(true)
- const key=process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY
- const submit=useCallback(async(token:string)=>{
-  if(busy||!token)return
+ const [resultId,setResultId]=useState('')
+ const [pix,setPix]=useState<{code:string;qrBase64:string;ticketUrl:string}|null>(null)
+ const [ready,setReady]=useState(false)
+ const controller=useRef<Controller|null>(null)
+ const mounted=useRef(true)
+ const inFlight=useRef(false)
+ const completed=useRef(false)
+ const price=Number(plan.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+ const submit=useCallback(async(payment:Parameters<typeof startOneTimeCheckout>[1])=>{
+  if(inFlight.current||completed.current)return false
+  inFlight.current=true
   setBusy(true);setError('')
   try{
-   const result=await startBillingCheckout(plan.id,token)
-   if(!active.current)return
-   if(result.ok)setMessage(result.message)
-   else setError(result.message)
-  }catch{if(active.current)setError('Falha ao processar assinatura. Verifique no Mercado Pago antes de tentar novamente.')}
-  finally{if(active.current)setBusy(false)}
- },[plan.id,busy])
+   const res=await startOneTimeCheckout(plan.id,payment)
+   if(!mounted.current)return false
+   if(!res.ok){setError(res.message);return false}
+   completed.current=true
+   setMessage(res.message);setResultId(res.orderId)
+   if(res.pix)setPix(res.pix)
+   if(res.status==='paid')window.setTimeout(()=>window.location.reload(),1200)
+   return true
+  }catch{if(mounted.current)setError('Erro de comunicação. Confira seu histórico de pagamentos antes de tentar novamente.');return false}
+  finally{inFlight.current=false;if(mounted.current)setBusy(false)}
+ },[plan.id])
  useEffect(()=>{
-  active.current=true
-  return ()=>{active.current=false;try{instance.current?.unmount?.()}catch{}}
+  mounted.current=true
+  return()=>{mounted.current=false;try{controller.current?.unmount()}catch{}}
  },[])
  useEffect(()=>{
-  if(!sdkReady||!key||!window.MercadoPago||instance.current)return
-  try{
-   const mp=new window.MercadoPago(key)
-   const card=mp.cardForm({
-    amount:Number(plan.price_brl).toFixed(2),
-    iframe:true,
-    form:{
-     id:'st-checkout-form',
-     cardNumber:{id:'st-card-number',placeholder:'Número do cartão'},
-     expirationDate:{id:'st-card-expiration',placeholder:'MM/AA'},
-     securityCode:{id:'st-card-cvv',placeholder:'Código de segurança'},
-     cardholderName:{id:'st-cardholder',placeholder:'Nome no cartão'},
-     issuer:{id:'st-card-issuer',placeholder:'Banco emissor'},
-     installments:{id:'st-card-installments',placeholder:'Parcelas'},
-     identificationType:{id:'st-card-id-type',placeholder:'Documento'},
-     identificationNumber:{id:'st-card-id-number',placeholder:'CPF'},
-     cardholderEmail:{id:'st-card-email',placeholder:'E-mail'}
-    },
-    callbacks:{
-     onFormMounted:(err:unknown)=>{if(err)setError('Não foi possível carregar os campos de cartão.');else setReady(true)},
-     onSubmit:(event:Event)=>{
-      event.preventDefault()
-      const token=card.getCardFormData().token
-      if(!token){setError('Não foi possível validar o cartão. Confira os dados.');return}
-      void submit(token)
-     }
-    }
-   })
-   instance.current=card
-  }catch{setError('Falha na inicialização segura do cartão. Recarregue a página.')}
- },[sdkReady,key,plan.price_brl,submit])
+  if(!sdkReady||method!=='card'||!window.MercadoPago||controller.current||!process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY)return
+  let disposed=false
+  const mp=new window.MercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY,{locale:'pt-BR'})
+  void mp.bricks().create('cardPayment','st-brick-card',{
+   initialization:{amount:Number(plan.price_brl)},
+   customization:{visual:{style:{theme:'default'}}},
+   callbacks:{
+    onReady:()=>{if(!disposed)setReady(true)},
+    onSubmit:(formData:BrickForm,additional:{paymentTypeId?:string})=>new Promise<void>((resolve,reject)=>{
+     void submit({method:'card',card:{
+      token:formData.token,paymentMethodId:formData.payment_method_id,
+      paymentTypeId:additional.paymentTypeId==='debit_card'?'debit_card':'credit_card',
+      installments:formData.installments,
+      identification:formData.payer.identification
+     }}).then(ok=>ok?resolve():reject(new Error('Pagamento não concluído')))
+    }),
+    onError:()=>{if(!disposed)setError('Não foi possível carregar os campos seguros do Mercado Pago.')}
+   }
+  }).then(instance=>{if(disposed)instance.unmount();else controller.current=instance})
+   .catch(()=>{if(!disposed)setError('Erro ao iniciar o formulário de pagamento.')})
+  return()=>{disposed=true;try{controller.current?.unmount()}catch{}controller.current=null;setReady(false)}
+ },[sdkReady,method,plan.price_brl,submit])
+ async function check(){
+  if(!resultId||busy)return
+  setBusy(true)
+  try{const res=await checkOneTimeOrder(resultId);setMessage(res.message);if(res.paid)window.location.reload()}
+  finally{setBusy(false)}
+ }
  return <div className="st-checkout-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)onClose()}}>
   <section className="st-checkout-dialog" role="dialog" aria-modal="true" aria-labelledby="st-checkout-title">
-   <button type="button" className="st-checkout-close" onClick={onClose} disabled={busy} aria-label="Fechar">×</button>
-   <h2 id="st-checkout-title">Assinar {plan.name}</h2>
-   <p>Valor recorrente: <strong>{Number(plan.price_brl).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}/{plan.frequency===12?'ano':'mês'}</strong></p>
-   <p className="st-checkout-note">Seus dados de cartão são enviados diretamente ao Mercado Pago. A assinatura será ativada após a confirmação da cobrança.</p>
-   {message?<div role="status" className="st-checkout-success">{message}<p><a href="/dashboard#plans">Voltar aos planos</a></p></div>:<>
-    <Script src="https://sdk.mercadopago.com/js/v2" strategy="afterInteractive" onReady={()=>setSdkReady(true)} onError={()=>setError('Não foi possível carregar o Mercado Pago.')}/>
-    {!ready&&!error&&<p role="status">Carregando formulário seguro...</p>}
-    <form id="st-checkout-form" className="st-checkout-form">
-     <label>Número do cartão<div id="st-card-number" className="st-secure-field"/></label>
-     <div className="st-checkout-cols">
-      <label>Validade<div id="st-card-expiration" className="st-secure-field"/></label>
-      <label>CVV<div id="st-card-cvv" className="st-secure-field"/></label>
-     </div>
-     <label>Nome no cartão<input id="st-cardholder" type="text" autoComplete="cc-name" required/></label>
-     <label>Banco emissor<select id="st-card-issuer"/></label>
-     <label>Parcelas<select id="st-card-installments"/></label>
-     <div className="st-checkout-cols">
-      <label>Documento<select id="st-card-id-type"/></label>
-      <label>Número do documento<input id="st-card-id-number" autoComplete="off" required/></label>
-     </div>
-     <label>E-mail<input id="st-card-email" type="email" autoComplete="email" required/></label>
-     {error&&<p className="st-plan-error" role="alert">{error}</p>}
-     <button type="submit" className="st-plan-action" disabled={busy||!ready}>{busy?'Processando...':'Confirmar assinatura'}</button>
-    </form>
+   <button className="st-checkout-close" type="button" onClick={onClose} disabled={busy} aria-label="Fechar">×</button>
+   <h2 id="st-checkout-title">Pagar {plan.name}</h2>
+   <p><strong>{price}</strong> por 30 dias de acesso. Pagamento único, sem renovação automática.</p>
+   {resultId?<div className="st-checkout-success" role="status">
+    <p>{message}</p>
+    {pix&&<div>
+     {pix.qrBase64&&<img style={{maxWidth:230,display:'block',margin:'12px auto'}} src={'data:image/png;base64,'+pix.qrBase64} alt="QR Code Pix"/>}
+     <label>Código Pix Copia e Cola<textarea readOnly rows={3} value={pix.code}/></label>
+     <button type="button" onClick={()=>void navigator.clipboard.writeText(pix.code)}>Copiar código Pix</button>
+     {pix.ticketUrl?.startsWith('https://www.mercadopago.com.br/')&&<p><a target="_blank" rel="noopener noreferrer" href={pix.ticketUrl}>Abrir instruções no Mercado Pago</a></p>}
+    </div>}
+    <button type="button" onClick={()=>void check()} disabled={busy}>{busy?'Consultando...':'Verificar confirmação'}</button>
+   </div>:<>
+    <div className="st-checkout-methods">
+     <button type="button" aria-pressed={method==='card'} onClick={()=>setMethod('card')}>Cartão</button>
+     <button type="button" aria-pressed={method==='pix'} onClick={()=>setMethod('pix')}>Pix</button>
+    </div>
+    {error&&<p className="st-plan-error" role="alert">{error}</p>}
+    {method==='card'?<>
+     <p className="st-checkout-note">Dados protegidos pelo Mercado Pago. A SINTONE recebe apenas um token do pagamento, nunca o número do cartão.</p>
+     <Script src="https://sdk.mercadopago.com/js/v2" strategy="afterInteractive" onReady={()=>setSdkReady(true)} onError={()=>setError('Falha ao carregar o Mercado Pago.')}/>
+     {!ready&&!error&&<p>Carregando checkout...</p>}
+     <div id="st-brick-card"/>
+    </>:<div>
+     <p className="st-checkout-note">Gere um Pix para pagar uma única vez. A renovação de 30 dias começa após a confirmação.</p>
+     <button type="button" className="st-plan-action" onClick={()=>void submit({method:'pix'})} disabled={busy}>{busy?'Gerando Pix...':'Gerar Pix de '+price}</button>
+    </div>}
    </>}
   </section>
  </div>

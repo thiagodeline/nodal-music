@@ -31,7 +31,7 @@ export default async function Home() {
   const sb=await createClient()
   const {data}=await sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default').eq('published',true).eq('archived',false).order('price_brl',{ascending:true})
   const plans=(data||[]) as PublicPlan[]
-  const checkoutReady=process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'&&!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN)
+  const checkoutReady=process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'&&process.env.SINTONE_PAYMENT_MODE==='one_time'&&!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN)
   return (<>
     <header className="l-head"><div className="wrap l-bar">
       <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>

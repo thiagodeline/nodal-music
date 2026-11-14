@@ -26,9 +26,46 @@ export async function POST(request:NextRequest){
  let notification:Notification
  try{notification=await request.json()}catch{return NextResponse.json({error:'JSON inválido'},{status:400})}
  const type=notification.type||notification.action?.split('.')[0]
- if(!['subscription_preapproval','subscription_authorized_payment','payment'].includes(type||''))
+ if(!['order','subscription_preapproval','subscription_authorized_payment','payment'].includes(type||''))
   return NextResponse.json({ok:true,ignored:true})
  const admin=createClient(supabaseUrl,serviceKey,{auth:{persistSession:false,autoRefreshToken:false}})
+ if(type==='order'){
+  try{
+   const remote=await fetch('https://api.mercadopago.com/v1/orders/'+encodeURIComponent(id),{
+    headers:{Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(12000)
+   })
+   if(!remote.ok)return NextResponse.json({error:'Order ainda não disponível'},{status:503})
+   const order=await remote.json() as {
+    id:string;external_reference?:string;status?:string;status_detail?:string;
+    total_amount?:string;total_paid_amount?:string;currency_id?:string;
+    transactions?:{payments?:Array<{status?:string;status_detail?:string;paid_amount?:string}>}
+   }
+   if(order.id!==id||!order.external_reference||!/^[0-9a-f-]{36}$/i.test(order.external_reference))
+    return NextResponse.json({error:'Order sem referência válida'},{status:400})
+   const {data:local,error:readError}=await admin.from('billing_one_time_orders')
+    .select('id,amount_brl,mp_order_id').eq('id',order.external_reference).maybeSingle()
+   if(readError)return NextResponse.json({error:'Não foi possível consultar pedido'},{status:503})
+   if(!local)return NextResponse.json({ok:true,ignored:true})
+   if(!local.mp_order_id)return NextResponse.json({error:'Vínculo ainda não registrado'},{status:503})
+   if(local.mp_order_id!==id||Math.abs(Number(order.total_amount)-Number(local.amount_brl))>0.01||
+     (order.currency_id&&order.currency_id!=='BRL'))
+    return NextResponse.json({error:'Dados financeiros divergentes'},{status:409})
+   const payments=order.transactions?.payments||[]
+   const paid=order.status==='processed'&&order.status_detail==='accredited'&&
+    Number(order.total_paid_amount)>=Number(local.amount_brl)-0.01&&
+    payments.some(p=>p.status==='processed'&&p.status_detail==='accredited')
+   const refunded=payments.some(p=>['refunded','charged_back'].includes(p.status||''))
+   const rejected=['rejected','failed','canceled','cancelled'].includes(order.status||'')
+   if(!paid&&!rejected&&!refunded)return NextResponse.json({ok:true,pending:true})
+   const {error}=await admin.rpc('apply_verified_one_time_order',{
+    p_order_id:local.id,p_mp_order_id:id,p_payment_state:refunded?'refunded':paid?'paid':'rejected',
+    p_amount:Number(order.total_amount)
+   })
+   if(error){console.error('[billing] Order reconciliation',error.code);return NextResponse.json({error:'Erro ao conciliar pagamento'},{status:503})}
+   return NextResponse.json({ok:true})
+  }catch{return NextResponse.json({error:'Falha de verificação'},{status:503})}
+ }
+
  const get=async(path:string)=>{
   const response=await fetch('https://api.mercadopago.com'+path,{
    headers:{Authorization:'Bearer '+token},cache:'no-store',signal:AbortSignal.timeout(12000)})

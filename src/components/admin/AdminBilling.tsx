@@ -22,7 +22,7 @@ export default function AdminBilling(){
    .select('id,name,description,price_brl,frequency,active,archived,mp_plan_id,benefits')
    .order('created_at',{ascending:false})
   if(error)setMsg('Falha ao carregar planos: '+error.message)
-  else setPlans((data??[]) as Plan[])
+  else setPlans((data??[]).map(p=>({...p,benefits:Array.isArray(p.benefits)?p.benefits:[]})) as Plan[])
   setLoading(false)
  },[sb])
  useEffect(()=>{void load()},[load])
@@ -31,7 +31,7 @@ export default function AdminBilling(){
   if(p.mp_plan_id||p.active)return
   setEditing(p.id);setName(p.name);setDescription(p.description)
   setPrice(String(p.price_brl));setFrequency(p.frequency===12?12:1)
-  setBenefits((p.benefits??[]).join('\n'))
+  setBenefits((Array.isArray(p.benefits)?p.benefits:[]).join('\n'))
  }
  async function save(e:React.FormEvent){
   e.preventDefault();if(busy)return
@@ -42,8 +42,8 @@ export default function AdminBilling(){
     benefits:benefits.split('\n').map(s=>s.trim()).filter(Boolean)
    },editing||undefined)
    setMsg(result.message||'')
-   if(result.ok){reset();await load()}
-  }catch{setMsg('Não foi possível salvar o rascunho.')}
+   if(result.ok){reset();try{await load()}catch{setMsg('Plano salvo, mas não foi possível atualizar a lista. Recarregue a aba Planos.')}}
+  }catch(e){setMsg('Não foi possível atualizar o painel. O cadastro pode ter sido salvo; confira a lista antes de tentar novamente.')}
   finally{setBusy('')}
  }
  async function archive(id:string){

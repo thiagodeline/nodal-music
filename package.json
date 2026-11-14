@@ -1,5 +1,5 @@
 {
- "name": "nodal-music",
+ "name": "sintone",
  "private": true,
  "scripts": {
   "dev": "next dev",

@@ -14,7 +14,6 @@ import { Account } from './Account'
 import Artists from './Artists'
 import Support from './Support'
 import Splits from './Splits'
-import Admin from './Admin'
 import PendingContracts from './PendingContracts'
 import RoyaltiesImport from './RoyaltiesImport'
 import { ContractBanner } from './ContractBanner'
@@ -44,7 +43,7 @@ export default function Dashboard() {
     setD({ me: me.data, email: user.email ?? '', releases: r.data ?? [], reports: rp.data ?? [], wds: w.data ?? [] })
   }, [])
   useEffect(() => { load() }, [load])
-  useEffect(() => { const f = () => { const h = location.hash.slice(1); setRoute(ROUTES.includes(h) ? h : 'overview'); setOpen(false); window.scrollTo(0, 0) }; f(); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
+  useEffect(() => { const f = () => { const h = location.hash.slice(1); if (h === 'admin') { location.replace('/admin'); return } setRoute(ROUTES.includes(h) ? h : 'overview'); setOpen(false); window.scrollTo(0, 0) }; f(); window.addEventListener('hashchange', f); return () => window.removeEventListener('hashchange', f) }, [])
   const isAdm = d?.me?.role === 'admin'
   const gate = useCanReleaseMusic(d?.me), locked = !!d && !gate.canRelease
   const title = [...NAV, ADM].flatMap(s => s[1]).find(i => i[0] === route)![1]
@@ -64,6 +63,6 @@ export default function Dashboard() {
         {route === 'new' && (gate.canRelease ? <NewRelease d={d} reload={load} /> : <div className="card"><div className="empty"><Lock size={28} /><h3>Novo lançamento bloqueado</h3><p>Ele é liberado assim que o seu contrato assinado for aprovado pela nossa equipe.</p></div></div>)}{route === 'analytics' && <Analytics d={d} />}
         {route === 'financial' && <Finance d={d} reload={load} />}{route === 'account' && <Account d={d} reload={load} />}
         {route === 'split' && <Splits d={d} can={gate.canRelease} />}{route === 'profiles' && <Artists d={d} />}{route === 'support' && <Support d={d} />}
-        {route === 'admin' && (isAdm ? <Admin /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'contracts' && (isAdm ? <PendingContracts /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'royalties' && (isAdm ? <RoyaltiesImport /> : <p className="mut">Acesso restrito a administradores.</p>)}</>}</main>
+        {route === 'contracts' && (isAdm ? <PendingContracts /> : <p className="mut">Acesso restrito a administradores.</p>)}{route === 'royalties' && (isAdm ? <RoyaltiesImport /> : <p className="mut">Acesso restrito a administradores.</p>)}</>}</main>
     </div></div>)
 }

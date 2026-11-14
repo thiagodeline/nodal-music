@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, BadgeCheck, CalendarDays, Check, CheckCircle2, ChevronRight,
-  Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, FileSpreadsheet, Filter,
+  Clock3, Disc3, Download, Eye, FileAudio2, FileSpreadsheet, Filter,
   Headphones, LayoutDashboard, LoaderCircle, Music2, Search, ShieldCheck,
   UsersRound, X, XCircle
 } from 'lucide-react'
@@ -30,7 +30,7 @@ export type AdminRelease = {
   status:string;rejection_reason:string|null;cover_url:string|null;has_audio:boolean;
   label_name:string|null;p_line:string|null;c_line:string|null;
   artists:{name:string;role:string;profile_id?:string}[];
-  platforms:string[];tracks:AdminReleaseTrack[]
+  platforms:string[];platform_selection_mode:'all'|'selected';tracks:AdminReleaseTrack[]
 }
 export type AdminUser = {
   id:string;name:string|null;artist_name:string|null;email:string|null;role:string;
@@ -147,10 +147,6 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contas</button>
         <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
       </nav>
-      <div className="sa-sidebar-secondary"><span>OUTRAS FERRAMENTAS</span>
-        <button type="button" onClick={()=>changeTab('artists')}><FileSignature size={17}/> Contratos e contas</button>
-        <button type="button" onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Importar royalties</button>
-      </div>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
     </aside>
     <div className="sa-main">
@@ -210,7 +206,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             <Field label="Data de lançamento" value={fmtDate(selected.release_date)}/><Field label="Conteúdo explícito" value={selected.explicit}/>
             <Field label="ISRC (primeira faixa)" value={selected.isrc}/><Field label="UPC/EAN" value={selected.upc}/>
             <Field label="Selo" value={selected.label_name}/><Field label="℗" value={selected.p_line}/>
-            <Field label="©" value={selected.c_line}/><Field label="Plataformas" value={selected.platforms.join(', ')}/>
+            <Field label="©" value={selected.c_line}/><Field label="Modo de distribuição" value={selected.platform_selection_mode==='all'?'Todas as plataformas':'Plataformas selecionadas'}/><Field label="Plataformas" value={selected.platforms.join(', ')}/>
             <Field label="Artistas e funções" value={selected.artists.map(a=>a.name+' ('+a.role+')').join(', ')}/>
           </dl>
           <h3 className="sa-section-title">Ficha técnica e créditos</h3><dl className="sa-details">

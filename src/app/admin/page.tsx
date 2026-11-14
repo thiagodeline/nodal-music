@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const sb = ctx.supabase
   const [profiles, releases, contracts, totalUsers, pending, approved, totalReleases] = await Promise.all([
     sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').order('created_at',{ascending:false}).range(0,999),
-    sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason,label_name,p_line,c_line,platforms,artists').order('created_at',{ascending:false}).range(0,999),
+    sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason,label_name,p_line,c_line,platforms,platform_selection_mode,artists').order('created_at',{ascending:false}).range(0,999),
     sb.from('user_contracts').select('user_id,signed_name,signed_at,pdf_status').order('signed_at',{ascending:false}).range(0,999),
     sb.from('profiles').select('id',{count:'exact',head:true}),
     sb.from('releases').select('id',{count:'exact',head:true}).eq('status','pending'),
@@ -49,7 +49,7 @@ export default async function AdminPage() {
     isrc:r.isrc,upc:r.upc,composers:r.composers,producers:r.producers,lyricists:r.lyricists,
     credits:r.credits,explicit:r.explicit,created_at:r.created_at,status:r.status,
     rejection_reason:r.rejection_reason,has_audio:!!r.audio_path,
-    label_name:r.label_name,p_line:r.p_line,c_line:r.c_line,platforms:r.platforms||[],
+    label_name:r.label_name,p_line:r.p_line,c_line:r.c_line,platforms:r.platforms||[],platform_selection_mode:r.platform_selection_mode||'selected',
     artists:r.artists||[],tracks:byRelease.get(r.id)||[],
     cover_url: r.cover_path ? sb.storage.from('covers').getPublicUrl(r.cover_path).data.publicUrl : null,
   }))

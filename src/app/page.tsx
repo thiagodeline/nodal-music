@@ -16,7 +16,7 @@ const tools = [
   ['Status em tempo real', 'Em análise, aprovado ou no ar: você sabe em que etapa cada faixa está.'],
 ]
 const faq = [
-  ['O que é a Nodal Music?', 'Uma distribuidora que leva a sua música às principais plataformas de streaming e mostra os resultados em um painel simples.'],
+  ['O que é a SINTONE?', 'Uma distribuidora que leva a sua música às principais plataformas de streaming e mostra os resultados em um painel simples.'],
   ['Como eu recebo meus royalties?', 'O saldo aparece no seu painel. Quando quiser, você pede o saque informando sua chave Pix e acompanha o pagamento por lá.'],
   ['Preciso ter um selo para distribuir?', 'Não. Artistas independentes podem criar a conta e enviar os lançamentos sozinhos.'],
   ['Quanto tempo leva para minha música entrar no ar?', 'Depois que a nossa equipe aprova os arquivos, o envio às lojas começa. O prazo final depende de cada plataforma.'],
@@ -26,7 +26,7 @@ const faq = [
 export default function Home() {
   return (<>
     <header className="l-head"><div className="wrap l-bar">
-      <Link href="/"><img src="/logo.png" alt="Nodal Music" /></Link>
+      <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
       <nav className="l-links"><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#faq">Perguntas</a></nav>
       <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/login?novo=1">Criar conta</Link></div>
     </div></header>
@@ -89,8 +89,8 @@ export default function Home() {
     </main>
 
     <footer className="wrap l-foot">
-      <img src="/logo.png" alt="Nodal Music" />
-      <div><nav className="l-legal" aria-label="Legal"><Link href="/termos">Termos</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">Seus dados (LGPD)</Link></nav><p style={{ marginTop: 10 }}>© {new Date().getFullYear()} Nodal Music. Todos os direitos reservados.</p></div>
+      <img src="/sintone-logo.svg" alt="SINTONE" />
+      <div><nav className="l-legal" aria-label="Legal"><Link href="/termos">Termos</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">Seus dados (LGPD)</Link></nav><p style={{ marginTop: 10 }}>© {new Date().getFullYear()} SINTONE. Todos os direitos reservados.</p></div>
     </footer>
   </>)
 }

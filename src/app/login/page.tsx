@@ -33,8 +33,8 @@ export default function Login() {
       <div className="rg-mobile-brand"><Link href="/"><img src="/sintone-logo.svg" alt="SINTONE"/></Link></div>
       <div className="rg-heading"><span className="rg-eyebrow">ENTRAR NA PLATAFORMA</span><h1>Acesse sua conta</h1><p>Entre com seu e-mail e senha para continuar.</p></div>
       <form onSubmit={submit}>
-        <div className="rg-group"><div className="rg-caption"><span>E-mail</span></div><input name="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required/></div>
-        <div className="rg-group"><div className="rg-caption"><span>Senha</span></div><input name="password" type="password" autoComplete="current-password" placeholder="Sua senha" required/></div>
+        <div className="rg-group"><div className="rg-caption"><label htmlFor="login-email">E-mail</label></div><input id="login-email" name="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required/></div>
+        <div className="rg-group"><div className="rg-caption"><label htmlFor="login-password">Senha</label></div><input id="login-password" name="password" type="password" autoComplete="current-password" placeholder="Sua senha" required/></div>
         {error && <div className="rg-alert" role="alert">{error}</div>}
         <button type="submit" className="rg-submit" disabled={busy}>{busy ? <><LoaderCircle className="rg-spin" size={18}/> Entrando…</> : <><LogIn size={18}/> Entrar</>}</button>
       </form>

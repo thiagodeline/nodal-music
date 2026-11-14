@@ -15,7 +15,7 @@ export default async function ContractPage() {
   if (!profile?.onboarding_completed || profile.status === 'PENDING_ONBOARDING') redirect('/onboarding')
   if (!profile.account_type || !profile.name) redirect('/onboarding')
   const { data: row } = await sb.from('user_contracts')
-    .select('user_id,signed_at,signed_name,artist_name,cpf,cnpj,contract_snapshot,pdf_status')
+    .select('user_id,signed_at,signed_name,artist_name,cpf,cnpj,contract_snapshot,contract_version,pdf_status')
     .eq('user_id', user.id).maybeSingle()
   if (profile.status !== 'PENDING_CONTRACT' && !row) redirect('/dashboard')
 

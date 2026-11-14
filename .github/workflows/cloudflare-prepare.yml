@@ -1,0 +1,42 @@
+name: Prepare SINTONE Cloudflare build
+
+on:
+  push:
+    branches:
+      - migration/sintone-cloudflare-workers
+    paths:
+      - package.json
+      - .github/workflows/cloudflare-prepare.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: true
+          ref: migration/sintone-cloudflare-workers
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Update dependency lockfile
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit reproducible lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Lock Cloudflare build dependencies"
+            git push origin HEAD:migration/sintone-cloudflare-workers
+          fi
+      - name: Install packages from lockfile
+        run: npm ci --no-audit --no-fund
+      - name: Build Next.js for Cloudflare Workers
+        run: npm run cf:build

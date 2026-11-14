@@ -14,13 +14,23 @@ import './admin.css'
 import './admin-extras.css'
 import AdminAccounts from './AdminAccounts'
 import AdminRoyaltyUpload from './AdminRoyaltyUpload'
+import AdminReleaseTracks from './AdminReleaseTracks'
 
+export type AdminReleaseTrack = {
+  id:string;release_id:string;position:number;title:string;isrc:string|null;audio_path:string;
+  featured_artists:string|null;composers:string|null;producers:string|null;
+  lyricists:string|null;credits:string|null;explicit:boolean;language:string;
+  contributors:{name:string;role:string}[]
+}
 export type AdminRelease = {
   id:string;artist_id:string;title:string;type:string|null;main_artist:string|null;
   featured_artists:string|null;genre:string|null;subgenre:string|null;release_date:string|null;
   isrc:string|null;upc:string|null;composers:string|null;producers:string|null;
   lyricists:string|null;credits:string|null;explicit:boolean|null;created_at:string;
-  status:string;rejection_reason:string|null;cover_url:string|null;has_audio:boolean
+  status:string;rejection_reason:string|null;cover_url:string|null;has_audio:boolean;
+  label_name:string|null;p_line:string|null;c_line:string|null;
+  artists:{name:string;role:string;profile_id?:string}[];
+  platforms:string[];tracks:AdminReleaseTrack[]
 }
 export type AdminUser = {
   id:string;name:string|null;artist_name:string|null;email:string|null;role:string;
@@ -90,9 +100,9 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const open=(r:AdminRelease)=>{setSelectedId(r.id);setRejecting(false);setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
   const changeTab=(next:'releases'|'artists'|'royalties')=>{setTab(next);setSearch('');setFeedback(null)}
-  async function play(id:string){
+  async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
-    try {const result=await getReleaseAudioUrl(id)
+    try {const result=await getReleaseAudioUrl(id,trackId)
       if(result.ok && result.url)setAudio(result.url)
       else setAudioError(result.ok?'Áudio indisponível.':result.message)
     }catch{setAudioError('Não foi possível carregar a pré-escuta.')}
@@ -198,12 +208,16 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             <Field label="Artista principal" value={selected.main_artist}/><Field label="Participações (feat)" value={selected.featured_artists}/>
             <Field label="Gênero" value={selected.genre}/><Field label="Subgênero" value={selected.subgenre}/>
             <Field label="Data de lançamento" value={fmtDate(selected.release_date)}/><Field label="Conteúdo explícito" value={selected.explicit}/>
-            <Field label="ISRC" value={selected.isrc}/><Field label="UPC/EAN" value={selected.upc}/>
+            <Field label="ISRC (primeira faixa)" value={selected.isrc}/><Field label="UPC/EAN" value={selected.upc}/>
+            <Field label="Selo" value={selected.label_name}/><Field label="℗" value={selected.p_line}/>
+            <Field label="©" value={selected.c_line}/><Field label="Plataformas" value={selected.platforms.join(', ')}/>
+            <Field label="Artistas e funções" value={selected.artists.map(a=>a.name+' ('+a.role+')').join(', ')}/>
           </dl>
           <h3 className="sa-section-title">Ficha técnica e créditos</h3><dl className="sa-details">
             <Field label="Compositores" value={selected.composers}/><Field label="Produtores" value={selected.producers}/>
             <Field label="Letristas" value={selected.lyricists}/><Field label="Outros créditos" value={selected.credits}/>
           </dl>
+          <AdminReleaseTracks tracks={selected.tracks} onPlay={(id)=>void play(selected.id,id)} busy={audioBusy}/>
           <h3 className="sa-section-title">Pré-escuta de áudio</h3>
           <div className="sa-audio-box"><Headphones size={24}/><div className="sa-audio-content">
             {audio?<audio controls src={audio} preload="metadata" aria-label={'Áudio de '+selected.title}/>:

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getAdminContext } from '@/lib/admin-access'
-import AdminPanel, { type AdminRelease, type AdminUser, type AdminContract } from '@/components/admin/AdminPanel'
+import AdminPanel, { type AdminRelease, type AdminReleaseTrack, type AdminUser, type AdminContract } from '@/components/admin/AdminPanel'
 
 export const metadata = { title: 'Administração | SINTONE' }
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const sb = ctx.supabase
   const [profiles, releases, contracts, totalUsers, pending, approved, totalReleases] = await Promise.all([
     sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').order('created_at',{ascending:false}).range(0,999),
-    sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason').order('created_at',{ascending:false}).range(0,999),
+    sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason,label_name,p_line,c_line,platforms,artists').order('created_at',{ascending:false}).range(0,999),
     sb.from('user_contracts').select('user_id,signed_name,signed_at,pdf_status').order('signed_at',{ascending:false}).range(0,999),
     sb.from('profiles').select('id',{count:'exact',head:true}),
     sb.from('releases').select('id',{count:'exact',head:true}).eq('status','pending'),
@@ -21,6 +21,22 @@ export default async function AdminPage() {
   if (profiles.error || releases.error || contracts.error || totalUsers.error || pending.error || approved.error || totalReleases.error) {
     throw new Error('Falha ao carregar informações administrativas. Confirme as permissões do Supabase e tente novamente.')
   }
+  const releaseIds=(releases.data??[]).map(r=>r.id)
+  const allTracks: AdminReleaseTrack[]=[]
+  if(releaseIds.length){
+    // A separate paginated query avoids Supabase's default 1,000-row API cap.
+    for(let start=0;start<10000;start+=1000){
+      const {data,error}=await sb.from('release_tracks')
+        .select('id,release_id,position,title,isrc,audio_path,featured_artists,composers,producers,lyricists,credits,contributors,explicit,language')
+        .order('created_at',{ascending:false}).range(start,start+999)
+      if(error)throw new Error('Falha ao carregar faixas do lançamento: '+error.message)
+      allTracks.push(...(data??[]))
+      if((data??[]).length<1000)break
+    }
+  }
+  const byRelease=new Map<string,AdminReleaseTrack[]>()
+  for(const t of allTracks){const list=byRelease.get(t.release_id)||[];list.push(t as AdminReleaseTrack);byRelease.set(t.release_id,list)}
+  for(const list of byRelease.values())list.sort((a,b)=>a.position-b.position)
   const users: AdminUser[] = (profiles.data ?? []).map(p=>({
     id:p.id,name:p.name,artist_name:p.artist_name,email:p.email,role:p.role,status:p.status,
     account_type:p.account_type,registration_profile:p.registration_profile,created_at:p.created_at,
@@ -33,6 +49,8 @@ export default async function AdminPage() {
     isrc:r.isrc,upc:r.upc,composers:r.composers,producers:r.producers,lyricists:r.lyricists,
     credits:r.credits,explicit:r.explicit,created_at:r.created_at,status:r.status,
     rejection_reason:r.rejection_reason,has_audio:!!r.audio_path,
+    label_name:r.label_name,p_line:r.p_line,c_line:r.c_line,platforms:r.platforms||[],
+    artists:r.artists||[],tracks:byRelease.get(r.id)||[],
     cover_url: r.cover_path ? sb.storage.from('covers').getPublicUrl(r.cover_path).data.publicUrl : null,
   }))
   return <AdminPanel

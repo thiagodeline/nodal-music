@@ -31,16 +31,25 @@ export async function moderateRelease(id: string, decision: 'approved' | 'reject
   return { ok: true, message: decision === 'approved' ? 'Lançamento aprovado.' : 'Lançamento rejeitado. O motivo foi registrado.' }
 }
 
-export async function getReleaseAudioUrl(id: string): Promise<Result> {
+export async function getReleaseAudioUrl(id: string, trackId?: string): Promise<Result> {
   const ctx = await getAdminContext()
   if (!ctx) return forbidden
   if (!isUuid(id)) return { ok: false, message: 'Lançamento inválido.' }
   const { data: row, error: queryError } = await ctx.supabase.from('releases')
     .select('artist_id,audio_path').eq('id', id).maybeSingle()
-  if (queryError || !row?.audio_path || !row.audio_path.startsWith(row.artist_id + '/')) {
-    return { ok: false, message: 'Áudio não encontrado para este lançamento.' }
+  if (queryError || !row) return { ok: false, message: 'Lançamento não encontrado.' }
+  let path = row.audio_path
+  if (trackId) {
+    if (!isUuid(trackId)) return { ok: false, message: 'Faixa inválida.' }
+    const { data: track, error: trackError } = await ctx.supabase.from('release_tracks')
+      .select('audio_path').eq('id', trackId).eq('release_id', id).maybeSingle()
+    if (trackError || !track) return { ok: false, message: 'Faixa não encontrada.' }
+    path = track.audio_path
   }
-  const { data, error } = await ctx.supabase.storage.from('audio').createSignedUrl(row.audio_path, 600)
+  if (!path || !path.startsWith(row.artist_id + '/')) {
+    return { ok: false, message: 'Áudio não encontrado.' }
+  }
+  const { data, error } = await ctx.supabase.storage.from('audio').createSignedUrl(path, 600)
   if (error || !data?.signedUrl) return { ok: false, message: 'Falha ao gerar URL temporária do áudio.' }
   return { ok: true, url: data.signedUrl }
 }

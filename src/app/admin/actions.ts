@@ -70,3 +70,29 @@ export async function getContractDownloadUrl(userId: string): Promise<Result> {
   if (error || !data?.signedUrl) return { ok: false, message: 'PDF não encontrado no Storage ou acesso negado.' }
   return { ok: true, url: data.signedUrl }
 }
+
+export async function replyToTicket(id: string, body: string): Promise<Result> {
+  const ctx = await getAdminContext()
+  if (!ctx) return forbidden
+  if (!isUuid(id) || typeof body !== 'string' || !body.trim() || body.trim().length > 3000)
+    return { ok: false, message: 'Informe uma resposta de até 3.000 caracteres.' }
+  const { error } = await ctx.supabase.rpc('reply_to_ticket', {
+    p_ticket_id: id, p_body: body.trim()
+  })
+  if (error) return { ok: false, message: 'Não foi possível responder ao ticket: ' + error.message }
+  revalidatePath('/admin')
+  revalidatePath('/dashboard')
+  return { ok: true, message: 'Resposta registrada. Ticket marcado como Respondido.' }
+}
+
+export async function closeTicket(id: string): Promise<Result> {
+  const ctx = await getAdminContext()
+  if (!ctx) return forbidden
+  if (!isUuid(id)) return { ok: false, message: 'Ticket inválido.' }
+  const { data, error } = await ctx.supabase.from('tickets').update({status:'closed'})
+    .eq('id',id).neq('status','closed').select('id')
+  if (error || !data?.length) return { ok:false, message:'Não foi possível fechar o ticket.' }
+  revalidatePath('/admin')
+  revalidatePath('/dashboard')
+  return {ok:true,message:'Ticket fechado.'}
+}

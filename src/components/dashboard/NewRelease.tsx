@@ -1,7 +1,6 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
-import Link from 'next/link'
 import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import {uploadReleaseAsset} from '@/lib/upload-release-asset'
@@ -277,7 +276,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       </div>
       <h3>Dados dos artistas</h3>
       <p className="mut">Selecione exclusivamente artistas cadastrados em “Meus Artistas”. Cada participante precisa de uma função.</p>
-      {!profilesLoading&&!profilesError&&profiles.length===0&&<div className="sr-artist-alert" role="alert"><strong>Você precisa cadastrar pelo menos um artista em 'Meus Artistas' para criar um lançamento</strong><Link className="btn" href="/dashboard#profiles"><Plus size={16}/> Cadastrar em Meus Artistas</Link></div>}
+      {!profilesLoading&&!profilesError&&profiles.length===0&&<div className="sr-artist-alert" role="alert">Você precisa cadastrar pelo menos um artista em 'Meus Artistas' para criar um lançamento</div>}
       {profilesLoading&&<p className="mut" role="status">Carregando artistas cadastrados...</p>}
       {profilesError&&<p className="sr-error" role="alert">Não foi possível carregar os artistas. Recarregue a página.</p>}
       {artists.map((a,i)=><div className="sr-artist-row" key={a.key}>

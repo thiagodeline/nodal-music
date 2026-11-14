@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft, BadgeCheck, CalendarDays, Check, CheckCircle2, ChevronRight,
-  Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, FileSpreadsheet, Filter,
+  Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, FileSpreadsheet, Filter, CreditCard, MessageSquare,
   Headphones, LayoutDashboard, LoaderCircle, Music2, Search, ShieldCheck,
   UsersRound, X, XCircle
 } from 'lucide-react'
@@ -15,6 +15,7 @@ import './admin-extras.css'
 import AdminAccounts from './AdminAccounts'
 import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 import AdminReleaseTracks from './AdminReleaseTracks'
+import AdminTickets from './AdminTickets'
 
 export type AdminReleaseTrack = {
   id:string;release_id:string;position:number;title:string;isrc:string|null;audio_path:string;
@@ -63,7 +64,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
 
 export default function AdminPanel({adminLabel,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
-  const [tab,setTab]=useState<'releases'|'artists'|'royalties'>('releases')
+  const [tab,setTab]=useState<'releases'|'artists'|'royalties'|'plans'|'support'>('releases')
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -99,7 +100,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
   const open=(r:AdminRelease)=>{setSelectedId(r.id);setRejecting(false);setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
-  const changeTab=(next:'releases'|'artists'|'royalties')=>{setTab(next);setSearch('');setFeedback(null)}
+  const changeTab=(next:'releases'|'artists'|'royalties'|'plans'|'support')=>{setTab(next);setSearch('');setFeedback(null)}
   async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
     try {const result=await getReleaseAudioUrl(id,trackId)
@@ -146,6 +147,8 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <button className={tab==='releases'?'sa-nav-active':''} onClick={()=>changeTab('releases')}><Music2 size={18}/> Lançamentos</button>
         <button className={tab==='artists'?'sa-nav-active':''} onClick={()=>changeTab('artists')}><UsersRound size={18}/> Artistas e contas</button>
         <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
+        <button className={tab==='plans'?'sa-nav-active':''} onClick={()=>changeTab('plans')}><CreditCard size={18}/> Planos</button>
+        <button className={tab==='support'?'sa-nav-active':''} onClick={()=>changeTab('support')}><MessageSquare size={18}/> Suporte</button>
       </nav>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
     </aside>
@@ -165,8 +168,10 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             <button role="tab" aria-selected={tab==='releases'} className={tab==='releases'?'active':''} onClick={()=>changeTab('releases')}><Music2 size={17}/> Lançamentos</button>
             <button role="tab" aria-selected={tab==='artists'} className={tab==='artists'?'active':''} onClick={()=>changeTab('artists')}><UsersRound size={17}/> Artistas & contratos</button>
             <button role="tab" aria-selected={tab==='royalties'} className={tab==='royalties'?'active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Royalties</button>
-          </div><span className="sa-count">{tab==='royalties' ? 'Importação de planilhas' : (tab==='releases' ? glyph(filteredReleases.length) : glyph(filteredUsers.length))+' resultados'}</span></div>
-          {tab!=='royalties' && <div className="sa-controls">
+            <button role="tab" aria-selected={tab==='plans'} className={tab==='plans'?'active':''} onClick={()=>changeTab('plans')}><CreditCard size={17}/> Planos</button>
+            <button role="tab" aria-selected={tab==='support'} className={tab==='support'?'active':''} onClick={()=>changeTab('support')}><MessageSquare size={17}/> Suporte</button>
+          </div><span className="sa-count">{tab==='royalties' ? 'Importação de planilhas' : tab==='plans' ? 'Assinaturas via Stripe (em breve)' : tab==='support' ? 'Central de tickets' : (tab==='releases' ? glyph(filteredReleases.length) : glyph(filteredUsers.length))+' resultados'}</span></div>
+          {(tab==='releases'||tab==='artists') && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
             <div className="sa-select-wrap"><Filter size={17}/>
               {tab==='releases'?<select value={filter} onChange={e=>setFilter(e.target.value)} aria-label="Filtrar lançamentos por status">
@@ -189,7 +194,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts}/>
-          </> : <AdminRoyaltyUpload/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <div className="sa-plans-empty"><div className="sa-plans-icon"><CreditCard size={28}/></div><h2>Gestão de Planos &amp; Assinaturas</h2><p>Nenhum plano ativo configurado. O módulo de assinaturas será ativado em breve.</p><div className="sa-plan-placeholder" aria-label="Estrutura futura da tabela de planos"><span>Plano</span><span>Preço</span><span>Assinantes</span><span>Status</span></div><small>Pagamentos de assinaturas serão processados pelo Stripe após configuração do módulo.</small></div> : <AdminTickets/>}
         </div>
       </main>
     </div>

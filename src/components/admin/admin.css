@@ -112,3 +112,27 @@
 .sa input:focus-visible,.sa select:focus-visible,.sa textarea:focus-visible,.sa button:focus-visible{outline:2px solid #2563eb;outline-offset:2px;box-shadow:0 0 0 3px #dbeafe}
 .sa-status,.sa-badge,.sa-count{font-weight:650}
 .sa-tabs button.active,.sa-nav-active{color:var(--accent)}
+
+.sa-plans-empty{padding:54px 24px;text-align:center;display:grid;justify-items:center;gap:12px}
+.sa-plans-empty h2{font-size:21px;margin:0;color:#0b1020}
+.sa-plans-empty p{color:#566080;margin:0}
+.sa-plans-empty small{color:#64748b}
+.sa-plans-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:16px;background:#eff6ff;color:#0646bd}
+.sa-plan-placeholder{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;width:min(690px,100%);gap:12px;margin:12px 0;padding:18px;text-align:left;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;color:#64748b;font-weight:650}
+.sa-tabs{flex-wrap:wrap;column-gap:18px}.sa-board-heading{flex-wrap:wrap}
+.sa-ticket-padding{padding:24px}.sa-ticket-open{border:0;background:none;padding:0;color:#0646bd;font-weight:700;text-align:left;cursor:pointer}
+.sa-ticket-row{cursor:pointer}.sa-ticket-email{display:block;color:#64748b;font-size:11px;margin-top:3px}
+.sa-ticket-open:hover{text-decoration:underline}
+.sa-ticket-open:focus-visible{outline:2px solid #2563eb;outline-offset:3px}
+.sa-ticket-in_progress{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.sa-ticket-open,.sa-ticket-closed{color:#475569}.sa-ticket-closed{background:#f1f5f9;border-color:#cbd5e1}
+.sa-ticket-message{padding:15px;border:1px solid #cbd5e1;border-radius:11px;margin-bottom:12px;background:#fff}
+.sa-ticket-message strong{font-size:12px;color:#1d4ed8}
+.sa-ticket-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
+.sa-ticket-footer{display:grid;gap:10px;padding:18px 24px;border-top:1px solid #cbd5e1}
+.sa-ticket-footer textarea{width:100%;min-height:105px;padding:12px;resize:vertical}
+.sa-ticket-actions{display:flex;gap:12px;justify-content:flex-end}
+.sa-ticket-actions button{display:inline-flex;align-items:center;gap:6px;padding:10px 14px}
+.sr-ticket-link{border:0;background:none;color:#0646bd;text-decoration:underline;cursor:pointer}
+.sr-ticket-history{margin:12px 0;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;max-width:440px;white-space:pre-wrap;overflow-wrap:anywhere}
+.sr-ticket-history p{margin:6px 0 12px}

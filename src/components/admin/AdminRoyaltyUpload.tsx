@@ -10,16 +10,16 @@ const uuid=/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i
 const isrcRe=/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/
 async function parse(file:File):Promise<{rows:ImportRow[];errors:string[]}> {
   if(file.size>5*1024*1024)throw Error('Arquivo acima de 5 MB.')
-  if(!/\.(csv|xlsx|xls)$/i.test(file.name))throw Error('Envie CSV ou XLSX.')
+  if(!/\.(csv|tsv|xlsx|xls)$/i.test(file.name))throw Error('Envie CSV, TSV ou XLSX.')
   const XLSX=await import('xlsx');const buf=await file.arrayBuffer()
   let wb
-  if(/\.csv$/i.test(file.name)){
+  if(/\.(csv|tsv)$/i.test(file.name)){
     let content:string
     try{content=new TextDecoder('utf-8',{fatal:true}).decode(buf)}
     catch{content=new TextDecoder('windows-1252').decode(buf)}
     content=content.replace(/^\uFEFF/,'')
     const line=content.split(/\r?\n/,1)[0]
-    const FS=(line.match(/;/g)||[]).length>(line.match(/,/g)||[]).length?';':','
+    const FS=/\.tsv$/i.test(file.name)?'\t':(line.match(/;/g)||[]).length>(line.match(/,/g)||[]).length?';':','
     wb=XLSX.read(content,{type:'string',raw:true,FS})
   }else wb=XLSX.read(buf,{type:'array',cellDates:true})
   const sheet=wb.Sheets[wb.SheetNames[0]]
@@ -87,10 +87,10 @@ export default function AdminRoyaltyUpload(){
     a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
   }
   return <section className="sa-x-edit">
-    <h2>Importação de royalties — CSV/XLSX</h2>
-    <p className="sa-x-note">Informe a receita líquida do artista, já descontada a comissão da SINTONE. Identificadores: ISRC, UPC, Artist_ID ou e-mail. UPC ambíguo exige ISRC.</p>
+    <h2>Importação de royalties — CSV/TSV/XLSX</h2>
+    <p className="sa-x-note">Informe a receita líquida do artista, já descontada a comissão da SINTONE. Taxas personalizadas podem ser cadastradas na aba Comissões, mas não são descontadas novamente por este importador. Identificadores: ISRC, UPC, Artist_ID ou e-mail. UPC ambíguo exige ISRC.</p>
     <button className="sa-x-link" onClick={template}>Baixar modelo CSV</button>
-    <p><input type="file" accept=".csv,.xlsx,.xls" onChange={e=>choose(e.target.files?.[0]||null)}/></p>
+    <p><input type="file" accept=".csv,.tsv,.xlsx,.xls" onChange={e=>choose(e.target.files?.[0]||null)}/></p>
     {file&&<p>{file.name} · {rows.length} registros válidos · {errors.length} erros de leitura</p>}
     {!!rows.length&&<>
       <p><strong>{rows.reduce((s,r)=>s+r.streams,0).toLocaleString('pt-BR')}</strong> streams · R$ <strong>{rows.reduce((s,r)=>s+r.revenue,0).toFixed(2)}</strong> líquidos</p>

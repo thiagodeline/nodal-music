@@ -7,7 +7,7 @@ import {
   ArrowLeft, BadgeCheck, CalendarDays, Check, CheckCircle2, ChevronRight,
   Clock3, Disc3, Download, Eye, FileAudio2, FileSignature, FileSpreadsheet, Filter, CreditCard, MessageSquare,
   Headphones, LayoutDashboard, LoaderCircle, Music2, Search, ShieldCheck,
-  UsersRound, X, XCircle
+  UsersRound, X, XCircle, Play, MoreHorizontal, Truck, Banknote, ShieldAlert
 } from 'lucide-react'
 import { getContractDownloadUrl, getReleaseAudioUrl, moderateRelease } from '@/app/admin/actions'
 import './admin.css'
@@ -17,6 +17,11 @@ import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 import AdminReleaseTracks from './AdminReleaseTracks'
 import AdminTickets from './AdminTickets'
 import AdminBilling from './AdminBilling'
+import AdminPayouts from './AdminPayouts'
+import AdminDelivery from './AdminDelivery'
+import AdminRoyaltyTerms from './AdminRoyaltyTerms'
+import AdminQA from './AdminQA'
+import ReleaseQuickPreview from './ReleaseQuickPreview'
 
 export type AdminReleaseTrack = {
   id:string;release_id:string;position:number;title:string;isrc:string|null;audio_path:string;
@@ -30,7 +35,7 @@ export type AdminRelease = {
   isrc:string|null;upc:string|null;composers:string|null;producers:string|null;
   lyricists:string|null;credits:string|null;explicit:boolean|null;created_at:string;
   status:string;rejection_reason:string|null;cover_url:string|null;has_audio:boolean;
-  label_name:string|null;p_line:string|null;c_line:string|null;
+  label_name:string|null;p_line:string|null;c_line:string|null;delivery_status:string;
   artists:{name:string;role:string;profile_id?:string}[];
   platforms:string[];tracks:AdminReleaseTrack[]
 }
@@ -42,7 +47,7 @@ export type AdminUser = {
 export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
   adminLabel:string; users:AdminUser[]; releases:AdminRelease[]; contracts:AdminContract[];
-  metrics:{users:number;pending:number;approved:number;total:number};
+  metrics:{users:number;pending:number;approved:number;total:number;payouts:number};
   truncatedUsers:boolean;truncatedReleases:boolean
 }
 
@@ -65,7 +70,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
 
 export default function AdminPanel({adminLabel,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
-  const [tab,setTab]=useState<'releases'|'artists'|'royalties'|'plans'|'support'>('releases')
+  const [tab,setTab]=useState<'releases'|'artists'|'royalties'|'plans'|'support'|'payouts'|'delivery'|'terms'>('releases')
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -76,6 +81,8 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const [audioBusy,setAudioBusy]=useState(false)
   const [audioError,setAudioError]=useState('')
   const [rejecting,setRejecting]=useState(false)
+  const [actionMenu,setActionMenu]=useState<string|null>(null)
+  const [reviewMode,setReviewMode]=useState<'details'|'approve'|'reject'>('details')
   const [reason,setReason]=useState('')
   const contractsByUser=useMemo(()=>new Map(contracts.map(c=>[c.user_id,c])),[contracts])
   const usersById=useMemo(()=>new Map(users.map(u=>[u.id,u])),[users])
@@ -99,9 +106,9 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   },[selectedId])
 
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
-  const open=(r:AdminRelease)=>{setSelectedId(r.id);setRejecting(false);setReason('');setAudio('');setAudioError('');setFeedback(null)}
+  const open=(r:AdminRelease,mode:'details'|'approve'|'reject'='details')=>{setSelectedId(r.id);setReviewMode(mode);setRejecting(mode==='reject');setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
-  const changeTab=(next:'releases'|'artists'|'royalties'|'plans'|'support')=>{setTab(next);setSearch('');setFeedback(null)}
+  const changeTab=(next:'releases'|'artists'|'royalties'|'plans'|'support'|'payouts'|'delivery'|'terms')=>{setTab(next);setSearch('');setFeedback(null)}
   async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
     try {const result=await getReleaseAudioUrl(id,trackId)
@@ -135,10 +142,10 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   }
 
   const tiles=[
-    {label:'Usuários / Artistas',value:metrics.users,Icon:UsersRound,desc:'Contas registradas'},
-    {label:'Pendentes de aprovação',value:metrics.pending,Icon:Clock3,desc:'Precisam de revisão'},
-    {label:'Lançamentos aprovados',value:metrics.approved,Icon:BadgeCheck,desc:'Aguardando próximas etapas'},
-    {label:'Total de lançamentos',value:metrics.total,Icon:Disc3,desc:'Em todos os status'}
+    {label:'Pendentes de aprovação',value:metrics.pending,Icon:Clock3,desc:'Precisam de revisão',filter:'pending',tab:'releases'},
+    {label:'Aprovados',value:metrics.approved,Icon:BadgeCheck,desc:'Lançamentos aprovados',filter:'approved',tab:'releases'},
+    {label:'Total de lançamentos',value:metrics.total,Icon:Disc3,desc:'Em todos os status',filter:'all',tab:'releases'},
+    {label:'Solicitações de saque pendentes',value:metrics.payouts,Icon:Banknote,desc:'Aguardam conferência de repasse',filter:'all',tab:'payouts'}
   ]
   return <div className="sa">
     <aside className="sa-sidebar">
@@ -150,6 +157,9 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <button className={tab==='royalties'?'sa-nav-active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={18}/> Importar royalties</button>
         <button className={tab==='plans'?'sa-nav-active':''} onClick={()=>changeTab('plans')}><CreditCard size={18}/> Planos</button>
         <button className={tab==='support'?'sa-nav-active':''} onClick={()=>changeTab('support')}><MessageSquare size={18}/> Suporte</button>
+        <button className={tab==='payouts'?'sa-nav-active':''} onClick={()=>changeTab('payouts')}><Banknote size={18}/> Saques e repasses</button>
+        <button className={tab==='terms'?'sa-nav-active':''} onClick={()=>changeTab('terms')}><UsersRound size={18}/> Comissões</button>
+        <button className={tab==='delivery'?'sa-nav-active':''} onClick={()=>changeTab('delivery')}><Truck size={18}/> Entregas às lojas</button>
       </nav>
       <div className="sa-sidebar-user"><ShieldCheck size={18}/><div><strong>Administrador</strong><small title={adminLabel}>{adminLabel}</small></div></div>
     </aside>
@@ -160,18 +170,14 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>Painel administrativo</h1><p>Analise lançamentos e acompanhe os artistas da plataforma.</p></div>
           <span className="sa-secure"><ShieldCheck size={15}/> Acesso administrativo</span>
         </div>
-        <div className="sa-metrics">{tiles.map(({label,value,Icon,desc})=><div className="sa-metric" key={label}>
+        <div className="sa-metrics">{tiles.map(({label,value,Icon,desc,filter:status,tab:target})=><button type="button" className={'sa-metric sa-metric-button '+(tab===target&&filter===status?'sa-metric-selected':'')} key={label} onClick={()=>{changeTab(target as typeof tab);setFilter(status)}} aria-label={'Abrir '+label}>
           <div className="sa-metric-top"><span>{label}</span><span className="sa-metric-icon"><Icon size={21}/></span></div>
           <strong>{glyph(value)}</strong><small>{desc}</small>
-        </div>)}</div>
+        </button>)}</div>
         <div className="sa-board">
-          <div className="sa-board-heading"><div className="sa-tabs" role="tablist" aria-label="Módulos de administração">
-            <button role="tab" aria-selected={tab==='releases'} className={tab==='releases'?'active':''} onClick={()=>changeTab('releases')}><Music2 size={17}/> Lançamentos</button>
-            <button role="tab" aria-selected={tab==='artists'} className={tab==='artists'?'active':''} onClick={()=>changeTab('artists')}><UsersRound size={17}/> Artistas & contratos</button>
-            <button role="tab" aria-selected={tab==='royalties'} className={tab==='royalties'?'active':''} onClick={()=>changeTab('royalties')}><FileSpreadsheet size={17}/> Royalties</button>
-            <button role="tab" aria-selected={tab==='plans'} className={tab==='plans'?'active':''} onClick={()=>changeTab('plans')}><CreditCard size={17}/> Planos</button>
-            <button role="tab" aria-selected={tab==='support'} className={tab==='support'?'active':''} onClick={()=>changeTab('support')}><MessageSquare size={17}/> Suporte</button>
-          </div><span className="sa-count">{tab==='royalties' ? 'Importação de planilhas' : tab==='plans' ? 'Assinaturas via Stripe (em breve)' : tab==='support' ? 'Central de tickets' : (tab==='releases' ? glyph(filteredReleases.length) : glyph(filteredUsers.length))+' resultados'}</span></div>
+          <div className="sa-board-heading"><h2 className="sa-board-title">{
+            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',plans:'Planos',support:'Suporte',payouts:'Saques e repasses',terms:'Comissões',delivery:'Distribuição e entregas'} as Record<string,string>)[tab]
+          }</h2><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length)+' resultados':tab==='artists'?glyph(filteredUsers.length)+' resultados':'Gestão administrativa'}</span></div>
           {(tab==='releases'||tab==='artists') && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
             <div className="sa-select-wrap"><Filter size={17}/>
@@ -185,17 +191,27 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           {feedback&&<div className={'sa-feedback '+feedback.type} role="status">{feedback.type==='success'?<CheckCircle2 size={17}/>:<XCircle size={17}/>} {feedback.text}<button aria-label="Fechar aviso" onClick={()=>setFeedback(null)}><X size={15}/></button></div>}
           {tab==='releases' ? <>
             {truncatedReleases&&<p className="sa-warning">Exibindo os 1.000 lançamentos mais recentes. A contagem dos cards inclui todos os lançamentos.</p>}
-            <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Lançamento</th><th>Artista principal</th><th>Data prevista</th><th>Status</th><th></th></tr></thead><tbody>
-              {filteredReleases.map(r=><tr key={r.id}><td><button className="sa-record" onClick={()=>open(r)}><Cover url={r.cover_url} title={r.title}/><span><strong>{r.title}</strong><small>{r.type?.toUpperCase()||'LANÇAMENTO'}</small></span></button></td>
-                <td>{display(r.main_artist || usersById.get(r.artist_id)?.artist_name)}</td><td>{fmtDate(r.release_date)}</td>
+            <div className="sa-table-scroll"><table className="sa-table sa-release-table"><thead><tr><th>Lançamento / códigos</th><th>Prévia</th><th>Tipo / faixas</th><th>Artista</th><th>Solicitação</th><th>Previsão</th><th>Status</th><th>Ações</th></tr></thead><tbody>
+              {filteredReleases.map(r=><tr key={r.id}>
+                <td><button className="sa-record" onClick={()=>open(r)}><Cover url={r.cover_url} title={r.title}/><span><strong>{r.title}</strong><small>UPC: {r.upc||'Pendente'}</small><small>ISRC: {r.tracks[0]?.isrc||r.isrc||'Pendente'}</small></span></button></td>
+                <td><ReleaseQuickPreview releaseId={r.id} trackId={r.tracks[0]?.id} enabled={r.has_audio||r.tracks.length>0}/></td>
+                <td><span className="sa-release-type">{r.type?.toUpperCase()==='ALBUM'?'Álbum':r.type?.toUpperCase()==='EP'?'EP':'Single'}</span><small className="sa-subline">{r.tracks.length||1} faixa(s)</small></td>
+                <td>{display(r.main_artist||usersById.get(r.artist_id)?.artist_name)}</td>
+                <td>{fmtDate(r.created_at)}</td><td>{fmtDate(r.release_date)}</td>
                 <td><span className={statusClass(r.status)}>{statusLabels[r.status]||r.status}</span></td>
-                <td><button className="sa-icon-button" aria-label={'Ver detalhes de '+r.title} onClick={()=>open(r)}><ChevronRight size={19}/></button></td></tr>)}
+                <td><div className="sa-quick-actions">
+                  <button type="button" className="sa-icon-button" onClick={()=>setActionMenu(actionMenu===r.id?null:r.id)} aria-expanded={actionMenu===r.id} aria-label={'Ações de '+r.title}><MoreHorizontal size={19}/></button>
+                  {actionMenu===r.id&&<div className="sa-quick-menu">
+                    <button onClick={()=>{setActionMenu(null);open(r)}}>Ver detalhes completos</button>
+                    {r.status==='pending'&&<><button onClick={()=>{setActionMenu(null);open(r,'approve')}}>Aprovar lançamento</button><button onClick={()=>{setActionMenu(null);open(r,'reject')}}>Solicitar ajuste / rejeitar</button></>}
+                  </div>}</div></td>
+                </tr>)}
             </tbody></table></div>
             {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>Nenhum lançamento encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <AdminBilling/> : <AdminTickets/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='plans' ? <AdminBilling/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='terms' ? <AdminRoyaltyTerms users={users}/> : <AdminDelivery releases={releases}/>}
         </div>
       </main>
     </div>
@@ -215,6 +231,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             <Field label="©" value={selected.c_line}/><Field label="Plataformas" value={selected.platforms.join(', ')}/>
             <Field label="Artistas e funções" value={selected.artists.map(a=>a.name+' ('+a.role+')').join(', ')}/>
           </dl>
+          <AdminQA release={selected}/>
           <h3 className="sa-section-title">Ficha técnica e créditos</h3><dl className="sa-details">
             <Field label="Compositores" value={selected.composers}/><Field label="Produtores" value={selected.producers}/>
             <Field label="Letristas" value={selected.lyricists}/><Field label="Outros créditos" value={selected.credits}/>
@@ -227,6 +244,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             {audioError&&<p className="sa-error" role="alert">{audioError}</p>}
           </div>{selected.has_audio&&!audio&&<button className="sa-download" onClick={()=>play(selected.id)} disabled={audioBusy}>{audioBusy?<LoaderCircle className="sa-spin" size={17}/>:<FileAudio2 size={17}/>} Carregar áudio</button>}</div>
           {selected.rejection_reason&&<div className="sa-rejection-old"><strong>Motivo registrado na última rejeição</strong><p>{selected.rejection_reason}</p></div>}
+          {reviewMode==='approve'&&<div className="sa-review-info">Confirme a revisão dos metadados antes de aprovar. UPC e ISRC ausentes exigem atribuição válida em fluxo próprio; a aprovação não gera códigos automaticamente.</div>}
           {rejecting&&<div className="sa-rejection"><label htmlFor="sa-reason">Motivo da rejeição <span>(obrigatório)</span></label><textarea id="sa-reason" value={reason} onChange={e=>setReason(e.target.value)} maxLength={1500} rows={4} placeholder="Explique ao artista o que precisa ser corrigido antes de reenviar..."/><small>{reason.trim().length}/1500 · mínimo 10 caracteres</small></div>}
           {feedback?.type==='error'&&<p className="sa-error" role="alert">{feedback.text}</p>}
         </div>
@@ -234,7 +252,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           {['pending','approved','rejected'].includes(selected.status)&&<>
             {(selected.status==='pending'||selected.status==='approved')&&(rejecting?
               <button className="sa-danger" disabled={busy===selected.id||reason.trim().length<10} onClick={()=>moderate('rejected')}>{busy===selected.id?<LoaderCircle className="sa-spin" size={16}/>:<XCircle size={16}/>} Confirmar rejeição</button>:
-              <button className="sa-danger-outline" disabled={!!busy} onClick={()=>setRejecting(true)}><XCircle size={16}/> Rejeitar lançamento</button>)}
+              <button className="sa-danger-outline" disabled={!!busy} onClick={()=>{setRejecting(true);setReviewMode('reject')}}><XCircle size={16}/> Rejeitar lançamento</button>)}
             {(selected.status==='pending'||selected.status==='rejected')&&<button className="sa-approve" disabled={!!busy} onClick={()=>moderate('approved')}>{busy===selected.id?<LoaderCircle className="sa-spin" size={16}/>:<Check size={17}/>} Aprovar lançamento</button>}
           </>}
         </footer>

@@ -24,15 +24,6 @@
 .rg-group input:not([type=checkbox]){width:100%;border:1px solid #d7e0ed;border-radius:11px;padding:13px 14px;font:inherit;font-size:.91rem;background:#fff;color:#121c33;outline:0;transition:border-color .15s,box-shadow .15s}
 .rg-group input:focus{border-color:#0646bd;box-shadow:0 0 0 3px rgba(6,70,189,.11)}
 .rg-group input[aria-invalid=true]{border-color:#d94b5b}
-.rg-profiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.rg-profile{background:#fff;border:1px solid #dce4ef;border-radius:13px;text-align:left;min-height:109px;padding:13px 11px;display:flex;flex-direction:column;gap:5px;position:relative;cursor:pointer;font:inherit;color:#1f2a42}
-.rg-profile svg{color:#6c7c96}
-.rg-profile strong{font-size:.82rem}
-.rg-profile small{font-size:.69rem;line-height:1.28;color:#72819a}
-.rg-profile.selected{background:#f0f5ff;border-color:#0646bd;box-shadow:0 0 0 1px #0646bd}
-.rg-profile.selected svg{color:#0646bd}
-.rg-choice{display:none!important;position:absolute;right:9px;top:8px;background:#0646bd;color:white;border-radius:50%;width:16px;height:16px;align-items:center;justify-content:center}
-.rg-profile.selected .rg-choice{display:flex!important}
 .rg-password{position:relative}
 .rg-password input{padding-right:49px!important}
 .rg-password button{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:36px;border:0;background:transparent;color:#65738c;cursor:pointer;border-radius:8px;display:grid;place-items:center}
@@ -63,5 +54,5 @@
 .rg-success>svg{color:#168351}.rg-success h1{margin:0}.rg-success p{line-height:1.6}
 .rg-mobile-brand{display:none}
 @media(max-width:900px){.rg-container{grid-template-columns:1fr;max-width:620px}.rg-aside{display:none}.rg-mobile-brand{display:block;margin-bottom:24px}.rg-mobile-brand img{width:170px;height:auto}.rg-panel{display:block;padding:40px}}
-@media(max-width:520px){.rg-page{padding:0;background:#fff}.rg-container{border:0;border-radius:0;box-shadow:none}.rg-panel{padding:24px 18px 48px}.rg-heading h1{font-size:1.9rem}.rg-profile{min-height:100px;padding:9px 7px}.rg-profile small{font-size:.64rem}.rg-profile strong{font-size:.78rem}.rg-profiles{gap:6px}.rg-hints{font-size:.66rem}}
+@media(max-width:520px){.rg-page{padding:0;background:#fff}.rg-container{border:0;border-radius:0;box-shadow:none}.rg-panel{padding:24px 18px 48px}.rg-heading h1{font-size:1.9rem}.rg-hints{font-size:.66rem}}
 @media(prefers-reduced-motion:reduce){.rg-spin{animation:none}.rg-submit{transition:none}}

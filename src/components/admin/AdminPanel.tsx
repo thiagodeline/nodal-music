@@ -180,7 +180,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Artista / Responsável</th><th>Perfil</th><th>Cadastro</th><th>Contrato</th><th>Ação</th></tr></thead><tbody>
               {filteredUsers.map(u=>{const contract=contractsByUser.get(u.id);return <tr key={u.id}>
                 <td><div className="sa-user-cell"><span className="sa-avatar">{(u.artist_name||u.name||'A').slice(0,1).toUpperCase()}</span><div><strong>{u.artist_name||u.name||'Sem nome informado'}</strong><small>{u.email||'E-mail indisponível'}</small></div></div></td>
-                <td>{profileLabels[u.registration_profile||u.account_type||'']||'Artista'}</td><td>{fmtDate(u.created_at)}</td>
+                <td>{profileLabels[u.account_type||u.registration_profile||'']||'A definir'}</td><td>{fmtDate(u.created_at)}</td>
                 <td><span className={'sa-tag '+(contract?'sa-tag-approved':'sa-tag-pending')}>{contract?'Assinado':'Pendente'}</span>{contract&&<small className="sa-contract-date">{fmtDate(contract.signed_at)}</small>}</td>
                 <td>{contract?<button className="sa-download" disabled={busy===u.id} onClick={()=>downloadContract(u.id)}>{busy===u.id?<LoaderCircle className="sa-spin" size={16}/>:<Download size={16}/>} Baixar contrato PDF</button>:
                   <span className="sa-muted">Aguardando assinatura</span>}</td>

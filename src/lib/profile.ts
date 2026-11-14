@@ -9,7 +9,7 @@ export async function ensureProfile(sb: SupabaseClient, user: Pick<User, 'id' | 
   if (sel.error) return { error: sel.error }
   if (sel.data) return { status: sel.data.status }
   const choice = user.user_metadata?.registration_profile
-  const signupProfile = ['ARTIST', 'PRODUCER', 'LABEL'].includes(choice) ? choice : 'ARTIST'
+  const signupProfile = ['ARTIST', 'PRODUCER', 'LABEL'].includes(choice) ? choice : null
   const signupName = typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name.trim().slice(0, 160) : null
   const ins = await sb.from('profiles').upsert(
     { id: user.id, email: user.email ?? null, name: signupName, registration_profile: signupProfile, status: 'PENDING_ONBOARDING' },

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check, CircleCheck, Eye, EyeOff, Mic2, Building2, LoaderCircle, LockKeyhole } from 'lucide-react'
+import { Check, CircleCheck, Eye, EyeOff, LoaderCircle, LockKeyhole } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ensureProfile } from '@/lib/profile'
 import './register.css'
@@ -14,15 +14,9 @@ const schema = z.object({
   email: z.string().trim().toLowerCase().email('Digite um e-mail válido.').max(160),
   password: z.string().min(8, 'A senha deve ter ao menos 8 caracteres.').max(72).regex(/[A-Za-z]/, 'Inclua pelo menos uma letra.').regex(/[0-9]/, 'Inclua pelo menos um número.'),
   confirmPassword: z.string().min(1, 'Confirme sua senha.'),
-  profile: z.enum(['artista', 'selo']),
   terms: z.boolean().refine(Boolean, 'É necessário aceitar os termos.'),
 }).refine(v => v.password === v.confirmPassword, { path: ['confirmPassword'], message: 'As senhas não coincidem.' })
-type Profile = 'artista' | 'selo'
 type Values = z.infer<typeof schema>
-const profiles = [
-  { value: 'artista', label: 'Artista', desc: 'Quero lançar minhas músicas', Icon: Mic2 },
-  { value: 'selo', label: 'Selo', desc: 'Gerencio artistas e catálogo', Icon: Building2 },
-] as const satisfies ReadonlyArray<{ value: Profile; label: string; desc: string; Icon: typeof Mic2 }>
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
@@ -31,11 +25,10 @@ export default function Register() {
   const [done, setDone] = useState(false)
   const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid, touchedFields } } = useForm<Values>({
     resolver: zodResolver(schema), mode: 'onChange',
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', profile: 'artista', terms: false },
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', terms: false },
   })
   const password = watch('password') || ''
   const confirmPassword = watch('confirmPassword') || ''
-  const profile = watch('profile')
   const termsAccepted = watch('terms') === true
   const toggleTerms = () => setValue('terms', !termsAccepted, { shouldValidate: true, shouldDirty: true, shouldTouch: true })
   const passes = [password.length >= 8, /[A-Za-z]/.test(password), /[0-9]/.test(password)]
@@ -49,7 +42,7 @@ export default function Register() {
         email: values.email.trim().toLowerCase(),
         password: values.password,
         options: { data: {
-          full_name: values.fullName.trim(), registration_profile: values.profile === 'artista' ? 'ARTIST' : 'LABEL',
+          full_name: values.fullName.trim(),
           terms_version: '2026-11',
         } },
       })
@@ -100,13 +93,6 @@ export default function Register() {
         <div className="rg-form-wrap">
           <div className="rg-heading"><span className="rg-eyebrow">COMECE POR AQUI</span><h1>Crie sua conta</h1><p>Preencha seus dados para começar na SINTONE.</p></div>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <div className="rg-group"><div className="rg-caption"><span>Como você vai usar a SINTONE?</span></div>
-              <div className="rg-profiles" role="radiogroup" aria-label="Perfil de cadastro">
-                {profiles.map(({ value, label, desc, Icon }) => <button key={value} type="button" className={'rg-profile' + (profile === value ? ' selected' : '')} role="radio" aria-checked={profile === value} onClick={() => setValue('profile', value, { shouldValidate: true })}>
-                  <Icon size={21} /><strong>{label}</strong><small>{desc}</small><span className="rg-choice"><Check size={12}/></span>
-                </button>)}
-              </div>
-            </div>
             <div className="rg-group">
               {field('rg-name', 'Nome completo', errors.fullName?.message)}
               <input id="rg-name" type="text" autoComplete="name" placeholder="Seu nome e sobrenome" aria-invalid={!!errors.fullName} aria-describedby={errors.fullName ? 'rg-name-error' : undefined} {...register('fullName')}/>

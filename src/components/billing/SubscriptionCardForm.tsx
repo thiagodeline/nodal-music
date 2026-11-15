@@ -7,8 +7,8 @@ type BrickForm={token:string;payment_method_id:string;installments:number;payer:
 type Controller={unmount:()=>void}
 type MP={bricks:()=>{create:(name:string,id:string,settings:unknown)=>Promise<Controller>}}
 declare global{interface Window{MercadoPago?:new (key:string,opts?:{locale:string})=>MP}}
-export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice}:{plan:Plan;onClose:()=>void;addonReleaseId?:string;addonPrice?:number}){
- const [method,setMethod]=useState<'card'|'pix'>('card')
+export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice,selectedStores}:{plan:Plan;onClose:()=>void;addonReleaseId?:string;addonPrice?:number;selectedStores?:string[]}){
+ const [method,setMethod]=useState<'card'|'pix'>(selectedStores?'pix':'card')
  const [sdkReady,setSdkReady]=useState(false)
  const [busy,setBusy]=useState(false)
  const [error,setError]=useState('')
@@ -27,17 +27,17 @@ export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice}:{p
   inFlight.current=true
   setBusy(true);setError('')
   try{
-   const res=await startOneTimeCheckout(plan.id,payment,addonReleaseId)
+   const res=await startOneTimeCheckout(plan.id,payment,addonReleaseId,selectedStores)
    if(!mounted.current)return false
    if(!res.ok){setError(res.message);return false}
    completed.current=true
    setMessage(res.message);setResultId(res.orderId)
    if(res.pix)setPix(res.pix)
-   if(res.status==='paid')window.setTimeout(()=>window.location.reload(),1200)
+   if(res.status==='paid'&&!addonReleaseId)window.setTimeout(()=>window.location.reload(),1200)
    return true
   }catch{if(mounted.current)setError('Erro de comunicação. Confira seu histórico de pagamentos antes de tentar novamente.');return false}
   finally{inFlight.current=false;if(mounted.current)setBusy(false)}
- },[plan.id,addonReleaseId])
+ },[plan.id,addonReleaseId,selectedStores])
  useEffect(()=>{
   mounted.current=true
   return()=>{mounted.current=false;try{controller.current?.unmount()}catch{}}
@@ -68,14 +68,14 @@ export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice}:{p
  async function check(){
   if(!resultId||busy)return
   setBusy(true)
-  try{const res=await checkOneTimeOrder(resultId);setMessage(res.message);if(res.paid)window.location.reload()}
+  try{const res=await checkOneTimeOrder(resultId);setMessage(res.message);if(res.paid&&!addonReleaseId)window.location.reload()}
   finally{setBusy(false)}
  }
  return <div className="st-checkout-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!busy)onClose()}}>
   <section className="st-checkout-dialog" role="dialog" aria-modal="true" aria-labelledby="st-checkout-title">
    <button className="st-checkout-close" type="button" onClick={onClose} disabled={busy} aria-label="Fechar">×</button>
-   <h2 id="st-checkout-title">{addonReleaseId?'Instagram/Facebook — adicional':'Pagar '+plan.name}</h2>
-   <p><strong>{price}</strong> {addonReleaseId?'para adicionar Instagram/Facebook neste lançamento. Pagamento único.':'por 30 dias de acesso. Pagamento único, sem renovação automática.'}</p>
+   <h2 id="st-checkout-title">{selectedStores?'Plataformas extras':addonReleaseId?'Instagram/Facebook — adicional':'Pagar '+plan.name}</h2>
+   <p><strong>{price}</strong> {selectedStores?'para adicionar as lojas extras selecionadas. Pix único por lançamento.':addonReleaseId?'para adicionar Instagram/Facebook neste lançamento. Pagamento único.':'por 30 dias de acesso. Pagamento único, sem renovação automática.'}</p>
    {resultId?<div className="st-checkout-success" role="status">
     <p>{message}</p>
     {pix&&<div>
@@ -86,12 +86,12 @@ export function SubscriptionCardForm({plan,onClose,addonReleaseId,addonPrice}:{p
     </div>}
     <button type="button" onClick={()=>void check()} disabled={busy}>{busy?'Consultando...':'Verificar confirmação'}</button>
    </div>:<>
-    <div className="st-checkout-methods">
+    {!selectedStores&&<div className="st-checkout-methods">
      <button type="button" aria-pressed={method==='card'} onClick={()=>setMethod('card')}>Cartão</button>
      <button type="button" aria-pressed={method==='pix'} onClick={()=>setMethod('pix')}>Pix</button>
-    </div>
+    </div>}
     {error&&<p className="st-plan-error" role="alert">{error}</p>}
-    {method==='card'?<>
+    {method==='card'&&!selectedStores?<>
      <p className="st-checkout-note">Dados protegidos pelo Mercado Pago. A SINTONE recebe apenas um token do pagamento, nunca o número do cartão.</p>
      <Script src="https://sdk.mercadopago.com/js/v2" strategy="afterInteractive" onReady={()=>setSdkReady(true)} onError={()=>setError('Falha ao carregar o Mercado Pago.')}/>
      {!ready&&!error&&<p>Carregando checkout...</p>}

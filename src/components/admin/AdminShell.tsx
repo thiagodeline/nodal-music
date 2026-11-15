@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import {usePathname,useSearchParams} from 'next/navigation'
-import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck,Handshake,ImageIcon} from 'lucide-react'
+import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck,Handshake,ImageIcon,SlidersHorizontal} from 'lucide-react'
 import './admin.css'
 import './admin-extras.css'
 const nav=[
@@ -10,6 +10,7 @@ const nav=[
  {key:'royalties',name:'Importar royalties',Icon:FileSpreadsheet},
  {key:'plans',name:'Planos',Icon:CreditCard},
  {key:'banners',name:'Banners promocionais',Icon:ImageIcon},
+ {key:'dsp',name:'Plataformas e taxas',Icon:SlidersHorizontal},
  {key:'support',name:'Suporte',Icon:MessageSquare},
  {key:'payouts',name:'Saques e repasses',Icon:Banknote},
  {key:'splits',name:'Divisões de royalties',Icon:Handshake},
@@ -17,13 +18,13 @@ const nav=[
 ] as const
 export default function AdminShell({email,children}:{email:string;children:React.ReactNode}){
  const pathname=usePathname(),search=useSearchParams()
- const active=pathname.startsWith('/admin/planos')?'plans':search.get('tab')||'releases'
+ const active=pathname.startsWith('/admin/planos')?'plans':pathname.startsWith('/admin/config-plataformas')?'dsp':search.get('tab')||'releases'
  return <div className="sa">
   <aside className="sa-sidebar">
    <Link href="/" className="sa-brand"><img src="/sintone-logo.svg" alt="SINTONE"/></Link>
    <span className="sa-sidebar-label">ÁREA RESTRITA</span>
    <nav aria-label="Navegação administrativa">
-    {nav.map(({key,name,Icon})=><Link key={key} href={key==='plans'?'/admin/planos':'/admin?tab='+key}
+    {nav.map(({key,name,Icon})=><Link key={key} href={key==='plans'?'/admin/planos':key==='dsp'?'/admin/config-plataformas':'/admin?tab='+key}
       aria-current={active===key?'page':undefined} className={active===key?'sa-nav-active':''}>
       <Icon size={18}/>{name}</Link>)}
    </nav>

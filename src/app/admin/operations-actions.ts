@@ -34,3 +34,17 @@ export async function adminSetDeliveryStatus(id:string,status:'awaiting'|'sent'|
  if(error)return {ok:false as const,error:error.message}
  revalidatePath('/admin');return {ok:true as const}
 }
+
+export async function adminSetDeliveryStatusBulk(ids:string[],status:'awaiting'|'sent'|'live'){
+ const ctx=await getAdminContext();if(!ctx)return denied
+ if(!Array.isArray(ids)||!ids.length||ids.length>100||
+    new Set(ids).size!==ids.length||ids.some(id=>!uuid.test(id))||
+    !['awaiting','sent','live'].includes(status))
+  return {ok:false as const,error:'Seleção inválida (máximo 100 lançamentos).'}
+ const {data,error}=await ctx.supabase.rpc('admin_bulk_delivery_status',{
+  p_release_ids:ids,p_status:status
+ })
+ if(error)return {ok:false as const,error:error.message}
+ revalidatePath('/admin')
+ return {ok:true as const,updated:Number(data)}
+}

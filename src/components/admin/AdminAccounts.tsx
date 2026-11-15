@@ -1,5 +1,6 @@
 'use client'
-import {useState} from 'react'
+import {useEffect,useState} from 'react'
+import {Download,Settings2,X} from 'lucide-react'
 import {useRouter} from 'next/navigation'
 import {adminSaveArtist,adminSetBalance} from '@/app/admin/management-actions'
 import {getContractDownloadUrl} from '@/app/admin/actions'
@@ -42,6 +43,7 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
     document.body.appendChild(a);a.click();a.remove()
   }
   const ready=(id:string)=>contracts.some(c=>c.user_id===id&&c.pdf_status==='ready')
+  useEffect(()=>{if(!selected)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null)};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[selected])
   return <div className="sa-x-wrap">
     <p className="sa-x-note">Saldo = royalties líquidos + ajustes auditados − saques. Alterações exigem justificativa.</p>
     <div className="sa-table-scroll"><table className="sa-table">
@@ -49,12 +51,14 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
       <tbody>{users.map(u=><tr key={u.id}>
         <td><strong>{u.artist_name||u.name||'Sem nome'}</strong><small className="sa-x-small">{u.email}</small></td>
         <td>{u.status}</td><td>R$ {Number(u.saldo_disponivel||0).toFixed(2)}</td>
-        <td>{ready(u.id)?<button className="sa-x-link" onClick={()=>download(u.id)}>Baixar PDF</button>:'Pendente'}</td>
-        <td><button className="sa-x-link" onClick={()=>open(u)}>Gerenciar</button></td>
+        <td>{ready(u.id)?<button className="sa-action-pill" onClick={()=>void download(u.id)}><Download size={14}/> Baixar PDF</button>:'Pendente'}</td>
+        <td><button className="sa-action-pill" onClick={()=>open(u)}><Settings2 size={14}/> Gerenciar</button></td>
       </tr>)}</tbody>
     </table></div>
-    {selected&&draft&&<section className="sa-x-edit">
-      <h3>Dados e saldo da conta</h3>
+    {selected&&draft&&<div className="sa-drawer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
+     <section className="sa-drawer" role="dialog" aria-modal="true" aria-label="Gerenciar artista">
+      <header className="sa-drawer-head"><h3>Gerenciar conta</h3><button type="button" className="sa-action-pill" onClick={()=>setSelected(null)} aria-label="Fechar"><X size={17}/></button></header>
+      <div className="sa-drawer-body"><p className="sa-x-note">Dados cadastrais e saldo auditado</p>
       <div className="sa-x-fields">
         {(['name','artist_name','phone','address','cpf','cnpj'] as const).map(k=>
           <label key={k}>{({name:'Nome',artist_name:'Artista/Selo',phone:'Telefone',address:'Endereço',cpf:'CPF',cnpj:'CNPJ'} as Record<string,string>)[k]}
@@ -75,6 +79,7 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
       <button className="sa-x-button" disabled={busy||reason.trim().length<10} onClick={()=>save('balance')}>Registrar ajuste auditável</button>
       <button className="sa-x-link" onClick={()=>setSelected(null)}>Fechar</button>
       {message&&<p role="status">{message}</p>}
-    </section>}
+     </div>
+    </section></div>}
   </div>
 }

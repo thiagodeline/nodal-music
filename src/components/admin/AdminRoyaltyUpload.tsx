@@ -1,5 +1,6 @@
 'use client'
-import {useState} from 'react'
+import {useRef,useState} from 'react'
+import {UploadCloud,FileSpreadsheet} from 'lucide-react'
 import {useRouter} from 'next/navigation'
 import {adminImportRoyaltyBatch,type ImportRow} from '@/app/admin/management-actions'
 import {normPlatform,parseMoney,parsePeriod,parseStreams} from '@/lib/royalties'
@@ -8,7 +9,7 @@ const raw=(r:Record<string,unknown>,...aliases:string[])=>{const k=Object.keys(r
 const txt=(r:Record<string,unknown>,...aliases:string[])=>String(raw(r,...aliases)??'').trim()
 const uuid=/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i
 const isrcRe=/^[A-Z]{2}[A-Z0-9]{3}\d{7}$/
-async function parse(file:File):Promise<{rows:ImportRow[];errors:string[]}> {
+async function parse(file:File):Promise<{rows:ImportRow[];errors:string[];preview:Record<string,unknown>[]}> {
   if(file.size>5*1024*1024)throw Error('Arquivo acima de 5 MB.')
   if(!/\.(csv|tsv|xlsx|xls)$/i.test(file.name))throw Error('Envie CSV, TSV ou XLSX.')
   const XLSX=await import('xlsx');const buf=await file.arrayBuffer()
@@ -46,7 +47,7 @@ async function parse(file:File):Promise<{rows:ImportRow[];errors:string[]}> {
     if(prev){prev.streams+=streams;prev.revenue+=revenue;prev.lines.push(i+2)}
     else grouped.set(key,{isrc,upc,artist_id,email,platform,month,streams,revenue,lines:[i+2]})
   })
-  return {rows:[...grouped.values()].map(r=>({...r,revenue:Math.round(r.revenue*1e6)/1e6})),errors}
+  return {rows:[...grouped.values()].map(r=>({...r,revenue:Math.round(r.revenue*1e6)/1e6})),errors,preview:lines.slice(0,5)}
 }
 export default function AdminRoyaltyUpload(){
   const router=useRouter()
@@ -56,10 +57,13 @@ export default function AdminRoyaltyUpload(){
   const [report,setReport]=useState('')
   const [busy,setBusy]=useState(false)
   const [progress,setProgress]=useState(0)
+  const [drag,setDrag]=useState(false)
+  const [preview,setPreview]=useState<Record<string,unknown>[]>([])
+  const fileInput=useRef<HTMLInputElement|null>(null)
   const choose=async(f:File|null)=>{
-    setFile(f);setRows([]);setErrors([]);setReport('')
+    setFile(f);setRows([]);setErrors([]);setReport('');setPreview([])
     if(!f)return
-    try{const p=await parse(f);setRows(p.rows);setErrors(p.errors)}
+    try{const p=await parse(f);setRows(p.rows);setErrors(p.errors);setPreview(p.preview)}
     catch(e){setReport(e instanceof Error?e.message:'Falha na leitura.')}
   }
   const send=async()=>{
@@ -88,9 +92,20 @@ export default function AdminRoyaltyUpload(){
   }
   return <section className="sa-x-edit">
     <h2>Importação de royalties — CSV/TSV/XLSX</h2>
-    <p className="sa-x-note">Informe a receita líquida do artista, já descontada a comissão da SINTONE. Taxas personalizadas podem ser cadastradas na aba Comissões, mas não são descontadas novamente por este importador. Identificadores: ISRC, UPC, Artist_ID ou e-mail. UPC ambíguo exige ISRC.</p>
+    <p className="sa-x-note">Informe a receita líquida do artista, já descontada a comissão da SINTONE. A receita informada será importada como líquida e não sofrerá um segundo desconto. Identificadores: ISRC, UPC, Artist_ID ou e-mail. UPC ambíguo exige ISRC.</p>
     <button className="sa-x-link" onClick={template}>Baixar modelo CSV</button>
-    <p><input type="file" accept=".csv,.tsv,.xlsx,.xls" onChange={e=>choose(e.target.files?.[0]||null)}/></p>
+    <div className={'sa-dropzone'+(drag?' drag':'')} role="button" tabIndex={0}
+       onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.current?.click()}}}
+       onClick={()=>fileInput.current?.click()} onDragOver={e=>{e.preventDefault();setDrag(true)}}
+       onDragLeave={e=>{e.preventDefault();setDrag(false)}} onDrop={e=>{e.preventDefault();setDrag(false);void choose(e.dataTransfer.files?.[0]||null)}}>
+      <UploadCloud size={28}/><strong>Arraste seu arquivo aqui ou clique para selecionar</strong>
+      <span>CSV, TSV, XLS ou XLSX · até 5 MB</span>
+      <input ref={fileInput} type="file" accept=".csv,.tsv,.xlsx,.xls" style={{display:'none'}} onChange={e=>void choose(e.target.files?.[0]||null)}/>
+     </div>
+     {!!preview.length&&<div><h3><FileSpreadsheet size={17}/> Pré-visualização — primeiras {preview.length} linhas</h3>
+      <div className="sa-file-preview"><table><thead><tr>{Object.keys(preview[0]).map(k=><th key={k}>{k}</th>)}</tr></thead>
+      <tbody>{preview.map((row,i)=><tr key={i}>{Object.keys(preview[0]).map(k=><td key={k}>{String(row[k]??'')}</td>)}</tr>)}</tbody>
+      </table></div><p className="sa-x-note">Revise os dados antes de confirmar a importação. Nenhuma linha é enviada automaticamente.</p></div>
     {file&&<p>{file.name} · {rows.length} registros válidos · {errors.length} erros de leitura</p>}
     {!!rows.length&&<>
       <p><strong>{rows.reduce((s,r)=>s+r.streams,0).toLocaleString('pt-BR')}</strong> streams · R$ <strong>{rows.reduce((s,r)=>s+r.revenue,0).toFixed(2)}</strong> líquidos</p>

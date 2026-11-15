@@ -105,7 +105,7 @@ export default function AdminRoyaltyUpload(){
      {!!preview.length&&<div><h3><FileSpreadsheet size={17}/> Pré-visualização — primeiras {preview.length} linhas</h3>
       <div className="sa-file-preview"><table><thead><tr>{Object.keys(preview[0]).map(k=><th key={k}>{k}</th>)}</tr></thead>
       <tbody>{preview.map((row,i)=><tr key={i}>{Object.keys(preview[0]).map(k=><td key={k}>{String(row[k]??'')}</td>)}</tr>)}</tbody>
-      </table></div><p className="sa-x-note">Revise os dados antes de confirmar a importação. Nenhuma linha é enviada automaticamente.</p></div>
+      </table></div><p className="sa-x-note">Revise os dados antes de confirmar a importação. Nenhuma linha é enviada automaticamente.</p></div>}
     {file&&<p>{file.name} · {rows.length} registros válidos · {errors.length} erros de leitura</p>}
     {!!rows.length&&<>
       <p><strong>{rows.reduce((s,r)=>s+r.streams,0).toLocaleString('pt-BR')}</strong> streams · R$ <strong>{rows.reduce((s,r)=>s+r.revenue,0).toFixed(2)}</strong> líquidos</p>

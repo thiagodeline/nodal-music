@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import {usePathname,useSearchParams} from 'next/navigation'
-import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck} from 'lucide-react'
+import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck,Handshake,ImageIcon} from 'lucide-react'
 import './admin.css'
 import './admin-extras.css'
 const nav=[
@@ -9,8 +9,10 @@ const nav=[
  {key:'artists',name:'Artistas e contas',Icon:UsersRound},
  {key:'royalties',name:'Importar royalties',Icon:FileSpreadsheet},
  {key:'plans',name:'Planos',Icon:CreditCard},
+ {key:'banners',name:'Banners promocionais',Icon:ImageIcon},
  {key:'support',name:'Suporte',Icon:MessageSquare},
  {key:'payouts',name:'Saques e repasses',Icon:Banknote},
+ {key:'splits',name:'Divisões de royalties',Icon:Handshake},
  {key:'delivery',name:'Entregas às lojas',Icon:Truck}
 ] as const
 export default function AdminShell({email,children}:{email:string;children:React.ReactNode}){

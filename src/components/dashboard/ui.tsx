@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/client'
 import { TrendingUp, TrendingDown } from 'lucide-react'
-export type ReleaseTrack = {position:number;title:string;isrc:string|null;audio_path:string;composers:string|null;producers:string|null;lyricists:string|null;language:string;explicit:boolean}
+export type ReleaseTrack = {id?:string;position:number;title:string;isrc:string|null;audio_path:string;composers:string|null;producers:string|null;lyricists:string|null;language:string;explicit:boolean}
 export type Release = {tracks?:ReleaseTrack[];  id: string; title: string; type: string; main_artist: string | null; genre: string | null; subgenre?: string | null; featured_artists?: string | null; composers?: string | null; producers?: string | null; lyricists?: string | null; rejection_reason?: string | null; credits: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
-export type Report = { id: string; release_id: string | null; platform: string; month: string; streams: number; revenue: number; country: string | null }
+export type Report = { id: string; track_id?:string|null;release_id: string | null; platform: string; month: string; streams: number; revenue: number; country: string | null }
 export type Wd = { id: string; amount: number; pix_key: string; status: string; created_at: string }
 export type Data = { me: any; email: string; releases: Release[]; reports: Report[]; wds: Wd[] }
 
@@ -33,17 +33,17 @@ export function Kpi({ label, value, delta, action }: { label: string; value: str
 }
 export function Empty({ title, text, children }: { title: string; text?: string; children?: React.ReactNode }) {
   return (<div className="empty">
-    <svg width="96" height="96" viewBox="0 0 96 96" fill="none" aria-hidden="true"><circle cx="48" cy="48" r="38" stroke="rgba(11,16,32,.14)" strokeWidth="2" /><circle cx="48" cy="48" r="14" fill="#0045dd" /><circle cx="48" cy="48" r="4" fill="#ffffff" /><path d="M48 34V12l18 6" stroke="#0045dd" strokeWidth="2.5" strokeLinecap="round" /></svg>
+    <svg width="96" height="96" viewBox="0 0 96 96" fill="none" aria-hidden="true"><circle cx="48" cy="48" r="38" stroke="rgba(11,16,32,.14)" strokeWidth="2" /><circle cx="48" cy="48" r="14" fill="#2563eb" /><circle cx="48" cy="48" r="4" fill="#ffffff" /><path d="M48 34V12l18 6" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" /></svg>
     <h3>{title}</h3>{text && <p>{text}</p>}{children}</div>)
 }
 export function Area({ pts }: { pts: [string, number][] }) {
   const w = 600, h = 200, max = Math.max(1, ...pts.map(p => p[1])), step = w / Math.max(1, pts.length - 1)
   const xy = pts.map((p, i) => [i * step, h - 20 - (p[1] / max) * (h - 40)])
   const line = xy.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
-  return (<svg viewBox={`0 0 ${w} ${h}`} className="chart" role="img" aria-label="Streams por dia nos últimos 30 dias">
-    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#0045dd" stopOpacity=".28" /><stop offset="1" stopColor="#0045dd" stopOpacity="0" /></linearGradient></defs>
+  return (<svg viewBox={`0 0 ${w} ${h}`} className="chart" role="img" aria-label="Streams por competência nos últimos seis meses">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2563eb" stopOpacity=".28" /><stop offset="1" stopColor="#2563eb" stopOpacity="0" /></linearGradient></defs>
     {[0, 1, 2].map(i => <line key={i} x1="0" x2={w} y1={20 + i * 80} y2={20 + i * 80} stroke="rgba(11,16,32,.08)" />)}
-    <path d={`${line} L${w} ${h - 20} L0 ${h - 20} Z`} fill="url(#ag)" /><path d={line} fill="none" stroke="#0045dd" strokeWidth="2.5" strokeLinejoin="round" />
+    <path d={`${line} L${w} ${h - 20} L0 ${h - 20} Z`} fill="url(#ag)" /><path d={line} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinejoin="round" />
     {[0, Math.floor(pts.length / 2), pts.length - 1].map(i => <text key={i} x={i === 0 ? 0 : i === pts.length - 1 ? w : xy[i][0]} y={h - 3} fill="#566080" fontSize="11" textAnchor={i === 0 ? 'start' : i === pts.length - 1 ? 'end' : 'middle'}>{pts[i][0]}</text>)}
     <text x="0" y="12" fill="#566080" fontSize="11">{num(max)}</text></svg>)
 }
@@ -51,7 +51,7 @@ export function Bars({ rows }: { rows: [string, number][] }) {
   const tot = rows.reduce((s, r) => s + r[1], 0) || 1, max = Math.max(1, ...rows.map(r => r[1]))
   return (<div className="bars">{rows.map(([n, v]) => <div key={n} className="bar"><div className="bar-h"><span>{n}</span><b>{(v / tot * 100).toFixed(0)}%</b></div><div className="track"><i style={{ width: (v / max * 100) + '%' }} /></div></div>)}</div>)
 }
-export const COL = ['#0045dd', '#5b8def', '#8a6cf0', '#14b8c8', '#e08a00', '#64748b']
+export const COL = ['#2563eb', '#00cbb4', '#8a6cf0', '#14b8c8', '#e08a00', '#64748b']
 export function Donut({ rows }: { rows: [string, number][] }) {
   const tot = rows.reduce((s, r) => s + r[1], 0) || 1, R = 52, C = 2 * Math.PI * R; let off = 0
   return (<div className="donut"><svg viewBox="0 0 140 140" width="150" height="150" role="img" aria-label="Distribuição por país"><g transform="rotate(-90 70 70)">

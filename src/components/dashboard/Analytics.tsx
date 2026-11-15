@@ -9,6 +9,10 @@ export default function Analytics({ d }: { d: Data }) {
   const byDsp = group(rows, r => r.platform), byCountry = group(rows.filter(r => r.country), r => r.country!).slice(0, 6)
   const title = (id: string | null) => d.releases.find(x => x.id === id)?.title ?? 'Outros'
   const byRel = group(rows, r => title(r.release_id)).slice(0, 6)
+  const byTrack=group(rows,r=>{
+    const track=d.releases.flatMap(x=>x.tracks||[]).find(t=>t.id&&t.id===r.track_id)
+    return track?.title||title(r.release_id)
+  }).slice(0,10)
   return (<>
     <div className="toolbar">
       <div className="pills">{[[7, '7 dias'], [28, '28 dias'], [365, '12 meses']].map(([n, l]) => <button key={n} className={days === n ? 'on' : ''} onClick={() => setDays(n as number)}>{l}</button>)}</div>
@@ -17,6 +21,6 @@ export default function Analytics({ d }: { d: Data }) {
       <div className="grid3"><Kpi label="Streams no período" value={num(sum(rows, 'streams'))} /><Kpi label="Receita no período" value={brl(sum(rows, 'revenue'))} /><Kpi label="Plataformas ativas" value={String(byDsp.length)} /></div>
       <div className="grid2"><div className="card"><h3>Streams por plataforma</h3><Bars rows={byDsp} /></div>
         <div className="card"><h3>Ouvintes por país</h3>{byCountry.length ? <Donut rows={byCountry} /> : <p className="mut">Os relatórios deste período não trazem país.</p>}</div></div>
-      <div className="card"><h3>Consumo do catálogo</h3><Bars rows={byRel} /></div></>}
+      <div className="card"><h3>Desempenho por faixa</h3><Bars rows={byTrack} /></div><div className="card"><h3>Consumo por lançamento</h3><Bars rows={byRel} /></div></>}
   </>)
 }

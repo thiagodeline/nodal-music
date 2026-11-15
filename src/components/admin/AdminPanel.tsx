@@ -18,6 +18,8 @@ import AdminReleaseTracks from './AdminReleaseTracks'
 import AdminTickets from './AdminTickets'
 import AdminPayouts from './AdminPayouts'
 import AdminDelivery from './AdminDelivery'
+import AdminRoyaltySplits from './AdminRoyaltySplits'
+import AdminBanners from './AdminBanners'
 import AdminQA from './AdminQA'
 import ReleaseQuickPreview from './ReleaseQuickPreview'
 
@@ -70,7 +72,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const router=useRouter()
   const searchParams=useSearchParams()
   const requested=searchParams.get('tab')||'releases'
-  const tab=(['releases','artists','royalties','support','payouts','delivery'].includes(requested)?requested:'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'
+  const tab=(['releases','artists','royalties','support','payouts','delivery','splits','banners'].includes(requested)?requested:'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'|'splits'|'banners'
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -157,7 +159,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         </button>)}</div>}
         <div className="sa-board">
           <div className="sa-board-heading"><h2 className="sa-board-title">{
-            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',support:'Suporte',payouts:'Saques e repasses',delivery:'Distribuição e entregas'} as Record<string,string>)[tab]
+            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',support:'Suporte',payouts:'Saques e repasses',delivery:'Distribuição e entregas',splits:'Divisões de royalties',banners:'Banners promocionais'} as Record<string,string>)[tab]
           }</h2><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length)+' resultados':tab==='artists'?glyph(filteredUsers.length)+' resultados':'Gestão administrativa'}</span></div>
           {(tab==='releases'||tab==='artists') && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
@@ -192,7 +194,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : <AdminDelivery releases={releases}/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases}/>}
         </div>
       </main>
     {selected&&<div className="sa-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}>

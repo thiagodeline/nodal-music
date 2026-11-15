@@ -84,6 +84,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [progress,setProgress]=useState('')
   const [generalError,setGeneralError]=useState('')
   const [rights,setRights]=useState(false)
+  const [draftId,setDraftId]=useState<string|null>(null)
+  const [draftMessage,setDraftMessage]=useState('')
   const current=tracks[activeTrack]||tracks[0]
   const uploadPaths=useRef<{bucket:'audio'|'covers';path:string}[]>([])
   const success=useRef(false)
@@ -118,6 +120,32 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       finally{if(active)setPlanLoading(false)}
     })()
     return()=>{active=false}
+  },[d.me.id])
+    useEffect(()=>{
+   const id=sessionStorage.getItem('sintone_resume_release_draft')
+   if(!id)return
+   sessionStorage.removeItem('sintone_resume_release_draft')
+   if(!/^[0-9a-f-]{36}$/i.test(id))return
+   let active=true
+   void createClient().from('release_drafts').select('id,data').eq('id',id).eq('user_id',d.me.id).single()
+    .then(({data,error})=>{
+     if(!active)return
+     if(error||!data){setDraftMessage('Rascunho não encontrado.');return}
+     const v=data.data as Record<string,any>
+     setDraftId(id)
+     if(['single','ep','album'].includes(v.format))setFormat(v.format)
+     if(Array.isArray(v.artists))setArtists(v.artists)
+     if(Array.isArray(v.tracks)&&v.tracks.length)setTracks(v.tracks.map((t:any)=>({...trackNew(),...t,key:t.key||crypto.randomUUID(),file:null})))
+     setTitle(v.title||'');setGenre(v.genre||'');setSubgenre(v.subgenre||'')
+     setDate(v.date||afterDays(28));setUpc(v.upc||'');setLabel(v.label||'SINTONE')
+     setPHolder(v.pHolder||'');setCHolder(v.cHolder||'')
+     setPYear(Number(v.pYear)||new Date().getFullYear());setCYear(Number(v.cYear)||new Date().getFullYear())
+     if(v.platformMode==='selected')setPlatformMode('selected')
+     if(Array.isArray(v.platforms))setPlatforms(v.platforms)
+     setEnableInstagram(!!v.enableInstagram);setRights(!!v.rights)
+     setDraftMessage('Metadados restaurados. Selecione novamente os arquivos de áudio e capa.')
+    })
+   return()=>{active=false}
   },[d.me.id])
     useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
   useEffect(()=>{if(!platformModal)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setPlatformModal(false)};document.addEventListener('keydown',onKey);return()=>document.removeEventListener('keydown',onKey)},[platformModal])
@@ -224,6 +252,21 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     if(step===1 && format==='single'&&!title) setTitle(tracks[0]?.title||'')
     setStep(i=>Math.min(2,i+1))
   }
+  async function saveDraft(){
+   if(busy)return
+   setDraftMessage('')
+   const payload={
+    format,artists,tracks:tracks.map(({file,...t})=>t),title,genre,subgenre,date,upc,label,
+    pHolder,cHolder,pYear,cYear,platformMode,platforms,enableInstagram,rights
+   }
+   const record={user_id:d.me.id,title:title.trim()||tracks[0]?.title||'Sem título',
+    data:payload,updated_at:new Date().toISOString()}
+   const sb=createClient()
+   const result=draftId?await sb.from('release_drafts').update(record).eq('id',draftId).eq('user_id',d.me.id).select('id').single():
+    await sb.from('release_drafts').insert(record).select('id').single()
+   if(result.error)setDraftMessage(result.error.message)
+   else{setDraftId(result.data?.id||draftId);setDraftMessage('Rascunho salvo na sua conta.')}
+  }
   async function send(){
     if(!check(0)){setStep(0);return}
     if(!check(1)){setStep(1);return}
@@ -276,6 +319,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       const result=await response.json()
       if(!response.ok||result.id!==id)throw new Error(result.error||'O cadastro não foi confirmado. Confira seu catálogo.')
       success.current=true
+      if(draftId)await client.from('release_drafts').delete().eq('id',draftId).eq('user_id',user.id)
       setProgress('Lançamento recebido! Aguarde a revisão da SINTONE.')
       reload()
       location.hash='#catalog'
@@ -504,9 +548,11 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       onClose={()=>{setAddonCheckout(false);void checkReleaseAddon(releaseId.current).then(setAddonPaid)}}/>}
     {platformModal&&<div className="sr-modal-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)setPlatformModal(false)}}><section className="sr-modal" role="dialog" aria-modal="true" aria-labelledby="sr-modal-title"><header><div><h3 id="sr-modal-title">Selecionar plataformas</h3><p className="mut">{platforms.length} de {allowedDSP.length} plataformas selecionadas</p></div><button type="button" className="sr-icon" aria-label="Fechar seleção" onClick={()=>setPlatformModal(false)}><X size={20}/></button></header><div className="sr-modal-actions"><button type="button" onClick={()=>setPlatforms([...allowedDSP].filter(x=>!isMetaStore(x)||!requiresAddon))}>Selecionar todas</button><button type="button" onClick={()=>setPlatforms([])}>Limpar seleção</button></div><div className="sr-platforms">{allowedDSP.map(v=><label key={v} className="sr-platform"><input type="checkbox" checked={platforms.includes(v)} onChange={e=>setPlatforms(prev=>e.target.checked?[...prev,v]:prev.filter(k=>k!==v))}/>{isMetaStore(v)?v+' · Instagram/Facebook '+(requiresAddon?'+ '+instagramFee.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'incluído'):v}</label>)}</div><footer><button type="button" className="btn" onClick={()=>setPlatformModal(false)}>Concluir seleção ({platforms.length})</button></footer></section></div>}
      {generalError&&<p className="sr-error sr-global" role="alert">{generalError}</p>}
+    {draftMessage&&<p className="sr-progress" role="status">{draftMessage}</p>}
     {progress&&<p className="sr-progress" role="status">{progress}</p>}
     <div className="sr-footer">
       {step>0&&<button type="button" className="btn ghost" onClick={()=>{setStep(i=>i-1);setErrors({})}} disabled={busy}><ChevronLeft size={16}/> Voltar</button>}
+      <button type="button" className="btn ghost sm" disabled={busy} onClick={()=>void saveDraft()}>Salvar rascunho</button>
       <span className="mut">Etapa {step+1} de 3</span>
       {step<2?<button type="button" className="btn" disabled={busy||(step===0&&(profilesLoading||profilesError||!profiles.length))} onClick={next}>Continuar <ChevronRight size={16}/></button>:
         <button type="button" className="btn" disabled={busy} onClick={()=>void send()}>{busy?'Enviando arquivos...':'Enviar para revisão'} <Check size={16}/></button>}

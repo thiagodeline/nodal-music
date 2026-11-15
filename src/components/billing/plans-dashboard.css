@@ -1,0 +1,21 @@
+/* Estilo exclusivo da área de Planos do Dashboard. Não altera cartões do site público. */
+.st-plan-dashboard-area{max-width:1100px;margin:0 auto;width:100%}
+.st-plan-grid.st-plan-grid-dashboard{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:24px;width:100%;max-width:1100px;margin:0 auto;padding:6px 0 14px}
+.st-plan-grid-dashboard>.st-plan.st-plan-sintone{flex:0 1 340px;width:340px;max-width:340px;min-width:0;min-height:450px;border-radius:18px;border:1px solid #dbeafe;background:white;box-shadow:0 8px 28px rgba(37,99,235,.065);overflow:hidden;transition:box-shadow .15s ease,transform .15s ease}
+.st-plan-grid-dashboard>.st-plan.st-plan-sintone:hover{box-shadow:0 12px 35px rgba(37,99,235,.1);transform:translateY(-2px)}
+.st-plan-sintone .st-plan-band{height:67px;background:linear-gradient(112deg,#dbeafe 0%,#e0f7f3 55%,#f8fafc 100%);border:0}
+.st-plan-sintone .st-plan-content{margin-top:-17px;border-radius:16px 16px 0 0;padding:25px 24px 27px;gap:0}
+.st-plan-sintone .st-plan-content h3{font-size:21px;gap:8px;color:#0f172a;margin:0 0 9px;letter-spacing:-.03em}
+.st-plan-sintone .st-plan-badge{display:inline-flex;align-items:center;gap:4px;background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;padding:4px 8px;font-size:10px;font-weight:700}
+.st-plan-sintone .st-plan-desc{min-height:42px;margin-bottom:18px;color:#64748b;line-height:1.55}
+.st-plan-sintone .st-plan-price{font-size:30px;font-weight:800;letter-spacing:-.035em;color:#0f172a;margin:0 0 2px}
+.st-plan-sintone .st-plan-price span{font-size:12px}
+.st-plan-sintone .st-plan-cycle{margin:0 0 19px;font-size:12px;color:#64748b}
+.st-plan-sintone .st-plan-action{margin:0 0 21px;padding:12px 14px;border-radius:11px;background:#2563eb;color:white!important;transition:background .15s ease;font-size:13px;line-height:1.4;min-height:43px}
+.st-plan-sintone button.st-plan-action:hover{background:#1d4ed8}
+.st-plan-sintone .st-plan-current{background:#eff6ff!important;color:#1d4ed8!important;border:1px solid #bfdbfe}
+.st-plan-sintone .st-plan-unavailable{background:#f1f5f9!important;color:#64748b!important}
+.st-plan-sintone ul{border-top:1px solid #edf2f7;padding:20px 0 0;gap:12px;margin-top:auto}
+.st-plan-sintone li{gap:10px;color:#334155;font-size:13px;align-items:flex-start}
+.st-plan-sintone li svg{flex:none;margin-top:2px;color:#2563eb;stroke-width:2.5}
+@media(max-width:420px){.st-plan-grid-dashboard>.st-plan.st-plan-sintone{width:100%;max-width:340px;flex:0 1 100%}}

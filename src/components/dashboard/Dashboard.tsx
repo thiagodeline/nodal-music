@@ -6,6 +6,8 @@ import {Bell,ChevronDown,UploadCloud,CreditCard,UserRound,LogOut,Lock,Menu} from
 import {createClient} from '@/lib/supabase/client'
 import './dashboard.css'
 import './dashboard-horizontal.css'
+import './dashboard-refinements.css'
+import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
 import Overview from './Overview'
 import Catalog from './Catalog'
@@ -76,11 +78,12 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const expired=subscription?.status==='expired'||(subscription?.status==='authorized'&&!!subscription.access_expires_at&&new Date(subscription.access_expires_at)<=new Date())
  const locked=!!d&&(!gate.canRelease||expired||billingLoading)
  const activePlan=plans.find(p=>p.id===subscription?.plan_id)
- const limit=(activePlan as any)?.monthly_releases_limit as number|null|undefined
+ const limit=activePlan?.monthly_releases_limit
  const used=d?.releases.filter(r=>r.created_at.slice(0,7)===new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'}).slice(0,7)).length||0
- const remain=limit==null?'Lançamentos ilimitados':Math.max(0,limit-used)+' lançamento(s) restantes neste mês'
- const planTip='Plano '+(activePlan?.name||'não identificado')+' · '+remain
- const restricted=expired&&!['plans','support','account','financial','catalog','notifications','contracts','privacy','profile'].includes(route)
+ const remain=limit==null?'Lançamentos Ilimitados':Math.max(0,limit-used)+' lançamento(s) restantes neste mês'
+ const planTip='Plano Atual: '+(activePlan?.name||'Não identificado')+(activePlan?.description?' ('+activePlan.description+')':'')
+ const uploadTip='Limite mensal: '+remain
+ const restricted=expired&&!['plans','support','account','financial','catalog','notifications','contracts','privacy','profile','profiles'].includes(route)
  async function logout(){await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
  return <div className="nd nd-horizontal">
@@ -90,12 +93,12 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
     <a className={route==='overview'?'active':''} href="/dashboard#overview">Visão Geral</a>
     {groups.map(group=><div className="nd-hgroup" key={group.name}>
      <button type="button" className={group.items.some(i=>i[0]===route)?'active':''}>{group.name} <ChevronDown size={15}/></button>
-     <div className="nd-hdropdown">{group.items.map(([key,label])=><a key={key} href={'/dashboard#'+key}>{label}</a>)}</div>
+     <div className="nd-hdropdown">{group.items.map(([key,label])=><a key={key} href={key==='profiles'?'/dashboard/artistas':'/dashboard#'+key}>{label}</a>)}</div>
     </div>)}
    </nav>
    <div className="nd-hquick">
-    <a href="/dashboard#plans" className="nd-houtline" title={planTip}><CreditCard size={16}/> <span>Atualizar</span></a>
-    <button className="nd-hupload" title={remain} disabled={locked} onClick={()=>{window.location.href='/novo-lancamento'}}><UploadCloud size={16}/><span>Carregar</span></button>
+    <a href="/dashboard/planos" className="nd-houtline" title={planTip}><CreditCard size={16}/> <span>Atualizar</span></a>
+    <button className="nd-hupload" title={uploadTip} disabled={locked} onClick={()=>{window.location.href='/novo-lancamento'}}><UploadCloud size={16}/><span>Carregar</span></button>
     <Link href="/notificacoes" className="nd-hbell" title="Notificações" aria-label={unread+' notificações não lidas'}><Bell size={19}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</Link>
     <div className="nd-hgroup nd-hprofile">
      <button type="button" aria-label="Menu do perfil" title={d?.email||'Conta'}><UserRound size={20}/><ChevronDown size={13}/></button>
@@ -103,7 +106,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
       <small title={d?.email}>{d?.email}</small>
       <a href="/dashboard#profile">Perfil do artista</a>
       <a href="/dashboard#account">Configurações da conta</a>
-      <a href="/dashboard#plans">Plano e faturamento</a>
+      <a href="/dashboard/planos">Plano e faturamento</a>
       <a href="/dashboard#contracts">Gestão de contratos</a>
       <a href="/privacidade">Política de Privacidade</a>
       {d?.me?.role==='admin'&&<Link href="/admin">Painel Admin</Link>}
@@ -132,7 +135,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
      {route==='contracts'&&<div className="card"><h3>Gestão de contratos</h3><p className="mut">Consulte seu contrato e baixe o documento assinado.</p><a className="btn" href="/onboarding/contract">Abrir contrato</a></div>}
      {route==='privacy'&&<div className="card"><a href="/privacidade">Abrir Política de Privacidade</a></div>}
      {route==='support'&&<Support d={d}/>}
-     {route==='plans'&&<div className="card"><h2>Plano e faturamento</h2><p className="mut">{planTip}</p><PlanCards plans={plans} context="dashboard" checkoutReady={checkoutReady} currentPlanId={expired?null:subscription?.plan_id}/></div>}
+     {route==='plans'&&<section className="nd-plan-page"><div className="nd-plan-page-head"><h1>Planos e faturamento</h1><p>Escolha a modalidade ideal para distribuir seus lançamentos. Pagamento único com acesso de 30 dias, sem renovação automática.</p></div><PlanCards plans={plans} context="dashboard" checkoutReady={checkoutReady} currentPlanId={expired?null:subscription?.plan_id}/></section>}
     </>}
    </>}
   </main>

@@ -36,6 +36,6 @@ export default function DspManager(){
  <td><input className="dm-money" aria-label={'Taxa de '+r.name} type="number" min="0" max="100000" step=".01" disabled={!r.is_extra} value={r.is_extra?r.extra_fee:0} onChange={e=>update(r.slug,{extra_fee:Number(e.target.value)})}/></td>
  <td><button disabled={busy!==''} onClick={()=>void save(r)}><Save size={15}/>{busy===r.slug?'Salvando':'Salvar'}</button></td>
  </tr>)}</tbody></table></div>
- <p className="dm-note">As cobranças são calculadas no servidor. O artista só consegue enviar as plataformas extras depois da confirmação do Pix. Planos que incluem Instagram/Meta permanecem isentos dessa taxa.</p>
+ <p className="dm-note">As cobranças são calculadas no servidor. O artista só consegue enviar as plataformas extras depois da confirmação do Pix. A cobrança depende do plano do artista: planos pagos podem isentar taxas extras; o plano gratuito sempre segue as taxas cadastradas.</p>
  </main>
 }

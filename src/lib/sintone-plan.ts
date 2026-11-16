@@ -2,7 +2,7 @@ import {DSP} from './dsp-catalog'
 export type PlanInput={
  name:string;price:number;description:string;royaltyCommission:number;
  monthlyReleasesLimit:number|null;maxArtists:number;includedStores:string[];
- hasInstagramIncluded:boolean;instagramAddonFee:number;benefits:string[];published:boolean
+ hasInstagramIncluded:boolean;instagramAddonFee:number;chargeExtraPlatformFees:boolean;benefits:string[];published:boolean
 }
 const money=(n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=100000&&Math.round(n*100)===n*100
 export function parsePlanInput(raw:unknown):PlanInput{
@@ -21,16 +21,17 @@ export function parsePlanInput(raw:unknown):PlanInput{
    includedStores.some(x=>typeof x!=='string'||!(DSP as readonly string[]).includes(x))||
    new Set(includedStores).size!==includedStores.length||
    !Array.isArray(benefits)||benefits.length>20||benefits.some(x=>typeof x!=='string'||x.trim().length>160)||
-   typeof o.hasInstagramIncluded!=='boolean'||typeof o.published!=='boolean')
+   typeof o.hasInstagramIncluded!=='boolean'||typeof o.chargeExtraPlatformFees!=='boolean'||(price===0&&!o.chargeExtraPlatformFees)||typeof o.published!=='boolean')
     throw Error('Preencha preço, comissões, limites e lojas com valores válidos.')
  return {name,description,price,royaltyCommission,monthlyReleasesLimit:limit,
   maxArtists,includedStores:includedStores as string[],hasInstagramIncluded:o.hasInstagramIncluded,
-  instagramAddonFee,benefits:benefits as string[],published:o.published}
+  instagramAddonFee,chargeExtraPlatformFees:price===0?true:o.chargeExtraPlatformFees as boolean,benefits:benefits as string[],published:o.published}
 }
 export function planDbFields(p:PlanInput){
  return {name:p.name,description:p.description,price_brl:p.price,
    royalty_commission:p.royaltyCommission,monthly_releases_limit:p.monthlyReleasesLimit,
    max_artists:p.maxArtists,included_stores:p.includedStores,
-   has_instagram_included:p.hasInstagramIncluded,instagram_addon_fee:p.instagramAddonFee,
+   has_instagram_included:p.price===0?false:p.hasInstagramIncluded,instagram_addon_fee:p.instagramAddonFee,
+   charge_extra_platform_fees:p.price===0?true:p.chargeExtraPlatformFees,
    benefits:p.benefits,published:p.published,frequency:1,frequency_type:'months',updated_at:new Date().toISOString()}
 }

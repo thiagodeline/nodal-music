@@ -5,21 +5,21 @@ import './plan-manager.css'
 type Plan={
  id:string;name:string;description:string;price_brl:number;royalty_commission:number;
  monthly_releases_limit:number|null;max_artists:number;included_stores:string[];
- has_instagram_included:boolean;instagram_addon_fee:number;
+ has_instagram_included:boolean;instagram_addon_fee:number;charge_extra_platform_fees:boolean;
  benefits:string[];is_default:boolean;published:boolean;archived:boolean
 }
 type Draft={
  name:string;description:string;price:number;royaltyCommission:number;monthlyReleasesLimit:number|null;
- maxArtists:number;includedStores:string[];hasInstagramIncluded:boolean;instagramAddonFee:number;
+ maxArtists:number;includedStores:string[];hasInstagramIncluded:boolean;instagramAddonFee:number;chargeExtraPlatformFees:boolean;
  benefits:string[];published:boolean
 }
 const initial:Draft={name:'',description:'',price:0,royaltyCommission:0,monthlyReleasesLimit:null,
- maxArtists:1,includedStores:[],hasInstagramIncluded:false,instagramAddonFee:0,benefits:[],published:true}
+ maxArtists:1,includedStores:[],hasInstagramIncluded:false,instagramAddonFee:0,chargeExtraPlatformFees:true,benefits:[],published:true}
 const fromDb=(p:Plan):Draft=>({
  name:p.name,description:p.description,price:Number(p.price_brl),
  royaltyCommission:Number(p.royalty_commission),monthlyReleasesLimit:p.monthly_releases_limit,
  maxArtists:p.max_artists,includedStores:p.included_stores||[],
- hasInstagramIncluded:p.has_instagram_included,instagramAddonFee:Number(p.instagram_addon_fee),
+ hasInstagramIncluded:p.has_instagram_included,instagramAddonFee:Number(p.instagram_addon_fee),chargeExtraPlatformFees:p.charge_extra_platform_fees!==false,
  benefits:p.benefits||[],published:p.published
 })
 export default function PlanManager(){
@@ -46,7 +46,7 @@ export default function PlanManager(){
   e.preventDefault();if(busy)return
   setBusy(true);setMessage('')
   try{
-   const body={...draft,includedStores:storesAll?[]:draft.includedStores,
+   const body={...draft,chargeExtraPlatformFees:draft.price===0?true:draft.chargeExtraPlatformFees,hasInstagramIncluded:draft.price===0?false:draft.hasInstagramIncluded,includedStores:storesAll?[]:draft.includedStores,
     benefits:benefitsText.split('\n').map(s=>s.trim()).filter(Boolean)}
    if(!storesAll&&!body.includedStores.length)throw Error('Selecione pelo menos uma loja ou marque Todas.')
    const response=await fetch(editing?'/api/admin/plans/'+editing:'/api/admin/plans',{
@@ -78,7 +78,7 @@ export default function PlanManager(){
     {loading?<p>Carregando...</p>:plans.filter(p=>!p.archived).map(p=><article className={'pm-plan '+(editing===p.id?'selected':'')} key={p.id}>
       <div><strong>{p.name}</strong><small>{p.published?'Publicado':'Oculto'}{p.is_default?' · Plano padrão':''}</small></div>
       <b>{fmt(p.price_brl)}</b>
-      <p>{p.monthly_releases_limit==null?'Lançamentos ilimitados':p.monthly_releases_limit+' lançamentos/mês'} · {p.max_artists} artistas</p>
+      <p>{p.monthly_releases_limit==null?'Lançamentos ilimitados':p.monthly_releases_limit+' lançamentos/mês'} · {p.max_artists} artistas · {Number(p.price_brl)===0||p.charge_extra_platform_fees?'Taxas extras aplicáveis':'Sem taxas de plataformas extras'}</p>
       <div className="pm-actions"><button onClick={()=>edit(p)}>Editar</button>{!p.is_default&&<button disabled={busy} onClick={()=>void archive(p)}>Arquivar</button>}</div>
      </article>)}
     <button className="pm-create" onClick={()=>edit()}>+ Criar novo plano</button>
@@ -95,8 +95,12 @@ export default function PlanManager(){
      </div>
      <label>Descrição<input maxLength={500} value={draft.description} onChange={e=>set('description',e.target.value)}/></label>
      <label>Benefícios (um por linha)<textarea rows={3} value={benefitsText} onChange={e=>setBenefitsText(e.target.value)}/></label>
+     <div className="pm-addon"><h3>Cobrança de plataformas extras</h3>
+      <label className="pm-switch"><input type="checkbox" checked={draft.price===0||draft.chargeExtraPlatformFees} disabled={draft.price===0} onChange={e=>set('chargeExtraPlatformFees',e.target.checked)}/> Cobrar taxas adicionais de plataformas extras</label>
+      <p>{draft.price===0?'Obrigatório no plano gratuito.':draft.chargeExtraPlatformFees?'Os valores cadastrados nas DSPs extras serão cobrados por lançamento.':'Este plano isenta o artista das taxas de plataformas extras.'}</p>
+     </div>
      <div className="pm-addon"><h3>Instagram / Facebook</h3>
-      <label className="pm-switch"><input type="checkbox" checked={draft.hasInstagramIncluded} onChange={e=>set('hasInstagramIncluded',e.target.checked)}/> Incluído sem taxa adicional</label>
+      <label className="pm-switch"><input type="checkbox" checked={draft.price>0&&draft.hasInstagramIncluded} disabled={draft.price===0} onChange={e=>set('hasInstagramIncluded',e.target.checked)}/> Incluído sem taxa adicional</label>
       {!draft.hasInstagramIncluded&&<label>Adicional por lançamento (R$)<input type="number" min={0} max={100000} step=".01" value={draft.instagramAddonFee} onChange={e=>set('instagramAddonFee',Number(e.target.value))}/></label>}
       <p>Se o adicional custar R$ 0, a seleção fica disponível gratuitamente. Para cobrar, configure um valor maior que zero.</p>
      </div>

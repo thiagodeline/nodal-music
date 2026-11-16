@@ -32,7 +32,7 @@ type Track={
 }
 type Profile={id:string;name:string}
 type DspSetting={name:string;slug:string;is_extra:boolean;extra_fee:number;active:boolean;category:string}
-type CurrentPlan={id:string;name:string;price_brl:number;monthly_releases_limit:number|null;max_artists:number;included_stores:string[];has_instagram_included:boolean;instagram_addon_fee:number}
+type CurrentPlan={id:string;name:string;price_brl:number;monthly_releases_limit:number|null;max_artists:number;included_stores:string[];has_instagram_included:boolean;instagram_addon_fee:number;charge_extra_platform_fees:boolean}
 const trackNew=():Track=>({
   key:crypto.randomUUID(),title:'',isrc:'',file:null,featured_artists:'',
   contributors:[{key:crypto.randomUUID(),name:'',role:'vocal'},{key:crypto.randomUUID(),name:'',role:'producer'}],composers:'',producers:'',lyricists:'',credits:'',explicit:false,language:'pt',genre:'',subgenre:'',isOriginal:true,isInstrumental:false,isRemix:false,tiktokPreviewStart:0
@@ -100,7 +100,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
    (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
   const effectivePlatforms=allowedDSP.filter(x=>platforms.includes(x.name)).map(x=>x.name)
   const chargedDSP=allowedDSP.filter(x=>platforms.includes(x.name)&&x.is_extra&&
-   Number(x.extra_fee)>0&&!(currentPlan?.has_instagram_included&&isMetaStore(x.name)))
+   Number(x.extra_fee)>0&&currentPlan?.charge_extra_platform_fees!==false&&
+    !(Number(currentPlan?.price_brl)>0&&currentPlan?.has_instagram_included&&isMetaStore(x.name)))
   const extras=chargedDSP.map(x=>({name:x.name,fee:Number(x.extra_fee)}))
   const extraTotal=Math.round(extras.reduce((sum,x)=>sum+x.fee,0)*100)/100
   const [cover,setCover]=useState<File|null>(null)
@@ -136,7 +137,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        if(identityError||!id)throw Error('Plano ativo não localizado. Acesse Planos e confira seu acesso.')
        const now=new Date(),monthStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),1))
        const [{data:plan,error:planError},{count,error:countError}]=await Promise.all([
-        sb.from('billing_plans').select('id,name,price_brl,monthly_releases_limit,max_artists,included_stores,has_instagram_included,instagram_addon_fee').eq('id',id).single(),
+        sb.from('billing_plans').select('id,name,price_brl,monthly_releases_limit,max_artists,included_stores,has_instagram_included,instagram_addon_fee,charge_extra_platform_fees').eq('id',id).single(),
         sb.from('releases').select('id',{count:'exact',head:true}).eq('artist_id',d.me.id).gte('created_at',monthStart.toISOString())
        ])
        if(planError||countError||!plan)throw Error('Não foi possível carregar os limites do plano.')

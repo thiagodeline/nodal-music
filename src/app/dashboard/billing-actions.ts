@@ -61,13 +61,15 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod,a
  if(extras&&(!addonReleaseId||!selectedStores?.length||selectedStores.length>62||new Set(selectedStores).size!==selectedStores.length||selectedStores.some(x=>typeof x!=='string'||x.length>90)))
   return {ok:false,message:'Seleção de plataformas inválida.'}
  const {data:plan,error:planError}=await sb.from('billing_plans')
-  .select('id,name,price_brl,instagram_addon_fee,has_instagram_included,included_stores').eq('id',planId)
+  .select('id,name,price_brl,instagram_addon_fee,has_instagram_included,included_stores,charge_extra_platform_fees').eq('id',planId)
   .eq('published',true).eq('archived',false).single()
  if(planError||!plan)return {ok:false,message:'Plano não está disponível para compra.'}
  if(addon||extras){
   const {data:current,error:currentError}=await sb.rpc('current_sintone_plan',{p_user:user.id})
   if(currentError||current!==planId)return {ok:false,message:'O plano do lançamento não está ativo.'}
-  if(addon&&(plan.has_instagram_included||Number(plan.instagram_addon_fee)<=0))
+  if((addon||extras)&&!plan.charge_extra_platform_fees)
+   return {ok:false,message:'Seu plano já inclui as plataformas extras sem taxas adicionais.'}
+  if(addon&&(plan.has_instagram_included&&Number(plan.price_brl)>0||Number(plan.instagram_addon_fee)<=0))
    return {ok:false,message:'Não há taxa adicional de Instagram para este plano.'}
  }
  let extraItems:{slug:string;name:string;fee:number}[]=[]
@@ -79,7 +81,7 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod,a
   if(settingsError||!settings||settings.length!==selectedStores!.length||settings.some(x=>!x.active))
    return {ok:false,message:'Plataformas desabilitadas ou inválidas.'}
   extraItems=settings.filter(x=>x.is_extra&&Number(x.extra_fee)>0&&
-    !(plan.has_instagram_included&&x.name==='Instagram'))
+    !(Number(plan.price_brl)>0&&plan.has_instagram_included&&x.name==='Instagram'))
     .map(x=>({slug:x.slug,name:x.name,fee:Number(x.extra_fee)}))
   extraItems.sort((a,b)=>a.slug.localeCompare(b.slug))
   if(!extraItems.length)return {ok:false,message:'As plataformas selecionadas não possuem taxa extra.'}

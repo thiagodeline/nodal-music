@@ -11,6 +11,7 @@ const nav=[
  {key:'royalties',name:'Importar royalties',Icon:FileSpreadsheet},
  {key:'plans',name:'Planos',Icon:CreditCard},
  {key:'banners',name:'Banners promocionais',Icon:ImageIcon},
+ {key:'landing',name:'Landing Page',Icon:ImageIcon},
  {key:'dsp',name:'Plataformas e taxas',Icon:SlidersHorizontal},
  {key:'support',name:'Suporte',Icon:MessageSquare},
  {key:'payouts',name:'Saques e repasses',Icon:Banknote},
@@ -20,13 +21,13 @@ const nav=[
 ] as const
 export default function AdminShell({email,children,tabs,isGeneral}:{email:string;children:React.ReactNode;tabs:AdminTab[];isGeneral:boolean}){
  const pathname=usePathname(),search=useSearchParams()
- const active=pathname.startsWith('/admin/planos')?'plans':pathname.startsWith('/admin/equipe')?'team':pathname.startsWith('/admin/config-plataformas')?'dsp':search.get('tab')||'releases'
+ const active=pathname.startsWith('/admin/landing-page')?'landing':pathname.startsWith('/admin/planos')?'plans':pathname.startsWith('/admin/equipe')?'team':pathname.startsWith('/admin/config-plataformas')?'dsp':search.get('tab')||'releases'
  return <div className="sa">
   <aside className="sa-sidebar">
    <Link href="/" className="sa-brand"><img src="/sintone-logo.svg" alt="SINTONE"/></Link>
    <span className="sa-sidebar-label">ÁREA RESTRITA</span>
    <nav aria-label="Navegação administrativa">
-    {nav.filter(x=>tabs.includes(x.key)).map(({key,name,Icon})=><Link key={key} href={key==='plans'?'/admin/planos':key==='dsp'?'/admin/config-plataformas':key==='team'?'/admin/equipe':'/admin?tab='+key}
+    {nav.filter(x=>x.key==='landing'?isGeneral:tabs.includes(x.key)).map(({key,name,Icon})=><Link key={key} href={key==='plans'?'/admin/planos':key==='dsp'?'/admin/config-plataformas':key==='team'?'/admin/equipe':key==='landing'?'/admin/landing-page':'/admin?tab='+key}
       aria-current={active===key?'page':undefined} className={active===key?'sa-nav-active':''}>
       <Icon size={18}/>{name}</Link>)}
    </nav>

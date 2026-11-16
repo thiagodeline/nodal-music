@@ -62,26 +62,6 @@ function PlatformLogos() {
   </div>
 }
 
-function HeroPreview() {
-  return <div className="st-preview" aria-label="Prévia ilustrativa do painel da SINTONE">
-    <div className="st-preview-top"><div className="st-preview-dots"><i/><i/><i/></div><span>Painel do artista</span><span className="st-preview-tag">DEMONSTRAÇÃO</span></div>
-    <div className="st-preview-body">
-      <div className="st-preview-heading"><span>Visão geral</span><span className="st-preview-online"><i/> Seu catálogo, em um só lugar</span></div>
-      <div className="st-preview-kpis">
-        <div className="st-preview-kpi"><small>Receita ilustrativa</small><strong>R$ 1.280,40</strong><span>Exemplo visual</span></div>
-        <div className="st-preview-kpi"><small>Streams ilustrativos</small><strong>24.810</strong><span>Exemplo visual</span></div>
-      </div>
-      <div className="st-preview-graph"><div className="st-preview-graph-head"><strong>Evolução de resultados</strong><span>Exemplo</span></div>
-        <div className="st-preview-bars">{[34,49,44,66,52,76,68,88,73,96,83,100].map((height,i)=><div key={i}><i style={{height:height+'%'}} /></div>)}</div>
-        <div className="st-preview-axis"><span>Jan</span><span>Jun</span><span>Dez</span></div>
-      </div>
-      <div className="st-preview-release"><div className="st-preview-cover"><Music2 size={24}/></div><div><strong>Meu próximo lançamento</strong><small>Status ilustrativo</small></div><span className="st-preview-approved"><CheckCircle2 size={13}/> Aprovado</span></div>
-    </div>
-    <span className="st-floating-badge"><ShieldCheck size={17}/> Mais clareza. Mais controle.</span>
-  </div>
-}
-
-
 function FreeLandingPlan({ plan }: { plan: PublicPlan }) {
   const limit = plan.monthly_releases_limit
   const benefits = [
@@ -110,29 +90,40 @@ export default async function Home() {
     .select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists')
     .eq('published', true).eq('archived', false).order('price_brl', { ascending: true })
   const plans = (data || []) as PublicPlan[]
+  const {data:heroConfig}=await sb.from('landing_page_config').select('hero_image_url').eq('id',1).maybeSingle()
+  const configuredUrl=heroConfig?.hero_image_url
+  const allowedOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL||''
+  let heroImageUrl: string|null=null
+  if(configuredUrl && allowedOrigin){
+    try {
+      const source=new URL(configuredUrl)
+      const origin=new URL(allowedOrigin)
+      if(source.origin===origin.origin && source.pathname.startsWith('/storage/v1/object/public/public-assets/hero/'))heroImageUrl=source.toString()
+    } catch {}
+  }
   const checkoutReady = process.env.SINTONE_ENABLE_PAID_CHECKOUT === 'true'
     && process.env.SINTONE_PAYMENT_MODE === 'one_time'
     && !!(process.env.MERCADOPAGO_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.MERCADOPAGO_ACCESS_TOKEN)
 
   return <div className="st-home">
-    <header className="l-head"><div className="wrap l-bar">
-      <Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" alt="SINTONE" width={154} height={44} priority /></Link>
-      <nav className="l-links st-top-links" aria-label="Navegação principal">
-        <a href="#vantagens">Por que SINTONE?</a><a href="#recursos">Recursos</a><a href="#como">Como funciona</a>{plans.length > 0 && <a href="#planos">Planos</a>}<a href="#faq">FAQ</a>
-      </nav>
-      <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/register">Criar conta <ArrowUpRight size={15}/></Link></div>
-    </div></header>
+    <header className="st-simple-header">
+      <div className="st-simple-header-inner">
+        <Link href="/" aria-label="Página inicial da SINTONE"><Image src="/sintone-logo.svg" alt="SINTONE" width={156} height={44} priority /></Link>
+        <nav className="st-simple-auth" aria-label="Acesso à plataforma">
+          <Link href="/login">ENTRAR</Link>
+          <Link href="/register">INSCREVA-SE</Link>
+        </nav>
+      </div>
+    </header>
 
     <main id="conteudo">
-      <section className="wrap st-hero">
-        <div className="st-hero-copy">
-          <span className="st-eyebrow"><Zap size={15} fill="currentColor"/> Distribuição rápida para +64 plataformas</span>
-          <h1>Sua música no ar, com <span>dados claros</span> e gente do seu lado.</h1>
-          <p>Distribua sua música sem complicação. Acompanhe lançamentos, entenda seus royalties e conte com uma equipe que fala a sua língua.</p>
-          <div className="st-hero-actions"><Link className="st-primary-btn" href="/register">Criar conta grátis <ArrowRight size={18}/></Link><a className="st-secondary-btn" href="#como">Veja como funciona</a></div>
-          <div className="st-hero-assurances"><span><CheckCircle2 size={16}/> Painel simples</span><span><CheckCircle2 size={16}/> Suporte humano</span><span><CheckCircle2 size={16}/> Relatórios claros</span></div>
+      <section className="st-hero-banner" aria-labelledby="st-main-title">
+        {heroImageUrl && <div className="st-hero-image" role="img" aria-label="Imagem de fundo da SINTONE" style={{backgroundImage:`url("${heroImageUrl}")`}} />}
+        <div className="st-hero-overlay" aria-hidden="true"/>
+        <div className="st-hero-banner-inner">
+          <h1 id="st-main-title">Envie sua música para mais de 50 plataformas de streaming!</h1>
+          <p>Distribuidora digital 100% brasileira.</p>
         </div>
-        <HeroPreview/>
       </section>
 
       <PlatformLogos/>

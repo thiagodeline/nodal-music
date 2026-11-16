@@ -163,3 +163,21 @@
 .st-home .st-home-paid-plans{width:100%}
 @media(max-width:560px){.st-home .st-free-plan{padding:26px 22px}.st-home .st-free-price{font-size:35px}}
 @media(prefers-reduced-motion:reduce){.st-home .st-free-plan,.st-home .st-free-action,.st-home .st-top-links a{transition:none}}
+
+/* Header e hero institucional editável, isolados na rota pública. */
+.st-home .st-simple-header{width:100%;background:#fff;border-bottom:1px solid #f1f5f9;position:relative;z-index:30}
+.st-home .st-simple-header-inner{max-width:1440px;margin:auto;min-height:78px;display:flex;align-items:center;justify-content:space-between;padding:16px clamp(24px,4vw,48px);gap:18px}
+.st-home .st-simple-header-inner img{object-fit:contain;max-width:160px;height:auto}
+.st-home .st-simple-auth{display:flex;align-items:center;gap:clamp(22px,3vw,38px);flex-shrink:0}
+.st-home .st-simple-auth a{color:#1e293b;text-decoration:none;letter-spacing:.085em;font-weight:700;font-size:13px;transition:color .2s}
+.st-home .st-simple-auth a:hover{color:#2563eb}
+.st-home .st-simple-auth a:last-child{color:#2563eb;font-weight:800}
+.st-home .st-simple-auth a:last-child:hover{color:#1d4ed8}
+.st-home .st-hero-banner{width:100%;min-height:500px;position:relative;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;background:#2563eb;isolation:isolate}
+.st-home .st-hero-image{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat}
+.st-home .st-hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(29,78,216,.94) 0%,rgba(29,78,216,.79) 49%,rgba(15,23,42,.30) 100%)}
+.st-home .st-hero-banner-inner{position:relative;z-index:2;width:100%;max-width:1280px;margin:0 auto;padding:70px clamp(24px,4vw,48px)}
+.st-home .st-hero-banner h1{max-width:780px;color:#fff;font-size:clamp(38px,5vw,66px);line-height:1.08;letter-spacing:-.048em;font-weight:850}
+.st-home .st-hero-banner p{max-width:640px;margin-top:22px;color:rgba(255,255,255,.94);font-size:clamp(19px,2vw,25px);line-height:1.45;font-weight:550}
+@media(min-width:1024px){.st-home .st-hero-banner{min-height:580px}}
+@media(max-width:560px){.st-home .st-simple-header-inner{min-height:70px;padding-inline:18px}.st-home .st-simple-header-inner img{max-width:128px}.st-home .st-simple-auth{gap:17px}.st-home .st-simple-auth a{font-size:11px;letter-spacing:.04em}.st-home .st-hero-banner{min-height:500px}.st-home .st-hero-banner-inner{padding:66px 22px}.st-home .st-hero-banner h1{font-size:clamp(34px,8.5vw,46px)}.st-home .st-hero-overlay{background:linear-gradient(90deg,rgba(29,78,216,.94),rgba(29,78,216,.7))}}

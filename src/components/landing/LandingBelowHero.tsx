@@ -1,64 +1,67 @@
 import Link from 'next/link'
-import {ArrowRight,ArrowUpRight,BarChart3,BadgeCheck,Check,CheckCircle2,ChevronDown,CloudUpload,FileAudio,Headphones,MessageCircle,Music2,ShieldCheck,Wallet,Radio,Activity,Disc3,LockKeyhole,Send} from 'lucide-react'
+import {ArrowRight,ArrowUpRight,BarChart3,BadgeCheck,Check,CheckCircle2,ChevronDown,CloudUpload,FileAudio,Headphones,MessageCircle,ShieldCheck,Wallet,Activity,Disc3,Music2,CalendarClock,Radio,CheckCheck} from 'lucide-react'
 import {PlanCards,type PublicPlan} from '@/components/billing/PlanCards'
 import type {LandingConfig} from '@/lib/landing-config'
+import {STREAMING_PLATFORMS,StreamingLogo} from './StreamingLogos'
+import QCChecklist from './QCChecklist'
 import './below-hero.css'
 
-const platformNames:Record<string,string>={
- spotify:'Spotify',applemusic:'Apple Music',youtubemusic:'YouTube Music',deezer:'Deezer',
- amazonmusic:'Amazon Music',tiktok:'TikTok',tidal:'TIDAL',instagram:'Instagram'
-}
-const benefits=[
- {figure:'100%',headline:'Sua música, seu patrimônio.',description:'O artista mantém a titularidade de suas obras e gravações, conforme seus direitos e contratos.'},
- {figure:'+64',headline:'Seu som vai mais longe.',description:'Alcance anunciado de plataformas e lojas digitais, sujeito à disponibilidade de cada uma.'},
- {figure:'PIX',headline:'Repasses em um só lugar.',description:'Acompanhe o saldo e solicite saques via Pix, conforme os prazos e critérios aplicáveis.'},
- {figure:'HUMANO',headline:'Suporte de verdade.',description:'Atendimento realizado pela equipe SINTONE, com acompanhamento por tickets.'}
+const insights=[
+ {figure:'100%',title:'Seu som, sua identidade',copy:'Mantenha a titularidade de suas obras e gravações, conforme seus contratos e direitos.'},
+ {figure:'64+',title:'Conexões com o mundo',copy:'Plataformas do catálogo de distribuição, sujeitas às condições de entrega de cada loja.'},
+ {figure:'PIX',title:'Receba pelo seu painel',copy:'Consulte o saldo elegível e solicite seu saque via Pix.'},
+ {figure:'REAL',title:'Pessoas de verdade',copy:'Suporte humano para acompanhar suas solicitações.'}
 ]
-const faqsDefault=[{q:'Como funciona a distribuição?',a:'Crie uma conta, envie os arquivos e acompanhe a análise do seu lançamento.'}]
-function Eyebrow({children,invert=false}:{children:React.ReactNode;invert?:boolean}){return <span className={'sb-eyebrow'+(invert?' sb-eyebrow-light':'')}>{children}</span>}
-function Impact(){return <section className="sb-impact" aria-label="A SINTONE em quatro pontos"><div className="sb-container sb-impact-grid">
- {benefits.map(s=><article key={s.figure}><strong>{s.figure}</strong><h2>{s.headline}</h2><p>{s.description}</p></article>)}
+const showcase=[
+ {genre:'TRAP',album:'FREQUÊNCIA',artist:'COLEÇÃO VISUAL 01',style:'trap',number:'01'},
+ {genre:'MPB',album:'ENTRELINHAS',artist:'COLEÇÃO VISUAL 02',style:'mpb',number:'02'},
+ {genre:'BOOM BAP',album:'CONCRETO',artist:'COLEÇÃO VISUAL 03',style:'boombap',number:'03'},
+ {genre:'POP',album:'AMANHÃ',artist:'COLEÇÃO VISUAL 04',style:'pop',number:'04'}
+]
+const fallbackFaq=[{q:'Como funciona?',a:'Crie uma conta, envie seu lançamento e acompanhe a revisão pelo painel.'}]
+function Label({children}:{children:React.ReactNode}){return <span className="sb-eyebrow">{children}</span>}
+function SectionHead({label,title,description}:{label:string;title:React.ReactNode;description?:string}){return <div className="sb-heading"><Label>{label}</Label><h2>{title}</h2>{description&&<p>{description}</p>}</div>}
+function PlatformMarquee({enabled}:{enabled:string[]}){
+ const visible=STREAMING_PLATFORMS.filter(x=>enabled.includes(x.slug))
+ if(!visible.length)return null
+ return <section className="sb-platforms" aria-label="Plataformas de streaming"><div className="sb-container"><div className="sb-platform-heading"><p>SUA MÚSICA NAS MAIORES LOJAS DO MUNDO</p><span>Disponibilidade conforme o catálogo e o plano</span></div></div>
+  <div className="sb-marquee" role="region" aria-label="Logotipos de plataformas"><div className="sb-marquee-track">
+   {[...visible,...visible].map((item,i)=><div className="sb-platform-brand" key={item.slug+'-'+i} aria-hidden={i>=visible.length}><StreamingLogo slug={item.slug} size={34}/><strong>{item.name}</strong></div>)}
+  </div></div>
+ </section>
+}
+function Highlights(){return <section className="sb-highlights"><div className="sb-container sb-highlights-grid">
+ {insights.map((x,i)=><article key={x.figure}><span className="sb-highlight-index">0{i+1}</span><strong>{x.figure}</strong><h3>{x.title}</h3><p>{x.copy}</p></article>)}
  </div></section>}
-function AnalyticsPreview(){const bars=[20,29,25,39,34,52,48,60,57,74,68,88];return <div className="sb-analytics" aria-label="Visualização ilustrativa do painel de analytics">
- <div className="sb-analytics-bar"><span><span className="sb-light-dot"/> SINTONE ANALYTICS</span><span>EXEMPLO VISUAL</span></div>
- <div className="sb-analytics-body"><div className="sb-analytics-top"><div><small>Visão ilustrativa de royalties</small><strong>Receitas, sem mistério.</strong></div><span className="sb-chart-tag"><Activity size={13}/> Histórico</span></div>
- <div className="sb-analytics-chart"><div className="sb-gridlines" aria-hidden="true"/>{bars.map((v,i)=><i aria-hidden="true" key={i} style={{height:v+'%'}}/>)}</div>
- <div className="sb-analytics-bottom"><span>JAN</span><span>JUN</span><span>DEZ</span></div>
- <div className="sb-analytics-payment"><span><Wallet size={17}/> Solicitações de saque via Pix</span><span><CheckCircle2 size={15}/> Pelo painel</span></div></div>
- </div>}
-function Resources({enabled}:{enabled:string[]}){const logos=enabled.filter(s=>['spotify','applemusic','deezer'].includes(s));
- return <section className="sb-resources" id="recursos"><div className="sb-container">
- <div className="sb-heading sb-heading-dark"><Eyebrow invert>TECNOLOGIA PARA ARTISTAS</Eyebrow><h2>Seu catálogo. Seus números.<br/><em>Um único lugar.</em></h2><p>Da primeira faixa ao acompanhamento dos royalties, uma estrutura feita para quem vive de música.</p></div>
+function AnalyticsPreview(){const bars=[24,32,27,44,37,55,51,60,49,71,64,84];return <div className="sb-analytics" aria-label="Prévia ilustrativa de relatórios"><div className="sb-analytics-top"><span><span className="sb-blue-dot"/> Painel SINTONE</span><span className="sb-demo">DEMONSTRAÇÃO</span></div><div className="sb-analytics-main">
+ <div className="sb-analytics-balance"><div><small>Saldo acumulado · exemplo visual</small><strong>R$ 1.284,70</strong></div><span><Activity size={14}/> Visão de receitas</span></div>
+ <div className="sb-chart" aria-hidden="true">{bars.map((x,i)=><i key={i} style={{height:x+'%'}}/>)}</div>
+ <div className="sb-chart-dates"><span>JAN</span><span>JUN</span><span>DEZ</span></div>
+ <div className="sb-analytics-footer"><span><CalendarClock size={15}/> Relatórios por período</span><span><CheckCircle2 size={15}/> Atualizações mensais</span></div>
+ </div></div>}
+function Features(){return <section className="sb-resources" id="recursos"><div className="sb-container">
+ <SectionHead label="FEITO PARA QUEM FAZ MÚSICA" title={<>Tudo o que você precisa.<br/><span>Em um único painel.</span></>} description="Uma experiência simples para distribuir, acompanhar e administrar seu catálogo com mais autonomia."/>
  <div className="sb-bento">
- <article className="sb-bento-card sb-bento-analytics"><div className="sb-bento-copy"><span className="sb-index">01 / INTELIGÊNCIA</span><div className="sb-bento-icon"><BarChart3 size={23}/></div><h3>Analytics &amp;<br/>transparência real.</h3><p>Consulte relatórios de desempenho e receitas organizadas por loja e período. Tudo sem planilhas complicadas.</p></div><AnalyticsPreview/></article>
- <article className="sb-bento-card sb-bento-support"><span className="sb-index">02 / PESSOAS</span><div className="sb-bento-icon"><Headphones size={23}/></div><h3>Suporte humano.<br/>Sem labirintos.</h3><p>Uma conversa direta com quem acompanha seu catálogo — sem depender apenas de respostas automáticas.</p><div className="sb-chat-preview"><div className="sb-chat-person"><span><MessageCircle size={20}/></span><div><strong>Equipe SINTONE</strong><small>Atendimento por ticket</small></div><i/></div><p>Olá! Como podemos ajudar com seu lançamento?</p><span className="sb-chat-foot"><span className="sb-light-dot"/> Atendimento em horário comercial</span></div></article>
- <article className="sb-bento-card sb-bento-qc"><span className="sb-index">03 / QUALIDADE</span><div className="sb-bento-icon"><ShieldCheck size={23}/></div><h3>Revisão técnica<br/>em cada etapa.</h3><p>Uma equipe confere arquivos, metadados e informações essenciais antes da entrega.</p><div className="sb-qc-list"><span><FileAudio size={16}/> Áudio WAV / FLAC</span><span><Disc3 size={16}/> Capa 3000 × 3000 px</span><span><BadgeCheck size={16}/> ISRC / UPC</span></div></article>
- <article className="sb-bento-card sb-bento-publish"><div><span className="sb-index">04 / DISTRIBUIÇÃO</span><div className="sb-bento-icon"><Radio size={22}/></div><h3>Uma rota para seu<br/>próximo lançamento.</h3><p>Envie singles, EPs e álbuns. A quantidade permitida depende do plano e a presença nas lojas depende de cada plataforma.</p></div><div className="sb-publish-display"><span>PLATAFORMAS DO SEU PÚBLICO</span><div>{logos.length?logos.map(x=><strong key={x}>{platformNames[x]}</strong>):<strong>Distribuição digital</strong>}</div><small>Escolha de lojas e entrega conforme seu plano</small></div></article>
- </div></div></section>
-}
-function Comparison(){const old=['Atendimento limitado a canais genéricos','Informações de royalties nem sempre fáceis de encontrar','Processos pouco claros para acompanhar a entrega'];
-const fresh=['Equipe acessível para acompanhar suas solicitações','Relatórios de streaming e receitas organizados','Status de lançamentos visíveis no painel'];
-return <section id="vantagens" className="sb-compare"><div className="sb-container"><div className="sb-heading"><Eyebrow>OUTRA FORMA DE DISTRIBUIR</Eyebrow><h2>A distribuição evoluiu.<br/>Seu controle também pode.</h2><p>Uma comparação ilustrativa entre dificuldades comuns e a proposta da SINTONE.</p></div>
-<div className="sb-compare-grid"><article className="sb-compare-old"><span className="sb-compare-label">O JEITO COMPLICADO</span><h3>Mais dúvidas.<br/>Menos visibilidade.</h3><ul>{old.map(x=><li key={x}><span aria-hidden="true">×</span>{x}</li>)}</ul><small>Exemplos gerais; não se aplicam a todas as distribuidoras.</small></article>
-<article className="sb-compare-new"><span className="sb-compare-ribbon"><Activity size={15}/> UMA EXPERIÊNCIA MAIS DIRETA</span><span className="sb-compare-label">A PROPOSTA SINTONE</span><h3>Mais clareza.<br/>Mais autonomia.</h3><ul>{fresh.map(x=><li key={x}><CheckCircle2 size={21} aria-hidden="true"/>{x}</li>)}</ul><Link href="/register">Comece com sua conta <ArrowUpRight size={18}/></Link></article></div>
-</div></section>}
-function Timeline(){const steps=[
- {step:'01',icon:CloudUpload,title:'Upload & metadados',copy:'Envie áudio WAV/FLAC, capa e as informações do seu single, EP ou álbum.'},
- {step:'02',icon:ShieldCheck,title:'Revisão de qualidade',copy:'A equipe confere os metadados e os arquivos antes da entrega às lojas.'},
- {step:'03',icon:Wallet,title:'Streaming & Pix',copy:'Acompanhe o status, consulte os relatórios e solicite saques quando houver saldo elegível.'}
-];return <section className="sb-journey" id="como"><div className="sb-container"><div className="sb-heading"><Eyebrow>SIMPLIFIQUE O PROCESSO</Eyebrow><h2>Do upload ao streaming.</h2><p>Três etapas para transformar seus arquivos em um lançamento acompanhado do início ao fim.</p></div>
-<ol className="sb-journey-grid">{steps.map(({step,icon:Icon,title,copy})=><li key={step}><span className="sb-journey-no">{step}</span><div className="sb-journey-icon"><Icon size={26}/></div><h3>{title}</h3><p>{copy}</p></li>)}</ol></div></section>}
-function FreePlan({plan,landing}:{plan:PublicPlan;landing:LandingConfig}){const limit=plan.monthly_releases_limit;
- const cap=limit===null?'Distribuição de músicas ilimitada':limit===undefined?'Lançamentos conforme o plano':`Até ${limit} lançamento(s) por mês`;
- const benefits=[cap,...landing.pricing_features.filter(x=>!(/ilimitad/i.test(x)&&limit!==null)&&x!==cap)];
- return <article className="sb-price-card"><div className="sb-price-card-top"><span className="sb-plan-label"><BadgeCheck size={16}/>{landing.pricing_badge}</span><span className="sb-pricing-tag">SEM MENSALIDADE</span></div><h3>{landing.pricing_title}</h3><strong className="sb-price-number">R$ 0,00</strong><p className="sb-price-subtitle">{landing.pricing_subtitle}</p><p className="sb-price-description">Comece a construir seu catálogo com distribuição digital e acompanhamento em um só painel.</p><Link href="/register" className="sb-price-button">Começar meu lançamento agora <ArrowRight size={19}/></Link><div className="sb-price-divider"/><span className="sb-price-include">O QUE ESTÁ INCLUÍDO</span><ul>{benefits.map((x,i)=><li key={i}><Check size={18}/><span>{x}</span></li>)}</ul><p className="sb-price-small">Recursos sujeitos às condições, aos limites e às taxas extras aplicáveis ao plano. Saques dependem de saldo elegível.</p></article>}
-function Pricing({plans,landing,checkoutReady}:{plans:PublicPlan[];landing:LandingConfig;checkoutReady:boolean}){const free=plans.filter(x=>Number(x.price_brl)===0),paid=plans.filter(x=>Number(x.price_brl)>0);
- if(!plans.length)return null;
- return <section className="sb-pricing" id="planos"><div className="sb-container"><div className="sb-heading sb-heading-dark"><Eyebrow invert>O SEU PRÓXIMO PASSO</Eyebrow><h2>Seu talento não precisa<br/>esperar por mensalidades.</h2><p>Comece com o plano gratuito e conheça as condições disponíveis para seu catálogo.</p></div>
- <div className="sb-pricing-cards">{free.map(p=><FreePlan key={p.id} plan={p} landing={landing}/>)}{paid.length>0&&<div className="sb-paid-plans"><PlanCards plans={paid} checkoutReady={checkoutReady}/></div>}</div></div></section>
-}
-function FAQs({items}:{items:LandingConfig['faq_items']}){const entries=items.length?items:faqsDefault;return <section className="sb-faq" id="faq"><div className="sb-container sb-faq-layout"><div className="sb-faq-intro"><Eyebrow>RESPOSTAS DIRETAS</Eyebrow><h2>Dúvidas?<br/>A gente explica.</h2><p>Entenda o funcionamento da distribuição antes de publicar o seu projeto.</p><Link href="/register">Criar conta grátis <ArrowUpRight size={16}/></Link></div><div className="sb-faq-items">{entries.map((x,i)=><details key={i}><summary><span>{String(i+1).padStart(2,'0')}</span><strong>{x.q}</strong><ChevronDown size={20}/></summary><p>{x.a}</p></details>)}</div></div></section>}
-function Closing(){return <section className="sb-closing"><div className="sb-container"><div className="sb-close-panel"><div className="sb-close-waves" aria-hidden="true">{Array.from({length:33},(_,i)=><i key={i} style={{height:(18+(Math.sin(i*.8)+1)*35+(Math.sin(i*1.7)+1)*13)+'%'}}/>)}</div><div className="sb-close-copy"><span>SUA PRÓXIMA MÚSICA COMEÇA AQUI</span><h2>O próximo capítulo<br/>é seu.</h2><p>Da primeira faixa ao próximo lançamento: conte com um lugar feito para sua música avançar.</p><Link href="/register">Criar minha conta grátis <ArrowUpRight size={19}/></Link></div></div></div></section>}
-export default function LandingBelowHero({landing,plans,checkoutReady}:{landing:LandingConfig;plans:PublicPlan[];checkoutReady:boolean}){
- return <><Impact/><Resources enabled={landing.dsp_enabled}/><Comparison/><Timeline/><Pricing plans={plans} landing={landing} checkoutReady={checkoutReady}/><FAQs items={landing.faq_items}/><Closing/></>
-}
+  <article className="sb-bento-card sb-bento-report"><div className="sb-resource-copy"><span className="sb-card-index">01 / SEUS NÚMEROS</span><div className="sb-resource-icon"><BarChart3 size={23}/></div><h3>Transparência total<br/>&amp; relatórios.</h3><p>Streams, valores e histórico reunidos em uma visualização clara, com informações por plataforma e período.</p><span className="sb-inline-note"><span/> Atualizações conforme os relatórios recebidos</span></div><AnalyticsPreview/></article>
+  <article className="sb-bento-card sb-bento-support"><span className="sb-card-index">02 / PESSOAS</span><div className="sb-resource-icon"><Headphones size={23}/></div><h3>Suporte humano.<br/>De verdade.</h3><p>Gente acompanhando seu lançamento, sem depender apenas de respostas automáticas.</p><div className="sb-chat-preview"><div><span className="sb-chat-avatar"><MessageCircle size={19}/></span><div><strong>Equipe SINTONE</strong><small>Atendimento por ticket</small></div><span className="sb-chat-online"/></div><p>Oi! Como podemos ajudar com seu lançamento?</p><small><span className="sb-green-dot"/> Atendimento em horário comercial</small></div></article>
+  <article className="sb-bento-card sb-bento-pix"><span className="sb-card-index">03 / SEUS REPASSES</span><div className="sb-resource-icon"><Wallet size={23}/></div><h3>Saques via Pix.<br/>Direto no painel.</h3><p>Solicite o repasse do saldo elegível e acompanhe o processamento com praticidade.</p><div className="sb-pix-preview"><div className="sb-pix-icon"><Wallet size={28}/></div><div><strong>Pix</strong><span>Solicitação digital</span></div><CheckCircle2 size={22}/></div><small className="sb-small-disclaimer">Disponibilidade e prazos sujeitos à aprovação e às condições de saque.</small></article>
+  <article className="sb-bento-card sb-bento-quality"><div><span className="sb-card-index">04 / QUALIDADE</span><div className="sb-resource-icon"><ShieldCheck size={23}/></div><h3>Validação técnica<br/>que faz diferença.</h3><p>Revisão de áudio, capa e metadados para reduzir erros antes da entrega às plataformas.</p></div><QCChecklist/></article>
+ </div>
+ </div></section>}
+function Covers(){return <section className="sb-covers"><div className="sb-container">
+ <div className="sb-covers-heading"><SectionHead label="O UNIVERSO É A MÚSICA" title={<>Cada lançamento tem<br/>uma história para contar.</>} description="Do trap ao MPB, novas ideias merecem chegar a novos públicos."/><span className="sb-covers-disclaimer">Capas conceituais ilustrativas, não são lançamentos de clientes.</span></div>
+ <div className="sb-cover-grid">{showcase.map(x=><article key={x.number} className={'sb-cover-card sb-cover-'+x.style}>
+  <div className="sb-cover-art" role="img" aria-label={'Capa conceitual de '+x.genre}><div className="sb-cover-visual"><span className="sb-cover-shape"/><span className="sb-cover-shape-two"/></div><div className="sb-cover-words"><span>ESTÚDIO / 20{Number(x.number)+26}</span><strong>{x.album}</strong><small>{x.artist}</small></div></div>
+  <div className="sb-cover-caption"><span>{x.genre}</span><span>VISUAL CONCEITUAL</span></div></article>)}</div>
+ </div></section>}
+function Comparison(){const other=['Atendimento genérico que nem sempre resolve a dúvida','Falta de clareza nos relatórios de receitas','Pouca visibilidade sobre a etapa do lançamento'];const sintone=['Suporte humano para acompanhar suas solicitações','Relatórios organizados de streams e royalties','Status do catálogo visível no painel do artista'];
+ return <section className="sb-compare" id="vantagens"><div className="sb-container"><SectionHead label="POR QUE SINTONE?" title={<>Mais clareza.<br/><span>Menos complicação.</span></>} description="Uma alternativa criada para simplificar sua rotina com a distribuição digital."/>
+ <div className="sb-compare-grid"><article className="sb-compare-old"><span className="sb-compare-kicker">DIFICULDADES COMUNS DO MERCADO</span><h3>O jeito complicado.</h3><ul>{other.map(x=><li key={x}><span>×</span>{x}</li>)}</ul><small>Comparação ilustrativa; não se aplica a todas as distribuidoras.</small></article>
+ <article className="sb-compare-new"><span className="sb-compare-badge"><CheckCheck size={16}/> O JEITO SINTONE</span><h3>Sua carreira,<br/>mais simples.</h3><ul>{sintone.map(x=><li key={x}><CheckCircle2 size={21}/>{x}</li>)}</ul><Link href="/register">Começar agora <ArrowUpRight size={18}/></Link></article></div></div></section>}
+function Steps(){const steps=[{n:'01',icon:CloudUpload,title:'Envie seu projeto',copy:'Faça o upload de suas músicas e capas e complete os metadados.'},{n:'02',icon:ShieldCheck,title:'Acompanhe a revisão',copy:'Nossa equipe confere os arquivos e as informações do lançamento.'},{n:'03',icon:Radio,title:'Chegue às plataformas',copy:'Acompanhe a entrega e consulte os relatórios quando disponíveis.'}];return <section className="sb-journey" id="como"><div className="sb-container"><SectionHead label="DA IDEIA PARA O MUNDO" title="O caminho é simples." description="Você cuida da música. A SINTONE organiza o processo de distribuição."/><ol className="sb-journey-grid">{steps.map(({n,icon:Icon,title,copy})=><li key={n}><span className="sb-journey-number">{n}</span><div className="sb-journey-icon"><Icon size={25}/></div><h3>{title}</h3><p>{copy}</p></li>)}</ol></div></section>}
+function FreePlan({plan,landing}:{plan:PublicPlan;landing:LandingConfig}){const limit=plan.monthly_releases_limit;const cap=limit===null?'Lançamentos ilimitados':limit===undefined?'Envios conforme as condições do plano':`Até ${limit} lançamento(s) por mês`;const features=[cap,...landing.pricing_features.filter(x=>!(/ilimitad/i.test(x)&&limit!==null)&&x!==cap)];
+ return <article className="sb-price-card"><span className="sb-plan-badge"><BadgeCheck size={16}/>{landing.pricing_badge}</span><h3>{landing.pricing_title}</h3><strong className="sb-price-value">R$ 0,00</strong><p className="sb-price-subtitle">{landing.pricing_subtitle}</p><div className="sb-price-divider"/><span className="sb-price-include">TUDO PARA COMEÇAR</span><ul>{features.map((x,i)=><li key={i}><Check size={18}/>{x}</li>)}</ul><Link href="/register" className="sb-price-button">Criar conta grátis <ArrowRight size={18}/></Link><small>Sem mensalidade. Taxas de plataformas extras e demais condições do plano podem ser aplicáveis.</small></article>}
+function Pricing({plans,landing,checkoutReady}:{plans:PublicPlan[];landing:LandingConfig;checkoutReady:boolean}){if(!plans.length)return null;const free=plans.filter(x=>Number(x.price_brl)===0),paid=plans.filter(x=>Number(x.price_brl)>0);return <section className="sb-pricing" id="planos"><div className="sb-container"><SectionHead label="COMECE DO SEU JEITO" title={<>Seu próximo lançamento<br/><span>começa aqui.</span></>} description="Planos flexíveis para cada etapa. Conheça os limites e condições antes de distribuir."/><div className="sb-pricing-cards">{free.map(p=><FreePlan key={p.id} plan={p} landing={landing}/>)}{paid.length>0&&<div className="sb-paid-plans"><PlanCards plans={paid} checkoutReady={checkoutReady}/></div>}</div></div></section>}
+function FAQs({items}:{items:LandingConfig['faq_items']}){const entries=items.length?items:fallbackFaq;return <section className="sb-faq" id="faq"><div className="sb-container sb-faq-layout"><div><Label>DÚVIDAS FREQUENTES</Label><h2>Ficou alguma<br/>dúvida?</h2><p>Respostas simples sobre seu próximo lançamento.</p><Link href="/register">Começar gratuitamente <ArrowUpRight size={16}/></Link></div><div className="sb-faq-items">{entries.map((x,i)=><details key={i}><summary><span>{String(i+1).padStart(2,'0')}</span><strong>{x.q}</strong><ChevronDown size={20}/></summary><p>{x.a}</p></details>)}</div></div></section>}
+function Closing(){return <section className="sb-closing"><div className="sb-container"><div className="sb-close-panel"><div className="sb-sound-waves" aria-hidden="true">{Array.from({length:29},(_,i)=><i key={i} style={{height:(15+(Math.sin(i*.81)+1)*32+(Math.sin(i*1.71)+1)*12)+'%'}}/>)}</div><div className="sb-close-copy"><span>O PRÓXIMO SOM É SEU</span><h2>O mundo precisa<br/>ouvir sua música.</h2><p>Crie sua conta e dê o primeiro passo para levar seu projeto às plataformas digitais.</p><Link href="/register">Começar gratuitamente <ArrowUpRight size={19}/></Link></div></div></div></section>}
+export default function LandingBelowHero({landing,plans,checkoutReady}:{landing:LandingConfig;plans:PublicPlan[];checkoutReady:boolean}){return <><PlatformMarquee enabled={landing.dsp_enabled}/><Highlights/><Features/><Covers/><Comparison/><Steps/><Pricing plans={plans} landing={landing} checkoutReady={checkoutReady}/><FAQs items={landing.faq_items}/><Closing/></>}

@@ -424,17 +424,19 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      <div className="sr-two-panel-heading"><span>01</span><div><h2>Dados dos artistas da música</h2><p>Utilize os perfis artísticos vinculados à sua conta.</p></div></div>
      {profilesLoading&&<p className="sr-two-muted">Carregando seus perfis...</p>}
      {!profilesLoading&&!profiles.length&&<p className="sr-two-error">Cadastre um perfil na área Artistas antes de continuar.</p>}
-     {artists.map((a,i)=><div className="sr-two-row" key={a.key}>
-      <label>Perfil do artista
+     {artists.map((a,i)=><div className="sr-two-row grid grid-cols-1 md:grid-cols-12 gap-3 items-end" key={a.key}>
+      <label className="sr-two-row-main md:col-span-6">Perfil do artista
        <select value={a.profile_id} onChange={e=>selectProfile(a,e.target.value)}>
         <option value="">Selecione o artista</option>
         {profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
        </select>
       </label>
-      <label>Função<select value={a.role} onChange={e=>editArtist(a.key,{role:e.target.value as ArtistRole})}>
+      <label className="sr-two-row-role md:col-span-5">Função<select value={a.role} onChange={e=>editArtist(a.key,{role:e.target.value as ArtistRole})}>
        {(Object.keys(roleTitle) as ArtistRole[]).map(k=><option key={k} value={k}>{roleTitle[k]}</option>)}
       </select></label>
-      {i>0&&<button type="button" className="sr-two-delete" aria-label="Remover artista" onClick={()=>setArtists(arr=>arr.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>}
+      <button type="button" className="sr-two-delete md:col-span-1 shrink-0" disabled={artists.length===1}
+       title={artists.length===1?'Mantenha ao menos um campo de artista':'Remover artista'}
+       aria-label={'Remover artista '+(i+1)} onClick={()=>setArtists(arr=>arr.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>
      </div>)}
      {err('artists')}{err('primary')}
      <button type="button" className="sr-two-add" disabled={artists.length>=20} onClick={addArtist}><Plus size={16}/> Adicionar artista</button>
@@ -479,10 +481,10 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        </div>
        <div className="sr-two-subsection">
         <h3>Colaboradores da faixa</h3>
-        {t.contributors.map(c=><div key={c.key} className="sr-two-row">
-         <label>Perfil<select value={c.profile_id||''} onChange={e=>{const p=profiles.find(x=>x.id===e.target.value);changeContributor(t.key,c.key,{profile_id:p?.id||'',name:p?.name||''})}}>
+        {t.contributors.map(c=><div key={c.key} className="sr-two-row grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+         <label className="sr-two-row-main md:col-span-6">Perfil<select value={c.profile_id||''} onChange={e=>{const p=profiles.find(x=>x.id===e.target.value);changeContributor(t.key,c.key,{profile_id:p?.id||'',name:p?.name||''})}}>
           <option value="">Selecione um perfil</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-         <label>Função<select value={c.role} onChange={e=>changeContributor(t.key,c.key,{role:e.target.value as Contributor['role']})}>
+         <label className="sr-two-row-role md:col-span-5">Função<select value={c.role} onChange={e=>changeContributor(t.key,c.key,{role:e.target.value as Contributor['role']})}>
           {(Object.keys(roles) as Contributor['role'][]).map(key=><option key={key} value={key}>{roles[key]}</option>)}</select></label>
          <button type="button" className="sr-two-delete" onClick={()=>editTrack(t.key,{contributors:t.contributors.filter(x=>x.key!==c.key)})} aria-label="Remover colaborador"><Trash2 size={16}/></button>
         </div>)}
@@ -491,10 +493,10 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        </div>
        <div className="sr-two-subsection">
         <h3>Compositores da faixa</h3>
-        {composerItems(t.key).map(c=><div key={c.key} className="sr-two-row">
-         <label>Perfil do compositor<select value={c.profile_id} onChange={e=>updateComposer(t.key,c.key,{profile_id:e.target.value})}>
+        {composerItems(t.key).map(c=><div key={c.key} className="sr-two-row grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+         <label className="sr-two-row-main md:col-span-6">Perfil do compositor<select value={c.profile_id} onChange={e=>updateComposer(t.key,c.key,{profile_id:e.target.value})}>
           <option value="">Outro / Não cadastrado</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-         <label>Nome completo civil *<input value={c.legalName} maxLength={160} onChange={e=>updateComposer(t.key,c.key,{legalName:e.target.value})} placeholder="Nome e sobrenome"/></label>
+         <label className="sr-two-row-role md:col-span-5">Nome completo civil *<input value={c.legalName} maxLength={160} onChange={e=>updateComposer(t.key,c.key,{legalName:e.target.value})} placeholder="Nome e sobrenome"/></label>
          <button type="button" className="sr-two-delete" onClick={()=>setComposerProfiles(old=>({...old,[t.key]:composerItems(t.key).filter(x=>x.key!==c.key)}))} aria-label="Remover compositor"><Trash2 size={16}/></button>
         </div>)}
         {err('track.'+t.key+'.composers')}
@@ -570,12 +572,19 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     </section>
     <section className="sr-two-panel">
      <div className="sr-two-panel-heading"><span>02</span><div><h2>Capa para as plataformas</h2><p>Selecione uma imagem do seu dispositivo.</p></div></div>
-     <label className="sr-two-cover">
-      {coverUrl?<img src={coverUrl} alt="Prévia da capa"/>:<UploadCloud size={29}/>}
-      <strong>{cover?'Trocar capa':'Subir minha capa'}</strong>
-      <small>{cover?.name||'Selecione um JPG do computador ou celular'}</small>
-      <input type="file" accept=".jpg,.jpeg,image/jpeg" onChange={e=>{void selectCover(e.target.files?.[0]);e.target.value=''}}/>
-     </label>{err('cover')}
+     <div className="sr-two-cover-layout">
+      <label className="sr-two-cover">
+       <UploadCloud size={29}/>
+       <strong>{cover?'Trocar capa':'Subir minha capa'}</strong>
+       <small>{cover?.name||'Selecione um JPG do computador ou celular'}</small>
+       <input type="file" accept=".jpg,.jpeg,image/jpeg"
+        onChange={e=>{void selectCover(e.target.files?.[0]);e.target.value=''}}/>
+      </label>
+      <div className="sr-two-cover-preview" aria-label="Prévia da capa">
+       {coverUrl?<img src={coverUrl} alt="Prévia da capa"/>:<span>Prévia da capa</span>}
+      </div>
+     </div>
+     {err('cover')}
      <div className="sr-two-warning"><Info size={18}/><div><strong>Diretrizes para capa</strong>
       <p>Formato aceito: JPG | Tamanho aceito: 1440×1440px ou 3000×3000px. Sem sites/URLs, sem imagens pixeladas ou de baixa qualidade, sem logotipos de lojas (Spotify, iTunes etc.), sem pornografia ou discurso de ódio e sem reutilizar artes de outros álbuns.</p>
      </div></div>

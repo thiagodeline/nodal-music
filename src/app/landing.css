@@ -133,3 +133,33 @@
 @media(max-width:800px){.st-hero{grid-template-columns:1fr;padding-top:65px!important;padding-bottom:74px!important;min-height:0}.st-preview{max-width:530px;margin:12px auto 0;transform:none;width:100%}.st-comparison-section,.st-features-section,.st-steps-section,.st-faq-section{padding-top:72px!important;padding-bottom:75px!important}.st-comparison{grid-template-columns:1fr}.st-steps{grid-template-columns:1fr;gap:16px}.st-steps li:not(:last-child):after{content:none}.st-footer-inner{flex-wrap:wrap}.st-home .l-links{display:none}}
 @media(max-width:560px){.st-home .wrap{padding-inline:18px}.st-home .l-bar{gap:9px;min-height:67px}.st-home .l-bar img{max-width:125px;height:auto}.st-home .l-act{gap:0}.st-home .l-act .btn{padding:9px 10px;font-size:11px}.st-hero{padding-top:51px!important}.st-hero h1{font-size:clamp(35px,9vw,48px)}.st-eyebrow{font-size:10px}.st-feature-grid{grid-template-columns:1fr;gap:15px}.st-feature-card{padding:24px}.st-dsp-brand{min-width:160px;font-size:13px}.st-dsp-header span{display:none}.st-preview-body{padding:16px;gap:12px}.st-preview-kpi{padding:12px}.st-preview-kpi strong{font-size:19px}.st-preview-online{display:none}.st-floating-badge{display:none}.st-compare-card{padding:25px 20px}.st-compare-head h3{font-size:19px}.st-compare-ideal{right:16px}.st-mini-status{font-size:9px}.st-final-cta{padding:55px 19px;border-radius:22px}.st-footer-inner{flex-direction:column;gap:35px}.st-footer-nav{justify-content:space-between;width:100%;gap:20px}.st-footer-bottom{flex-direction:column;gap:6px}.st-plan-disclaimer{align-items:flex-start}}
 @media(prefers-reduced-motion:reduce){.st-dsp-track{animation:none}.st-feature-card,.st-primary-btn,.st-secondary-btn{transition:none}}
+
+/* Ajustes da Navbar, sem depender de utilitários Tailwind não instalados. */
+.st-home .l-bar{gap:22px}
+.st-home .st-top-links{display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:24px;min-width:0;white-space:nowrap;flex:1}
+.st-home .st-top-links a{display:inline-block;text-decoration:none;transition:color .18s ease}
+.st-home .st-top-links a:hover{color:#2563eb}
+.st-home .l-bar>.l-act{flex-shrink:0}
+@media(min-width:1200px){.st-home .st-top-links{gap:32px}}
+@media(max-width:1080px){.st-home .st-top-links{gap:14px;font-size:12px}}
+@media(max-width:860px){.st-home .st-top-links{display:none!important}}
+
+/* Home-only: plano gratuito com a mesma linguagem visual do dashboard. */
+.st-home .st-home-plans{display:grid;gap:30px;justify-items:center;width:100%}
+.st-home .st-free-plan{background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:32px;width:100%;max-width:448px;box-shadow:0 4px 14px rgba(15,23,42,.05);transition:box-shadow .2s;display:flex;flex-direction:column;align-items:stretch;color:#0f172a}
+.st-home .st-free-plan:hover{box-shadow:0 12px 30px rgba(15,23,42,.09)}
+.st-home .st-free-badge{display:inline-flex;align-self:flex-start;align-items:center;gap:7px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:7px 12px;border-radius:999px;font-weight:750;font-size:12px;margin-bottom:22px}
+.st-home .st-free-plan h3{font-size:25px;font-weight:800;letter-spacing:-.035em;margin:0 0 8px}
+.st-home .st-free-price{font-size:39px;letter-spacing:-.05em;font-weight:850;line-height:1.15}
+.st-home .st-free-cycle{font-size:13px;color:#64748b;margin:6px 0 19px}
+.st-home .st-free-description{color:#475569;font-size:14px;line-height:1.7;margin:0 0 24px}
+.st-home .st-free-action{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:#2563eb;color:#fff;border-radius:12px;padding:14px;font-size:14px;font-weight:750;transition:background .18s}
+.st-home .st-free-action:hover{background:#1d4ed8}
+.st-home .st-free-benefits-title{font-size:13px;font-weight:800;border-top:1px solid #e2e8f0;padding-top:23px;margin-top:25px;margin-bottom:16px}
+.st-home .st-free-plan ul{list-style:none;padding:0;margin:0;display:grid;gap:15px}
+.st-home .st-free-plan li{display:flex;align-items:flex-start;gap:11px;color:#334155;font-size:13px;line-height:1.5}
+.st-home .st-free-plan li svg{color:#2563eb;flex:none;margin-top:1px;stroke-width:2.7}
+.st-home .st-free-terms{color:#94a3b8;font-size:11px;line-height:1.6;margin-top:22px}
+.st-home .st-home-paid-plans{width:100%}
+@media(max-width:560px){.st-home .st-free-plan{padding:26px 22px}.st-home .st-free-price{font-size:35px}}
+@media(prefers-reduced-motion:reduce){.st-home .st-free-plan,.st-home .st-free-action,.st-home .st-top-links a{transition:none}}

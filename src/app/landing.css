@@ -181,3 +181,10 @@
 .st-home .st-hero-banner p{max-width:640px;margin-top:22px;color:rgba(255,255,255,.94);font-size:clamp(19px,2vw,25px);line-height:1.45;font-weight:550}
 @media(min-width:1024px){.st-home .st-hero-banner{min-height:580px}}
 @media(max-width:560px){.st-home .st-simple-header-inner{min-height:70px;padding-inline:18px}.st-home .st-simple-header-inner img{max-width:128px}.st-home .st-simple-auth{gap:17px}.st-home .st-simple-auth a{font-size:11px;letter-spacing:.04em}.st-home .st-hero-banner{min-height:500px}.st-home .st-hero-banner-inner{padding:66px 22px}.st-home .st-hero-banner h1{font-size:clamp(34px,8.5vw,46px)}.st-home .st-hero-overlay{background:linear-gradient(90deg,rgba(29,78,216,.94),rgba(29,78,216,.7))}}
+
+/* CMS Landing: alerta e chamada dinâmica */
+.st-home .st-announcement{background:#eff6ff;border-bottom:1px solid #bfdbfe;color:#1d4ed8;text-align:center;padding:9px 18px;font-size:13px;font-weight:700}
+.st-home .st-announcement a{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.st-home .st-announcement a:hover{text-decoration:underline}
+.st-home .st-hero-cms-cta{display:inline-flex;align-items:center;gap:9px;margin-top:28px;padding:13px 22px;border-radius:10px;background:white;color:#1d4ed8;font-weight:800;text-decoration:none;font-size:14px}
+.st-home .st-hero-cms-cta:hover{background:#eff6ff}

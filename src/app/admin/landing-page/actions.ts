@@ -21,3 +21,42 @@ export async function updateLandingHero(storagePath:string|null){
  revalidatePath('/admin/landing-page')
  return {ok:true as const,url}
 }
+
+type CmsSection='announcement'|'hero'|'pricing'|'faq'|'dsps'
+import {DSP_CHOICES} from '@/lib/landing-config'
+
+const internalLink=(x:unknown)=>typeof x==='string'&&x.startsWith('/')&&!x.startsWith('//')&&x.length<=200&&!/[\\\r\n]/.test(x)
+const stringField=(x:unknown,max:number)=>typeof x==='string'&&x.trim().length>0&&x.length<=max
+export async function saveLandingSection(section:CmsSection,raw:unknown){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Sem permissão de administrador.'}
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))return {ok:false as const,error:'Dados inválidos.'}
+ const v=raw as Record<string,unknown>
+ let payload:Record<string,unknown>={}
+ if(section==='announcement'){
+  if(typeof v.announcement_active!=='boolean'||!stringField(v.announcement_text,240)||!internalLink(v.announcement_link))return {ok:false as const,error:'Verifique o alerta e o link interno.'}
+  payload={announcement_active:v.announcement_active,announcement_text:(v.announcement_text as string).trim(),announcement_link:v.announcement_link}
+ }else if(section==='hero'){
+  if(!stringField(v.hero_title,170)||!stringField(v.hero_subtitle,240)||!stringField(v.hero_cta_text,65)||!internalLink(v.hero_cta_url))return {ok:false as const,error:'Confira os textos e o link do Hero.'}
+  payload={hero_title:(v.hero_title as string).trim(),hero_subtitle:(v.hero_subtitle as string).trim(),hero_cta_text:(v.hero_cta_text as string).trim(),hero_cta_url:v.hero_cta_url}
+ }else if(section==='pricing'){
+  if(!stringField(v.pricing_badge,55)||!stringField(v.pricing_title,55)||v.pricing_price!=='R$ 0,00'||!stringField(v.pricing_subtitle,140)||
+   !Array.isArray(v.pricing_features)||v.pricing_features.length>12||v.pricing_features.some(x=>!stringField(x,180)))
+    return {ok:false as const,error:'O plano gratuito deve manter R$ 0,00; confira os benefícios.'}
+  payload={pricing_badge:(v.pricing_badge as string).trim(),pricing_title:(v.pricing_title as string).trim(),pricing_price:'R$ 0,00',pricing_subtitle:(v.pricing_subtitle as string).trim(),pricing_features:v.pricing_features.map(x=>(x as string).trim())}
+ }else if(section==='faq'){
+  if(!Array.isArray(v.faq_items)||v.faq_items.length>20||v.faq_items.some(x=>!x||typeof x!=='object'||!stringField(x.q,220)||!stringField(x.a,1500)))
+   return {ok:false as const,error:'Cada pergunta precisa de título e resposta; máximo de 20 perguntas.'}
+  payload={faq_items:v.faq_items.map(x=>({q:String(x.q).trim(),a:String(x.a).trim()}))}
+ }else if(section==='dsps'){
+  if(!Array.isArray(v.dsp_enabled)||v.dsp_enabled.length>DSP_CHOICES.length||v.dsp_enabled.some(x=>typeof x!=='string'||!DSP_CHOICES.some(d=>d.slug===x))||new Set(v.dsp_enabled).size!==v.dsp_enabled.length)
+   return {ok:false as const,error:'Seleção de plataformas inválida.'}
+  payload={dsp_enabled:v.dsp_enabled}
+ }else return {ok:false as const,error:'Seção inválida.'}
+ const {error}=await ctx.supabase.from('landing_page_config')
+  .update({...payload,updated_at:new Date().toISOString(),updated_by:ctx.user.id}).eq('id',1)
+ if(error)return {ok:false as const,error:'Falha ao salvar: '+error.message}
+ revalidatePath('/')
+ revalidatePath('/admin/landing-page')
+ return {ok:true as const}
+}

@@ -5,6 +5,7 @@ import './landing.css'
 import '@/components/legal.css'
 import { createClient } from '@/lib/supabase/server'
 import { PlanCards, type PublicPlan } from '@/components/billing/PlanCards'
+import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
 import '@/components/billing/plans.css'
 
 export const dynamic = 'force-dynamic'
@@ -47,13 +48,15 @@ const faq = [
   ['Quais arquivos devo enviar?', 'Áudio em WAV ou FLAC e capa em JPG ou PNG de 3000 × 3000 pixels.'],
 ]
 
-function PlatformLogos() {
-  const items = [...platforms, ...platforms]
+function PlatformLogos({ enabled }: { enabled:string[] }) {
+  const visible=platforms.filter(p=>enabled.includes(p.slug))
+  if(!visible.length)return null
+  const items = [...visible, ...visible]
   return <div className="st-dsp-section">
     <div className="wrap st-dsp-header"><p>Seu som nas plataformas que seu público usa</p><span>Disponibilidade conforme cada loja</span></div>
     <div className="st-dsp-window" role="region" aria-label="Plataformas de música">
       <div className="st-dsp-track">
-        {items.map((platform, i) => <div className="st-dsp-brand" key={platform.slug + i} aria-hidden={i >= platforms.length}>
+        {items.map((platform, i) => <div className="st-dsp-brand" key={platform.slug + i} aria-hidden={i >= visible.length}>
           <PlatformIcon slug={platform.slug} color={platform.color} />
           <span>{platform.name}</span>
         </div>)}
@@ -62,22 +65,18 @@ function PlatformLogos() {
   </div>
 }
 
-function FreeLandingPlan({ plan }: { plan: PublicPlan }) {
+function FreeLandingPlan({ plan, landing }: { plan: PublicPlan; landing:LandingConfig }) {
   const limit = plan.monthly_releases_limit
-  const benefits = [
-    limit === null ? 'Distribuição de músicas ilimitada' : limit === undefined ? 'Envio de lançamentos conforme as condições do plano' : `Até ${limit} lançamento(s) por mês`,
-    'Painel do artista com estatísticas',
-    'Acompanhamento de lançamentos',
-    'Relatórios detalhados de royalties',
-    'Solicitação de saques via Pix',
-  ]
+  const cap=limit===null?'Distribuição de músicas ilimitada':limit===undefined?'Envio de lançamentos conforme as condições do plano':`Até ${limit} lançamento(s) por mês`
+  const safeBenefits=landing.pricing_features.filter(x=>!(/ilimitad/i.test(x)&&limit!==null))
+  const benefits=[cap,...safeBenefits.filter(x=>x!==cap)]
   return <article className="st-free-plan">
-    <span className="st-free-badge"><CheckCircle2 size={15}/> Plano Gratuito</span>
-    <h3>Grátis</h3>
-    <div className="st-free-price">R$ 0,00</div>
-    <p className="st-free-cycle">Sem mensalidade ou taxa de adesão</p>
+    <span className="st-free-badge"><CheckCircle2 size={15}/> {landing.pricing_badge}</span>
+    <h3>{landing.pricing_title}</h3>
+    <div className="st-free-price">{landing.pricing_price === 'R$ 0,00' ? landing.pricing_price : 'R$ 0,00'}</div>
+    <p className="st-free-cycle">{landing.pricing_subtitle}</p>
     <p className="st-free-description">Distribua suas músicas nas principais plataformas de streaming sem pagar mensalidade.</p>
-    <Link className="st-free-action" href="/register">Criar conta grátis <ArrowRight size={17}/></Link>
+    <Link className="st-free-action" href="/register">{landing.hero_cta_text} <ArrowRight size={17}/></Link>
     <div className="st-free-benefits-title">O que está incluído</div>
     <ul>{benefits.map(benefit=><li key={benefit}><Check size={18} aria-hidden="true"/>{benefit}</li>)}</ul>
     <p className="st-free-terms">Sujeito aos limites e condições do plano. Saques dependem de saldo elegível e processamento.</p>
@@ -90,7 +89,8 @@ export default async function Home() {
     .select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists')
     .eq('published', true).eq('archived', false).order('price_brl', { ascending: true })
   const plans = (data || []) as PublicPlan[]
-  const {data:heroConfig}=await sb.from('landing_page_config').select('hero_image_url').eq('id',1).maybeSingle()
+  const {data:heroConfig}=await sb.from('landing_page_config').select('*').eq('id',1).maybeSingle()
+  const landing=normalizeLanding(heroConfig as Partial<LandingConfig>|null)
   const configuredUrl=heroConfig?.hero_image_url
   const allowedOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL||''
   let heroImageUrl: string|null=null
@@ -117,16 +117,17 @@ export default async function Home() {
     </header>
 
     <main id="conteudo">
+      {landing.announcement_active&&<div className="st-announcement"><Link href={landing.announcement_link}>{landing.announcement_text} <ArrowRight size={15}/></Link></div>}
       <section className="st-hero-banner" aria-labelledby="st-main-title">
         {heroImageUrl && <div className="st-hero-image" role="img" aria-label="Imagem de fundo da SINTONE" style={{backgroundImage:`url("${heroImageUrl}")`}} />}
         <div className="st-hero-overlay" aria-hidden="true"/>
         <div className="st-hero-banner-inner">
-          <h1 id="st-main-title">Envie sua música para mais de 50 plataformas de streaming!</h1>
-          <p>Distribuidora digital 100% brasileira.</p>
+          <h1 id="st-main-title">{landing.hero_title}</h1>
+          <p>{landing.hero_subtitle}</p><Link className="st-hero-cms-cta" href={landing.hero_cta_url}>{landing.hero_cta_text} <ArrowRight size={18}/></Link>
         </div>
       </section>
 
-      <PlatformLogos/>
+      <PlatformLogos enabled={landing.dsp_enabled}/>
 
       <section className="wrap st-comparison-section" id="vantagens">
         <div className="st-section-intro"><span className="st-kicker">UMA EXPERIÊNCIA DIFERENTE</span><h2>Distribuir música não precisa ser complicado.</h2><p>Menos burocracia e mais clareza em cada etapa da sua jornada.</p></div>
@@ -158,12 +159,12 @@ export default async function Home() {
 
       {plans.length > 0 && <section className="st-plans-section" id="planos"><div className="wrap st-plan-area">
         <div className="st-section-intro"><span className="st-kicker">ESCOLHA SEU PLANO</span><h2>Seu próximo lançamento começa aqui.</h2><p>Planos e benefícios exibidos conforme as condições cadastradas na plataforma.</p></div>
-        <div className="st-home-plans">{plans.filter(plan => Number(plan.price_brl) === 0).map(plan=><FreeLandingPlan key={plan.id} plan={plan}/>)}{plans.some(plan => Number(plan.price_brl) > 0) && <div className="st-home-paid-plans"><PlanCards plans={plans.filter(plan => Number(plan.price_brl) > 0)} checkoutReady={checkoutReady}/></div>}</div>
+        <div className="st-home-plans">{plans.filter(plan => Number(plan.price_brl) === 0).map(plan=><FreeLandingPlan key={plan.id} plan={plan} landing={landing}/>)}{plans.some(plan => Number(plan.price_brl) > 0) && <div className="st-home-paid-plans"><PlanCards plans={plans.filter(plan => Number(plan.price_brl) > 0)} checkoutReady={checkoutReady}/></div>}</div>
         <p className="st-plan-disclaimer"><ShieldCheck size={15}/> Limites, valores e condições são os indicados em cada plano. Consulte os termos antes de contratar.</p>
       </div></section>}
 
       <section className="wrap st-faq-section" id="faq"><div className="st-section-intro"><span className="st-kicker">DÚVIDAS FREQUENTES</span><h2>Alguma dúvida antes de começar?</h2></div>
-        <div className="l-faq">{faq.map(([question, answer])=><details key={question}><summary>{question}<CircleHelp size={18}/></summary><p>{answer}</p></details>)}</div>
+        <div className="l-faq">{landing.faq_items.map(({q:question,a:answer},i)=><details key={i}><summary>{question}<CircleHelp size={18}/></summary><p>{answer}</p></details>)}</div>
       </section>
 
       <section className="wrap st-final-section"><div className="st-final-cta"><div className="st-cta-deco" aria-hidden="true"><Music2 size={140}/></div><span>O PRÓXIMO PASSO É SEU</span><h2>Pronto para colocar sua música no mundo?</h2><p>Crie sua conta e comece a construir seu catálogo com a SINTONE.</p><Link href="/register" className="st-final-button">Criar conta grátis <ArrowRight size={18}/></Link></div></section>

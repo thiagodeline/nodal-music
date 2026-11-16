@@ -1,0 +1,17 @@
+.sr-five .sr-four-shell{grid-template-columns:minmax(215px,245px) minmax(0,1fr)}
+.sr-five .sr-audio-drop{display:grid;place-items:center;gap:10px;border:2px dashed #93c5fd;border-radius:14px;padding:28px;background:#eff6ff;text-align:center;cursor:pointer;color:#1d4ed8}
+.sr-five .sr-audio-drop.dragging{border-color:#00cbb4;background:#ecfdf5}
+.sr-five .sr-audio-drop input{display:none}
+.sr-five .sr-track-list{display:grid;gap:12px;margin-top:18px}
+.sr-five .sr-track-item{border:1px solid #dbe3ef;border-radius:12px;background:#fff;padding:15px}
+.sr-five .sr-track-item-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sr-five .sr-track-item-actions{display:flex;gap:8px;align-items:center}
+.sr-five .sr-mini-audio{display:flex;align-items:center;gap:12px;border-radius:10px;background:#f8fafc;padding:9px;margin-top:10px}
+.sr-five .sr-mini-audio button{border:0;border-radius:50%;background:#2563eb;color:#fff;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;flex:none}
+.sr-five .sr-mini-audio input{width:100%;min-width:30px;accent-color:#2563eb}
+.sr-five .sr-mini-audio small{white-space:nowrap;color:#64748b}
+.sr-five .sr-track-edit{padding-top:15px;margin-top:15px;border-top:1px solid #e2e8f0}
+.sr-five .sr-form-select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+.sr-five .sr-section-label{font-size:13px;font-weight:650;color:#334155}
+.sr-five .sr-upc-note{font-size:12px;line-height:1.5;color:#64748b}
+@media(max-width:920px){.sr-five .sr-four-shell{grid-template-columns:1fr}}

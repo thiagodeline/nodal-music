@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PlanCards, type PublicPlan } from '@/components/billing/PlanCards'
 import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
 import '@/components/billing/plans.css'
+import LandingBelowHero from '@/components/landing/LandingBelowHero'
 
 export const dynamic = 'force-dynamic'
 
@@ -127,47 +128,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <PlatformLogos enabled={landing.dsp_enabled}/>
-
-      <section className="wrap st-comparison-section" id="vantagens">
-        <div className="st-section-intro"><span className="st-kicker">UMA EXPERIÊNCIA DIFERENTE</span><h2>Distribuir música não precisa ser complicado.</h2><p>Menos burocracia e mais clareza em cada etapa da sua jornada.</p></div>
-        <div className="st-comparison">
-          <article className="st-compare-card st-compare-other"><div className="st-compare-head"><span className="st-compare-icon st-compare-no">×</span><div><small>O que você quer evitar</small><h3>Problemas comuns</h3></div></div>
-            <ul>{comparisons.map(item=><li key={item.problem}><span className="st-compare-cross" aria-hidden="true">×</span><span>{item.problem}</span></li>)}</ul>
-          </article>
-          <article className="st-compare-card st-compare-sintone"><span className="st-compare-ideal"><BadgeCheck size={14}/> Ideal para você</span><div className="st-compare-head"><span className="st-compare-icon st-compare-yes"><Check size={22}/></span><div><small>A proposta da SINTONE</small><h3>Feita para artistas</h3></div></div>
-            <ul>{comparisons.map(item=><li key={item.solution}><CheckCircle2 size={20} aria-hidden="true"/><span>{item.solution}</span></li>)}</ul>
-          </article>
-        </div>
-        <p className="st-compare-note">Comparação ilustrativa de experiências comuns; não representa todas as distribuidoras. Taxas, prazos e serviços da SINTONE seguem os planos e termos vigentes.</p>
-      </section>
-
-      <section className="st-features-back" id="recursos"><div className="wrap st-features-section">
-        <div className="st-section-intro"><span className="st-kicker">TUDO EM UM SÓ LUGAR</span><h2>Tudo que você precisa para crescer, num só painel.</h2><p>Uma experiência direta, com ferramentas para acompanhar sua música de ponta a ponta.</p></div>
-        <div className="st-feature-grid">
-          <article className="st-feature-card"><div className="st-feature-icon"><Headphones size={23}/></div><h3>Suporte humano, de verdade</h3><p>Quando surgir uma dúvida, você pode falar com a equipe e acompanhar seu atendimento.</p><div className="st-feature-mini st-support-mini"><div className="st-mini-avatar"><Headphones size={17}/></div><div><strong>Equipe SINTONE</strong><small>Atendimento via ticket</small></div><span className="st-mini-status"><i/> Atendimento</span></div></article>
-          <article className="st-feature-card"><div className="st-feature-icon"><BarChart3 size={23}/></div><h3>Dados e relatórios claros</h3><p>Entenda streams e receitas por loja, com informações reunidas em um só lugar.</p><div className="st-feature-mini st-revenue-mini"><div><small>Receita mensal · exemplo</small><strong>R$ 842,50</strong></div><div className="st-mini-bars">{[34,48,41,63,57,79,91].map((n,i)=><i key={i} style={{height:n+'%'}} />)}</div></div></article>
-          <article className="st-feature-card"><div className="st-feature-icon"><Wallet size={23}/></div><h3>Saques via Pix</h3><p>Visualize o saldo disponível e solicite seus saques pelo próprio painel.</p><div className="st-feature-mini st-pix-mini"><span className="st-pix-symbol">◇</span><div><strong>Solicitação via Pix</strong><small>Consulte o status no painel</small></div><CheckCircle2 size={20}/></div></article>
-          <article className="st-feature-card"><div className="st-feature-icon"><UploadCloud size={23}/></div><h3>Status de cada lançamento</h3><p>Veja quando sua música está em análise, aprovada ou disponível nas lojas.</p><div className="st-feature-mini st-release-mini"><div className="st-mini-cover"><Music2 size={17}/></div><div><strong>Seu lançamento</strong><small>Exemplo de acompanhamento</small></div><span className="st-mini-approved"><CheckCircle2 size={13}/> Aprovado</span></div></article>
-        </div>
-      </div></section>
-
-      <section className="wrap st-steps-section" id="como">
-        <div className="st-section-intro"><span className="st-kicker">SIMPLES DO INÍCIO AO FIM</span><h2>Do arquivo ao primeiro pagamento.</h2><p>Três passos para colocar seu projeto em movimento.</p></div>
-        <ol className="st-steps">{steps.map(step=><li key={step.number}><div className="st-step-number">{step.number}</div><h3>{step.title}</h3><p>{step.description}</p></li>)}</ol>
-      </section>
-
-      {plans.length > 0 && <section className="st-plans-section" id="planos"><div className="wrap st-plan-area">
-        <div className="st-section-intro"><span className="st-kicker">ESCOLHA SEU PLANO</span><h2>Seu próximo lançamento começa aqui.</h2><p>Planos e benefícios exibidos conforme as condições cadastradas na plataforma.</p></div>
-        <div className="st-home-plans">{plans.filter(plan => Number(plan.price_brl) === 0).map(plan=><FreeLandingPlan key={plan.id} plan={plan} landing={landing}/>)}{plans.some(plan => Number(plan.price_brl) > 0) && <div className="st-home-paid-plans"><PlanCards plans={plans.filter(plan => Number(plan.price_brl) > 0)} checkoutReady={checkoutReady}/></div>}</div>
-        <p className="st-plan-disclaimer"><ShieldCheck size={15}/> Limites, valores e condições são os indicados em cada plano. Consulte os termos antes de contratar.</p>
-      </div></section>}
-
-      <section className="wrap st-faq-section" id="faq"><div className="st-section-intro"><span className="st-kicker">DÚVIDAS FREQUENTES</span><h2>Alguma dúvida antes de começar?</h2></div>
-        <div className="l-faq">{landing.faq_items.map(({q:question,a:answer},i)=><details key={i}><summary>{question}<CircleHelp size={18}/></summary><p>{answer}</p></details>)}</div>
-      </section>
-
-      <section className="wrap st-final-section"><div className="st-final-cta"><div className="st-cta-deco" aria-hidden="true"><Music2 size={140}/></div><span>O PRÓXIMO PASSO É SEU</span><h2>Pronto para colocar sua música no mundo?</h2><p>Crie sua conta e comece a construir seu catálogo com a SINTONE.</p><Link href="/register" className="st-final-button">Criar conta grátis <ArrowRight size={18}/></Link></div></section>
+      <LandingBelowHero landing={landing} plans={plans} checkoutReady={checkoutReady}/>
     </main>
 
     <footer className="st-footer"><div className="wrap st-footer-inner"><div className="st-footer-brand"><Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={150} height={43} alt="SINTONE"/></Link><p>Distribuição musical com transparência, clareza e pessoas do seu lado.</p></div>

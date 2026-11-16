@@ -12,6 +12,7 @@ import {
 import { getContractDownloadUrl, getReleaseAudioUrl, moderateRelease } from '@/app/admin/actions'
 import './admin.css'
 import './admin-extras.css'
+import type {AdminTab} from '@/lib/admin-access'
 import AdminAccounts from './AdminAccounts'
 import AdminRoyaltyUpload from './AdminRoyaltyUpload'
 import AdminReleaseTracks from './AdminReleaseTracks'
@@ -46,7 +47,7 @@ export type AdminUser = {
 }
 export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
-  adminLabel:string; users:AdminUser[]; releases:AdminRelease[]; contracts:AdminContract[];
+  adminLabel:string;allowedTabs:AdminTab[];isGeneral:boolean; users:AdminUser[]; releases:AdminRelease[]; contracts:AdminContract[];
   metrics:{users:number;pending:number;approved:number;total:number;payouts:number};
   truncatedUsers:boolean;truncatedReleases:boolean
 }
@@ -68,11 +69,11 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
   return <div className="sa-detail-field"><dt>{label}</dt><dd>{typeof value==='boolean' ? (value?'Sim':'Não') : display(value)}</dd></div>
 }
 
-export default function AdminPanel({adminLabel,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
+export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
   const searchParams=useSearchParams()
-  const requested=searchParams.get('tab')||'releases'
-  const tab=(['releases','artists','royalties','support','payouts','delivery','splits','banners'].includes(requested)?requested:'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'|'splits'|'banners'
+  const requested=searchParams.get('tab')||allowedTabs[0]||'releases'
+  const tab=(allowedTabs.includes(requested as AdminTab)?requested:allowedTabs[0]||'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'|'splits'|'banners'
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -109,7 +110,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
   const open=(r:AdminRelease,mode:'details'|'approve'|'reject'='details')=>{setSelectedId(r.id);setReviewMode(mode);setRejecting(mode==='reject');setReason('');setAudio('');setAudioError('');setFeedback(null)}
   const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
-  const changeTab=(next:'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery')=>{router.push('/admin?tab='+next);setSearch('');setFeedback(null)}
+  const changeTab=(next:AdminTab)=>{if(!allowedTabs.includes(next))return;router.push('/admin?tab='+next);setSearch('');setFeedback(null)}
   async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
     try {const result=await getReleaseAudioUrl(id,trackId)
@@ -153,7 +154,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
         <div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>Painel administrativo</h1><p>Analise lançamentos e acompanhe os artistas da plataforma.</p></div>
           <span className="sa-secure"><ShieldCheck size={15}/> Acesso administrativo</span>
         </div>
-        {tab==='releases'&&<div className="sa-metrics">{tiles.map(({label,value,Icon,desc,filter:status,tab:target})=><button type="button" className={'sa-metric sa-metric-button '+(tab===target&&filter===status?'sa-metric-selected':'')} key={label} onClick={()=>{changeTab(target as typeof tab);setFilter(status)}} aria-label={'Abrir '+label}>
+        {tab==='releases'&&<div className="sa-metrics">{tiles.filter(tile=>allowedTabs.includes(tile.tab as AdminTab)).map(({label,value,Icon,desc,filter:status,tab:target})=><button type="button" className={'sa-metric sa-metric-button '+(tab===target&&filter===status?'sa-metric-selected':'')} key={label} onClick={()=>{changeTab(target as typeof tab);setFilter(status)}} aria-label={'Abrir '+label}>
           <div className="sa-metric-top"><span>{label}</span><span className="sa-metric-icon"><Icon size={21}/></span></div>
           <strong>{glyph(value)}</strong><small>{desc}</small>
         </button>)}</div>}
@@ -193,7 +194,7 @@ export default function AdminPanel({adminLabel,users,releases,contracts,metrics,
             {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>Nenhum lançamento encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
-            <AdminAccounts users={filteredUsers} contracts={contracts}/>
+            <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral}/>
           </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases}/>}
         </div>
       </main>

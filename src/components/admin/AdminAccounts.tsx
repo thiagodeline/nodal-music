@@ -8,7 +8,7 @@ import type {AdminUser,AdminContract} from './AdminPanel'
 type Status='PENDING_ONBOARDING'|'PENDING_CONTRACT'|'ACTIVE'|'BLOCKED'
 type Draft={name:string;artist_name:string;phone:string;address:string;birth_date:string;cpf:string;cnpj:string;status:Status}
 const input='sa-x-input'
-export default function AdminAccounts({users,contracts}:{users:AdminUser[];contracts:AdminContract[]}) {
+export default function AdminAccounts({users,contracts,canEditBalance=false}:{users:AdminUser[];contracts:AdminContract[];canEditBalance?:boolean}) {
   const router=useRouter()
   const [selected,setSelected]=useState<string|null>(null)
   const [draft,setDraft]=useState<Draft|null>(null)
@@ -50,7 +50,7 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
       <thead><tr><th>Artista / E-mail</th><th>Status</th><th>Saldo disponível</th><th>Contrato</th><th>Ações</th></tr></thead>
       <tbody>{users.map(u=><tr key={u.id}>
         <td><strong>{u.artist_name||u.name||'Sem nome'}</strong><small className="sa-x-small">{u.email}</small></td>
-        <td>{u.status}</td><td>R$ {Number(u.saldo_disponivel||0).toFixed(2)}</td>
+        <td>{u.status}</td><td>{canEditBalance?'R$ '+Number(u.saldo_disponivel||0).toFixed(2):'Restrito ao financeiro'}</td>
         <td>{ready(u.id)?<button className="sa-action-pill" onClick={()=>void download(u.id)}><Download size={14}/> Baixar PDF</button>:'Pendente'}</td>
         <td><button className="sa-action-pill" onClick={()=>open(u)}><Settings2 size={14}/> Gerenciar</button></td>
       </tr>)}</tbody>
@@ -58,7 +58,7 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
     {selected&&draft&&<div className="sa-drawer-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setSelected(null)}}>
      <section className="sa-drawer" role="dialog" aria-modal="true" aria-label="Gerenciar artista">
       <header className="sa-drawer-head"><h3>Gerenciar conta</h3><button type="button" className="sa-action-pill" onClick={()=>setSelected(null)} aria-label="Fechar"><X size={17}/></button></header>
-      <div className="sa-drawer-body"><p className="sa-x-note">Dados cadastrais e saldo auditado</p>
+      <div className="sa-drawer-body"><p className="sa-x-note">Dados cadastrais e contrato</p>
       <div className="sa-x-fields">
         {(['name','artist_name','phone','address','cpf','cnpj'] as const).map(k=>
           <label key={k}>{({name:'Nome',artist_name:'Artista/Selo',phone:'Telefone',address:'Endereço',cpf:'CPF',cnpj:'CNPJ'} as Record<string,string>)[k]}
@@ -73,10 +73,10 @@ export default function AdminAccounts({users,contracts}:{users:AdminUser[];contr
         </select></label>
       </div>
       <button className="sa-x-button" disabled={busy} onClick={()=>save('account')}>Salvar dados cadastrais</button>
-      <div className="sa-x-sep"/>
+      {canEditBalance&&<><div className="sa-x-sep"/>
       <label>Definir saldo disponível (R$)<input type="number" step="0.01" min="0" className={input} value={balance} onChange={e=>setBalance(e.target.value)}/></label>
       <label>Motivo do ajuste (obrigatório)<input minLength={10} maxLength={500} className={input} value={reason} onChange={e=>setReason(e.target.value)}/></label>
-      <button className="sa-x-button" disabled={busy||reason.trim().length<10} onClick={()=>save('balance')}>Registrar ajuste auditável</button>
+      <button className="sa-x-button" disabled={busy||reason.trim().length<10} onClick={()=>save('balance')}>Registrar ajuste auditável</button></>}
       <button className="sa-x-link" onClick={()=>setSelected(null)}>Fechar</button>
       {message&&<p role="status">{message}</p>}
      </div>

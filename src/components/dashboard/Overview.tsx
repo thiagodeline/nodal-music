@@ -7,8 +7,8 @@ import Link from 'next/link'
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 export default function Overview({ d, can }: { d: Data; can: boolean }) {
   const { balance } = money(d)
-  const [banner,setBanner]=useState<{headline:string;body:string;cta_label:string;cta_url:string}|null>(null)
-  useEffect(()=>{void createClient().from('dashboard_banners').select('headline,body,cta_label,cta_url').eq('active',true).order('created_at',{ascending:false}).limit(1).maybeSingle().then(({data})=>setBanner(data))},[])
+  const [banner,setBanner]=useState<{headline:string;body:string;cta_label:string;cta_url:string;expires_at:string|null}|null>(null)
+  useEffect(()=>{void createClient().from('dashboard_banners').select('headline,body,cta_label,cta_url,expires_at').eq('active',true).order('created_at',{ascending:false}).limit(20).then(({data})=>setBanner((data||[]).find(x=>!x.expires_at||new Date(x.expires_at)>new Date())||null))},[])
   const today = new Date(), months = Array.from({ length: 6 }, (_, i) => { const x = new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth()-(5-i),1)); return iso(x) })
   const cur = d.reports.filter(r => r.month >= months[4])
   const map: Record<string, number> = {}; d.reports.forEach(r => map[r.month] = (map[r.month] || 0) + Number(r.streams))

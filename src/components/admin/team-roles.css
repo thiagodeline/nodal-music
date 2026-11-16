@@ -1,0 +1,1 @@
+.sa-team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0}.sa-team-option{display:flex!important;align-items:center!important;gap:10px;border:1px solid #e2e8f0;border-radius:10px;padding:12px;color:#334155}.sa-team-option input{width:17px;height:17px;accent-color:#2563eb}

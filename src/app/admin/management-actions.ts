@@ -25,7 +25,7 @@ type Edit={
   status:'PENDING_ONBOARDING'|'PENDING_CONTRACT'|'ACTIVE'|'BLOCKED'
 }
 export async function adminSaveArtist(id:string,v:Edit) {
-  const ctx=await getAdminContext();if(!ctx)return denied()
+  const ctx=await getAdminContext('a_and_r');if(!ctx)return denied()
   if(!uuid(id)||!v||!['PENDING_ONBOARDING','PENDING_CONTRACT','ACTIVE','BLOCKED'].includes(v.status))
     return {ok:false as const,error:'Conta inválida.'}
   const {data:current}=await ctx.supabase.from('profiles')
@@ -43,15 +43,13 @@ export async function adminSaveArtist(id:string,v:Edit) {
   if(cnpj&&!/^[A-Z0-9]{12}\d{2}$/.test(cnpj))return {ok:false as const,error:'CNPJ inválido.'}
   if(v.birth_date&&!/^\d{4}-\d{2}-\d{2}$/.test(v.birth_date))
     return {ok:false as const,error:'Data inválida.'}
-  const {error}=await ctx.supabase.from('profiles').update({
-    name:String(v.name||'').trim().slice(0,160)||null,
-    artist_name:String(v.artist_name||'').trim().slice(0,160)||null,
-    phone:String(v.phone||'').trim().slice(0,35)||null,
-    address:String(v.address||'').trim().slice(0,500)||null,
-    birth_date:v.birth_date||null,cpf,cnpj,status:v.status,
-    onboarding_completed:v.status!=='PENDING_ONBOARDING',
-    can_release_music:v.status==='ACTIVE'
-  }).eq('id',id)
+  const {error}=await ctx.supabase.rpc('sintone_edit_artist',{p_id:id,p_values:{
+   name:String(v.name||'').trim().slice(0,160)||null,
+   artist_name:String(v.artist_name||'').trim().slice(0,160)||null,
+   phone:String(v.phone||'').trim().slice(0,35)||null,
+   address:String(v.address||'').trim().slice(0,500)||null,
+   birth_date:v.birth_date||null,cpf,cnpj,status:v.status
+  }})
   if(error)return {ok:false as const,error:error.message}
   revalidatePath('/admin');revalidatePath('/dashboard')
   return {ok:true as const}
@@ -62,7 +60,7 @@ export type ImportRow={
   platform:string;month:string;streams:number;revenue:number;lines:number[]
 }
 export async function adminImportRoyaltyBatch(rows:ImportRow[]) {
-  const ctx=await getAdminContext();if(!ctx)return denied()
+  const ctx=await getAdminContext('royalty_financial');if(!ctx)return denied()
   if(!Array.isArray(rows)||!rows.length||rows.length>400||JSON.stringify(rows).length>250000)
     return {ok:false as const,error:'Lote inválido (máximo de 400 linhas).'}
   const {data,error}=await ctx.supabase.rpc('import_royalties',{p_rows:rows})

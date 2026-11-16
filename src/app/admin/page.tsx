@@ -1,13 +1,18 @@
-import { notFound } from 'next/navigation'
+import { notFound,redirect } from 'next/navigation'
 import { getAdminContext } from '@/lib/admin-access'
 import AdminPanel, { type AdminRelease, type AdminReleaseTrack, type AdminUser, type AdminContract } from '@/components/admin/AdminPanel'
 
 export const metadata = { title: 'Administração | SINTONE' }
 export const dynamic = 'force-dynamic'
 
-export default async function AdminPage() {
-  const ctx = await getAdminContext()
+export default async function AdminPage({searchParams}:{searchParams:Promise<{tab?:string}>}) {
+  const ctx = await getAdminContext('staff')
   if (!ctx) notFound()
+  const {tab}=await searchParams
+  if(tab&&!ctx.tabs.includes(tab as typeof ctx.tabs[number]))notFound()
+  if(tab==='team')redirect('/admin/equipe')
+  if(tab==='plans')redirect('/admin/planos')
+  if(tab==='dsp')redirect('/admin/config-plataformas')
   const sb = ctx.supabase
   const [profiles, releases, contracts, totalUsers, pending, approved, totalReleases, pendingPayouts] = await Promise.all([
     sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').order('created_at',{ascending:false}).range(0,999),
@@ -55,6 +60,7 @@ export default async function AdminPage() {
     cover_url: r.cover_path ? sb.storage.from('covers').getPublicUrl(r.cover_path).data.publicUrl : null,
   }))
   return <AdminPanel
+    allowedTabs={ctx.tabs} isGeneral={ctx.isGeneral}
     adminLabel={ctx.user.email || 'Administrador'}
     users={users}
     releases={releaseRows}

@@ -80,19 +80,12 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [addonPaid,setAddonPaid]=useState(false)
   const releaseId=useRef<string>(crypto.randomUUID())
   const [platforms,setPlatforms]=useState<string[]>([])
-  // Uma loja Meta representativa é exibida como Instagram. Preservamos o nome interno
-  // aceito pelo backend para compatibilidade com a entrega e a cobrança existentes.
-  const eligibleMeta=dspSettings.filter(x=>x.active&&isMetaStore(x.name)&&
-    (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
-  const metaRepresentative=eligibleMeta.find(x=>x.name==='Facebook')?.name||eligibleMeta[0]?.name
-  const allowedDSP=dspSettings.filter(x=>x.active&&(!isMetaStore(x.name)||x.name===metaRepresentative)&&
-    (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
+  const allowedDSP=dspSettings.filter(x=>x.active&&
+   (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
   const effectivePlatforms=allowedDSP.filter(x=>platforms.includes(x.name)).map(x=>x.name)
-  const chargedDSP=allowedDSP.filter(x=>platforms.includes(x.name)&&x.is_extra&&Number(x.extra_fee)>0&&!(currentPlan?.has_instagram_included&&isMetaStore(x.name)))
-  const legacyMeta=effectivePlatforms.some(isMetaStore)&&!currentPlan?.has_instagram_included&&
-    !chargedDSP.some(x=>isMetaStore(x.name))?Number(currentPlan?.instagram_addon_fee||0):0
+  const chargedDSP=allowedDSP.filter(x=>platforms.includes(x.name)&&x.is_extra&&
+   Number(x.extra_fee)>0&&!(currentPlan?.has_instagram_included&&isMetaStore(x.name)))
   const extras=chargedDSP.map(x=>({name:x.name,fee:Number(x.extra_fee)}))
-  if(legacyMeta>0)extras.push({name:'Instagram/Facebook (plano)',fee:legacyMeta})
   const extraTotal=Math.round(extras.reduce((sum,x)=>sum+x.fee,0)*100)/100
   const [cover,setCover]=useState<File|null>(null)
   const [coverUrl,setCoverUrl]=useState('')
@@ -180,13 +173,11 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      const list=data as DspSetting[]
      setDspSettings(list)
      if(!draftRestored.current)setPlatforms(list.filter(x=>
-      (!isMetaStore(x.name)||x.name===metaRepresentative)&&
-      (!currentPlan.included_stores.length||currentPlan.included_stores.includes(x.name))&&!x.is_extra&&
-      !(isMetaStore(x.name)&&!currentPlan.has_instagram_included&&currentPlan.instagram_addon_fee>0)).map(x=>x.name))
+      (!currentPlan.included_stores.length||currentPlan.included_stores.includes(x.name))&&!x.is_extra).map(x=>x.name))
      setDspLoading(false)
     })
    return()=>{active=false}
-  },[currentPlan?.id,metaRepresentative])
+  },[currentPlan?.id])
   useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
 
   const editArtist=(key:string,part:Partial<Artist>)=>setArtists(a=>a.map(x=>x.key===key?{...x,...part}:x))
@@ -584,15 +575,15 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       {dspError&&<p className="sr-error" role="alert">{dspError}</p>}
       {([
          {key:'streaming',title:'Plataformas de streaming',items:allowedDSP.filter(x=>!x.is_extra&&x.category!=='social'&&!isMetaStore(x.name))},
-         {key:'social',title:'Plataformas sociais',items:allowedDSP.filter(x=>!x.is_extra&&(x.category==='social'||isMetaStore(x.name))&&!(isMetaStore(x.name)&&!currentPlan?.has_instagram_included&&Number(currentPlan?.instagram_addon_fee||0)>0))},
-         {key:'extras',title:'Plataformas extras',items:allowedDSP.filter(x=>x.is_extra||isMetaStore(x.name)&&!currentPlan?.has_instagram_included&&Number(currentPlan?.instagram_addon_fee||0)>0)}
+         {key:'social',title:'Plataformas sociais',items:allowedDSP.filter(x=>!x.is_extra&&(x.category==='social'||isMetaStore(x.name)))},
+         {key:'extras',title:'Plataformas extras',items:allowedDSP.filter(x=>x.is_extra)}
         ] as const).map(group=><details className="sr-dsp-accordion" key={group.key} open={group.key==='streaming'}>
          <summary>{group.title}<span>{group.items.length} plataformas</span></summary>
          <div className="sr-dsp-grid">
           {group.items.map(x=>{
            const instagram=isMetaStore(x.name)
            const fee=currentPlan?.has_instagram_included&&instagram?0:
-            x.is_extra&&Number(x.extra_fee)>0?Number(x.extra_fee):instagram?Number(currentPlan?.instagram_addon_fee||0):0
+            x.is_extra&&Number(x.extra_fee)>0&&!(instagram&&currentPlan?.has_instagram_included)?Number(x.extra_fee):0
            return <label className={'sr-dsp-option '+(group.key==='extras'?'extra ':'')+(platforms.includes(x.name)?'checked':'')} key={x.slug}>
             <input type="checkbox" checked={platforms.includes(x.name)} disabled={addonPaid} onChange={e=>changePlatform(x.name,e.target.checked)}/>
             <DspIcon name={instagram?'Instagram':x.name}/><span className="sr-dsp-name">{instagram?'Instagram':x.name}</span>

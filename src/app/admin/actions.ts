@@ -8,7 +8,7 @@ const forbidden: Result = { ok: false, message: 'Acesso restrito a administrador
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 
 export async function moderateRelease(id: string, decision: 'approved' | 'rejected', reason = ''): Promise<Result> {
-  const ctx = await getAdminContext()
+  const ctx = await getAdminContext('qc_specialist')
   if (!ctx) return forbidden
   if (!isUuid(id) || !['approved', 'rejected'].includes(decision)) return { ok: false, message: 'Dados inválidos.' }
   const cleanReason = typeof reason === 'string' ? reason.trim() : ''
@@ -17,22 +17,17 @@ export async function moderateRelease(id: string, decision: 'approved' | 'reject
   }
   // Só moderar lançamentos ainda em revisão ou já moderados, nunca conteúdo no ar.
   const allowed = decision === 'approved' ? ['pending', 'rejected'] : ['pending', 'approved']
-  const { data, error } = await ctx.supabase.from('releases')
-    .update({
-      status: decision,
-      rejection_reason: decision === 'rejected' ? cleanReason : null,
-      reviewed_by: ctx.user.id,
-      reviewed_at: new Date().toISOString(),
-    }).eq('id', id).in('status', allowed).select('id')
+  const {error}=await ctx.supabase.rpc('sintone_moderate_release',{
+   p_id:id,p_decision:decision,p_reason:cleanReason
+  })
   if (error) return { ok: false, message: 'Não foi possível alterar o lançamento: ' + error.message }
-  if (!data?.length) return { ok: false, message: 'O lançamento mudou de status ou não pode mais ser moderado. Recarregue a página.' }
   revalidatePath('/admin')
   revalidatePath('/dashboard')
   return { ok: true, message: decision === 'approved' ? 'Lançamento aprovado.' : 'Lançamento rejeitado. O motivo foi registrado.' }
 }
 
 export async function getReleaseAudioUrl(id: string, trackId?: string): Promise<Result> {
-  const ctx = await getAdminContext()
+  const ctx = await getAdminContext('qc_specialist')
   if (!ctx) return forbidden
   if (!isUuid(id)) return { ok: false, message: 'Lançamento inválido.' }
   const { data: row, error: queryError } = await ctx.supabase.from('releases')
@@ -55,7 +50,7 @@ export async function getReleaseAudioUrl(id: string, trackId?: string): Promise<
 }
 
 export async function getContractDownloadUrl(userId: string): Promise<Result> {
-  const ctx = await getAdminContext()
+  const ctx = await getAdminContext('a_and_r')
   if (!ctx) return forbidden
   if (!isUuid(userId)) return { ok: false, message: 'Usuário inválido.' }
   const { data: contract, error: queryError } = await ctx.supabase.from('user_contracts')
@@ -72,7 +67,7 @@ export async function getContractDownloadUrl(userId: string): Promise<Result> {
 }
 
 export async function replyToTicket(id: string, body: string): Promise<Result> {
-  const ctx = await getAdminContext()
+  const ctx = await getAdminContext('customer_success')
   if (!ctx) return forbidden
   if (!isUuid(id) || typeof body !== 'string' || !body.trim() || body.trim().length > 3000)
     return { ok: false, message: 'Informe uma resposta de até 3.000 caracteres.' }
@@ -86,12 +81,11 @@ export async function replyToTicket(id: string, body: string): Promise<Result> {
 }
 
 export async function closeTicket(id: string): Promise<Result> {
-  const ctx = await getAdminContext()
+  const ctx = await getAdminContext('customer_success')
   if (!ctx) return forbidden
   if (!isUuid(id)) return { ok: false, message: 'Ticket inválido.' }
-  const { data, error } = await ctx.supabase.from('tickets').update({status:'closed'})
-    .eq('id',id).neq('status','closed').select('id')
-  if (error || !data?.length) return { ok:false, message:'Não foi possível fechar o ticket.' }
+  const {error}=await ctx.supabase.rpc('sintone_close_ticket',{p_id:id})
+  if (error) return { ok:false, message:'Não foi possível fechar o ticket.' }
   revalidatePath('/admin')
   revalidatePath('/dashboard')
   return {ok:true,message:'Ticket fechado.'}

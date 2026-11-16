@@ -118,6 +118,7 @@ export default function ContractSigning({
       ...accepted, contract_snapshot:accepted.contract_snapshot, pdf_status:'ready',
     })
     setPhase('')
+    window.location.assign('/dashboard')
   }
 
   const accept = async () => {
@@ -139,7 +140,7 @@ export default function ContractSigning({
     setBusy(true);setError('')
     try {
       const result=await finalizeContractPdf()
-      if(result.ok){setRecord({...record,pdf_status:'ready'});return}
+      if(result.ok){setRecord({...record,pdf_status:'ready'});window.location.assign('/dashboard');return}
       await createAndUpload({
         user_id:record.user_id,signed_at:record.signed_at,signed_name:record.signed_name,
         artist_name:record.artist_name,cpf:record.cpf,cnpj:record.cnpj,
@@ -172,7 +173,7 @@ export default function ContractSigning({
       <div className="sc-success-detail"><FileCheck2 size={23}/><div><strong>contrato_assinado.pdf</strong><small>Disponível para download com link temporário seguro</small></div></div>
       <button type="button" className="sc-primary" disabled={busy} onClick={download}><Download size={18}/> Baixar Contrato em PDF</button>
       <Link href="/dashboard" className="sc-secondary">Ir para o Painel / Dashboard</Link>
-      <small className="sc-footnote">O aceite do contrato não substitui uma eventual aprovação administrativa para liberar novos lançamentos.</small>
+      <small className="sc-footnote">Após o PDF ser finalizado, a conta é liberada automaticamente para envio conforme os limites do plano.</small>
       {error && <p className="sc-error" role="alert">{error}</p>}
     </section> : <>
       <div className="sc-step"><span className="sc-step-done"><CheckCircle2 size={16}/> Dados concluídos</span><span className="sc-step-current">2 de 2 · Contrato e assinatura</span></div>

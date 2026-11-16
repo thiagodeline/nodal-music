@@ -39,6 +39,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const [billingLoading,setBillingLoading]=useState(true)
  const [unread,setUnread]=useState(0)
  const [navOpen,setNavOpen]=useState(false)
+ const [staffAccess,setStaffAccess]=useState(false)
    const load = useCallback(async () => {
     const sb = createClient(); const { data: { user } } = await sb.auth.getUser(); if (!user) { location.href = '/login'; return }
     const [me, r, rp, w, bs, catalog] = await Promise.all([
@@ -74,6 +75,13 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
   void sb.from('notifications').select('id',{head:true,count:'exact'}).eq('user_id',d.me.id).eq('read',false)
    .then(({count})=>setUnread(count||0))
  },[d?.me?.id,route])
+ useEffect(()=>{
+  if(!d?.me?.id)return
+  let mounted=true
+  void createClient().from('admin_user_roles').select('id').eq('user_id',d.me.id).limit(1)
+   .then(({data})=>{if(mounted)setStaffAccess(!!data?.length)})
+  return()=>{mounted=false}
+ },[d?.me?.id])
  const gate=useCanReleaseMusic(d?.me)
  const expired=subscription?.status==='expired'||(subscription?.status==='authorized'&&!!subscription.access_expires_at&&new Date(subscription.access_expires_at)<=new Date())
  const locked=!!d&&(!gate.canRelease||expired||billingLoading)
@@ -108,7 +116,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
       <a href="/dashboard/planos">Plano e faturamento</a>
       <a href="/dashboard#contracts">Gestão de contratos</a>
       <a href="/privacidade">Política de Privacidade</a>
-      {d?.me?.role==='admin'&&<Link href="/admin">Painel Admin</Link>}
+      {(d?.me?.role==='admin'||staffAccess)&&<Link href="/admin">Painel Admin</Link>}
       <button type="button" onClick={()=>void logout()}><LogOut size={15}/> Sair</button>
      </div>
     </div>

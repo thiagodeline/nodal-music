@@ -22,11 +22,19 @@ export default function AdminTickets(){
   const [loading,setLoading]=useState(true)
   const [error,setError]=useState('')
   const load=useCallback(async()=>{
-    const {data,error}=await sb.from('tickets')
-      .select('id,user_id,subject,category,message,status,created_at,profiles:user_id(name,artist_name,email)')
-      .order('created_at',{ascending:false}).limit(500)
-    if(error)setError('Falha ao carregar tickets: '+error.message)
-    else {setTickets((data??[]) as unknown as Ticket[]);setError('')}
+    const [result,contacts]=await Promise.all([
+     sb.from('tickets').select('id,user_id,subject,category,message,status,created_at')
+      .order('created_at',{ascending:false}).limit(500),
+     sb.rpc('sintone_ticket_contacts')
+    ])
+    if(result.error||contacts.error){
+     setError('Falha ao carregar tickets e contatos do suporte.')
+    }else{
+     const lookup=new Map((contacts.data||[]).map((x:{user_id:string;contact_name:string|null;artist_name:string|null;email:string|null})=>
+      [x.user_id,{name:x.contact_name,artist_name:x.artist_name,email:x.email}]))
+     setTickets((result.data||[]).map(x=>({...x,profiles:lookup.get(x.user_id)||null})) as Ticket[])
+     setError('')
+    }
     setLoading(false)
   },[sb])
   useEffect(()=>{void load()},[load])

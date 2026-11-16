@@ -4,7 +4,7 @@ import {getAdminContext} from '@/lib/admin-access'
 export const runtime='nodejs'
 const isUuid=(s:string)=>/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(s)
 export async function POST(req:Request){
- const ctx=await getAdminContext()
+ const ctx=await getAdminContext('royalty_financial')
  if(!ctx)return NextResponse.json({error:'Acesso negado'},{status:403})
  const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY
  const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL

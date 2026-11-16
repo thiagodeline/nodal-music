@@ -79,13 +79,8 @@ export async function startOneTimeCheckout(planId:string,payment:PaymentMethod,a
   if(settingsError||!settings||settings.length!==selectedStores!.length||settings.some(x=>!x.active))
    return {ok:false,message:'Plataformas desabilitadas ou inválidas.'}
   extraItems=settings.filter(x=>x.is_extra&&Number(x.extra_fee)>0&&
-    !(plan.has_instagram_included&&['Facebook','Facebook Audio Library','Facebook Fingerprinting','Facebook Video','Facebook Video Figerprint'].includes(x.name)))
+    !(plan.has_instagram_included&&x.name==='Instagram'))
     .map(x=>({slug:x.slug,name:x.name,fee:Number(x.extra_fee)}))
-  const metaNames=['Facebook','Facebook Audio Library','Facebook Fingerprinting','Facebook Video','Facebook Video Figerprint']
-  if(selectedStores!.some(x=>metaNames.includes(x))&&!plan.has_instagram_included&&
-   !extraItems.some(x=>metaNames.includes(x.name))&&Number(plan.instagram_addon_fee)>0){
-    extraItems.push({slug:'meta-legacy',name:'Instagram/Facebook (plano)',fee:Number(plan.instagram_addon_fee)})
-  }
   extraItems.sort((a,b)=>a.slug.localeCompare(b.slug))
   if(!extraItems.length)return {ok:false,message:'As plataformas selecionadas não possuem taxa extra.'}
  }

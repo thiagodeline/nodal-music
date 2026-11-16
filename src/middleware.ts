@@ -23,6 +23,9 @@ export async function middleware(req: NextRequest) {
   if (!user) return go('/login')
 
   const path = req.nextUrl.pathname
+  // O painel administrativo faz checagem de RBAC própria no layout e nas ações.
+  // Cargos de equipe não dependem do onboarding artístico.
+  if(path.startsWith('/admin'))return res
   const { data: profile, error } = await sb.from('profiles').select('status, onboarding_completed').eq('id', user.id).maybeSingle()
   if (error) return res // se o banco falhar, não prende o usuário; o RLS continua protegendo os dados
 

@@ -105,7 +105,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
     </div>)}
    </nav>
    <div className="nd-hquick">
-    <a href="/dashboard/planos" className="nd-houtline" title={planTip}><CreditCard size={16}/> <span>Atualizar</span></a>
+    {plans.length>1&&<a href="/dashboard/planos" className="nd-houtline" title={planTip}><CreditCard size={16}/> <span>Atualizar</span></a>}
     <button className="nd-hupload" title={uploadTip} disabled={locked} onClick={()=>{window.location.href='/novo-lancamento'}}><UploadCloud size={16}/><span>Carregar</span></button>
     <Link href="/notificacoes" className="nd-hbell" title="Notificações" aria-label={unread+' notificações não lidas'}><Bell size={19}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</Link>
     <div className="nd-hgroup nd-hprofile">

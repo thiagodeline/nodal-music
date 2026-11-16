@@ -403,8 +403,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
          onChange={e=>setLabel(e.target.value)}/>{err('label')}</label>
        </div>
        <label>UPC/EAN (opcional)<input value={upc} maxLength={13} inputMode="numeric"
-        placeholder="Preenchido pela iMusics, se não informado" onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>
-       <p className="sr-upc-note">Se não tiver UPC/EAN, deixe em branco. O código será obtido externamente pela iMusics durante o processo de distribuição.</p>
+        placeholder="Opcional — deixe em branco se não tiver" onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>
+       <p className="sr-upc-note">Se você ainda não possui UPC/EAN, deixe este campo em branco. A SINTONE cuidará da identificação do lançamento durante o processo de distribuição.</p>
       </section>
       <section className="card sr-panel">
        <h3>Dados dos artistas</h3>
@@ -555,7 +555,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        <span><strong>Selo</strong>{label||'—'}</span>
        <span><strong>℗ Gravação</strong>{pYear} · {pHolder}</span>
        <span><strong>© Lançamento</strong>{cYear} · {cHolder}</span>
-       <span><strong>UPC</strong>{upc||'Pendente — iMusics'}</span>
+       <span><strong>UPC</strong>{upc||'Pendente — SINTONE'}</span>
        <span><strong>Data e horário solicitados</strong>{date} às {releaseTime}</span>
        <span><strong>Plataformas</strong>{effectivePlatforms.length}</span>
       </div>
@@ -575,7 +575,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        <strong>{money(extraTotal)}</strong></div>
       <label className="sr-check"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/>
        Confirmo que possuo todos os direitos necessários para distribuir os áudios, obras, samples e capa.</label>{err('rights')}
-      <p className="sr-notice">O lançamento será enviado como pendente para revisão da equipe SINTONE. UPC não informado será obtido pela iMusics. ISRC e horário poderão exigir conferência antes da entrega às lojas.</p>
+      <p className="sr-notice">O lançamento será enviado como pendente para revisão da equipe SINTONE. Caso o UPC não tenha sido informado, a equipe SINTONE cuidará da identificação. ISRC e horário poderão exigir conferência antes da entrega às lojas.</p>
      </section>}
      {addonCheckout&&currentPlan&&<SubscriptionCardForm plan={{id:currentPlan.id,name:currentPlan.name,price_brl:currentPlan.price_brl,frequency:1}}
       addonReleaseId={releaseId.current} addonPrice={extraTotal} selectedStores={effectivePlatforms}

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { dt, Data } from './ui'
 export function Account({ d, reload }: { d: Data; reload: () => void }) {
   const [msg, setMsg] = useState(''), [pm, setPm] = useState('')
+  const [phone,setPhone]=useState(d.me?.phone||''),[phoneMessage,setPhoneMessage]=useState('')
   const [newEmail,setNewEmail]=useState(d.email),[emailMessage,setEmailMessage]=useState('')
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); const f = new FormData(e.currentTarget)
@@ -23,6 +24,14 @@ export function Account({ d, reload }: { d: Data; reload: () => void }) {
    const {error}=await createClient().auth.updateUser({email:value})
    setEmailMessage(error?'Não foi possível solicitar a mudança: '+error.message:'Solicitação enviada. Confirme a alteração no e-mail conforme as instruções do Supabase Auth.')
   }
+  async function updatePhone(e:React.FormEvent<HTMLFormElement>){
+   e.preventDefault()
+   const value=phone.trim()
+   if(value.length>35)return setPhoneMessage('Telefone muito longo.')
+   const {error}=await createClient().from('profiles').update({phone:value||null}).eq('id',d.me.id)
+   setPhoneMessage(error?'Não foi possível atualizar o telefone.':'Telefone atualizado.')
+   if(!error)reload()
+  }
   async function everywhere() { await createClient().auth.signOut({ scope: 'global' }); location.href = '/' }
   return (<div className="two-col">
     <form className="card form" onSubmit={save}><h3>Informações pessoais</h3>
@@ -32,6 +41,12 @@ export function Account({ d, reload }: { d: Data; reload: () => void }) {
       <label>Chave Pix padrão para saques<input name="pix" defaultValue={d.me?.pix_key ?? ''} /></label>
       {msg && <p className={msg.startsWith('Dados') ? 'ok' : 'err'}>{msg}</p>}<div><button className="btn">Salvar alterações</button></div></form>
     <div className="side-col">
+      <form className="card form" onSubmit={updatePhone}>
+       <h3>Telefone de contato</h3>
+       <label>Número de telefone<input type="tel" maxLength={35} value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel"/></label>
+       <button className="btn" type="submit">Salvar telefone</button>
+       {phoneMessage&&<p role="status">{phoneMessage}</p>}
+      </form>
       <form className="card form" onSubmit={changeEmail}><h3>Alterar e-mail de acesso</h3>
        <label>Novo e-mail<input type="email" required value={newEmail} onChange={e=>setNewEmail(e.target.value)}/></label>
        <button className="btn">Solicitar alteração</button>{emailMessage&&<p role="status">{emailMessage}</p>}

@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react'
 import {createClient} from '@/lib/supabase/client'
 import { Data, Kpi, Badge, Cover, Bars, brl, num, dt, money, sum, group } from './ui'
-import {Info,UserRoundPlus,ArrowUpRight} from 'lucide-react'
+import {Info} from 'lucide-react'
 import Link from 'next/link'
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 export default function Overview({ d, can }: { d: Data; can: boolean }) {
@@ -18,8 +18,7 @@ export default function Overview({ d, can }: { d: Data; can: boolean }) {
   const active = d.releases.filter(r => r.status === 'approved' || r.status === 'live').length
   const dsp = group(d.reports, r => r.platform).slice(0, 5)
   return (<>
-    <div className="nd-hpromo"><div><strong>Bem-vindo ao seu espaço na SINTONE</strong><p>Organize seus artistas, acompanhe lançamentos e consulte seus royalties.</p></div>
-      <Link className="btn nd-promo-cta" href="/dashboard/artistas"><UserRoundPlus size={17}/> Cadastrar Artista <ArrowUpRight size={16}/></Link></div>
+    <div className="nd-hpromo nd-hwelcome"><strong>Olá, {d.me?.artist_name?.trim()||d.me?.name?.trim()||'Artista'}</strong></div>
     {banner&&<div className="nd-hpromo"><div><strong>{banner.headline}</strong><p>{banner.body}</p></div>{banner.cta_url.startsWith('/')&&!banner.cta_url.startsWith('//')&&<a className="btn" href={banner.cta_url}>{banner.cta_label}</a>}</div>}
     <section className="card nd-weekly-analysis">
       <div className="nd-section-head"><h3>Análise — últimos 7 dias</h3>

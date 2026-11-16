@@ -25,7 +25,7 @@ import {PlanCards,type PublicPlan} from '@/components/billing/PlanCards'
 import '@/components/billing/plans.css'
 import {useCanReleaseMusic} from './useCanReleaseMusic'
 
-const ROUTES=['overview','catalog','drafts','new','profiles','analytics','split','financial','account','plans','support','notifications','contracts','privacy','profile']
+const ROUTES=['overview','catalog','drafts','new','profiles','analytics','split','financial','account','plans','support','notifications','contracts','privacy']
 const groups=[
  {name:'Lançamentos',items:[['catalog','Todos os lançamentos'],['drafts','Rascunhos'],['profiles','Artistas']]},
  {name:'Análises e Ganhos',items:[['analytics','Analytics'],['split','Divisões de Royalties'],['financial','Meus Ganhos']]}
@@ -104,8 +104,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
      <button type="button" aria-label="Menu do perfil" title={d?.email||'Conta'}><UserRound size={20}/><ChevronDown size={13}/></button>
      <div className="nd-hdropdown nd-hprofile-menu">
       <small title={d?.email}>{d?.email}</small>
-      <a href="/dashboard#profile">Perfil do artista</a>
-      <a href="/dashboard#account">Configurações da conta</a>
+      <a href="/dashboard/configuracoes">Configurações da conta</a>
       <a href="/dashboard/planos">Plano e faturamento</a>
       <a href="/dashboard#contracts">Gestão de contratos</a>
       <a href="/privacidade">Política de Privacidade</a>
@@ -131,7 +130,6 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
      {route==='financial'&&<Finance d={d} reload={load}/>}
      {route==='notifications'&&<NotificationsCenter/>}
      {route==='account'&&<Account d={d} reload={load}/>}
-     {route==='profile'&&<ArtistPhone d={d} reload={load}/>}
      {route==='contracts'&&<div className="card"><h3>Gestão de contratos</h3><p className="mut">Consulte seu contrato e baixe o documento assinado.</p><a className="btn" href="/onboarding/contract">Abrir contrato</a></div>}
      {route==='privacy'&&<div className="card"><a href="/privacidade">Abrir Política de Privacidade</a></div>}
      {route==='support'&&<Support d={d}/>}
@@ -140,16 +138,4 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
    </>}
   </main>
  </div>
-}
-function ArtistPhone({d,reload}:{d:Data;reload:()=>void}){
- const [phone,setPhone]=useState(d.me?.phone||'')
- const [message,setMessage]=useState('')
- return <form className="card form nd-phone" onSubmit={async e=>{
-  e.preventDefault();const clean=phone.trim()
-  if(clean.length>35){setMessage('Telefone muito longo.');return}
-  const {error}=await createClient().from('profiles').update({phone:clean||null}).eq('id',d.me.id)
-  setMessage(error?'Não foi possível salvar.':'Telefone atualizado.');if(!error)reload()
- }}><h3>Perfil do artista</h3><p className="mut">Neste espaço, somente o telefone pode ser alterado.</p>
- <label>Telefone<input type="tel" maxLength={35} value={phone} onChange={e=>setPhone(e.target.value)}/></label>
- <button className="btn">Salvar telefone</button>{message&&<p role="status">{message}</p>}</form>
 }

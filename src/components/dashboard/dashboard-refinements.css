@@ -71,3 +71,7 @@
  .nd-notice-feed-head{flex-wrap:wrap}
 }
 @media(max-width:420px){.nd-horizontal .grid4{grid-template-columns:1fr}}
+
+/* Boas-vindas sem CTA ou texto secundário */
+.nd-horizontal .nd-hwelcome{min-height:106px;padding:27px 30px;background:linear-gradient(100deg,#2563eb,#1d4ed8);border:0;color:#fff;justify-content:flex-start;align-items:center}
+.nd-horizontal .nd-hwelcome strong{font-size:clamp(20px,2.6vw,28px);font-weight:750;color:#fff;letter-spacing:-.025em}

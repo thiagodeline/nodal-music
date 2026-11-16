@@ -42,6 +42,7 @@ const sizeMB=(f:File)=>(f.size/1024/1024).toFixed(1)+' MB'
 
 export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [step,setStep]=useState(0)
+  useEffect(()=>{window.scrollTo({top:0,behavior:'smooth'})},[step])
   const [format,setFormat]=useState<Format>('single')
   const [artists,setArtists]=useState<Artist[]>([
     {key:'primary',profile_id:'',name:'',role:'primary'}
@@ -79,7 +80,13 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [addonPaid,setAddonPaid]=useState(false)
   const releaseId=useRef<string>(crypto.randomUUID())
   const [platforms,setPlatforms]=useState<string[]>([])
-  const allowedDSP=dspSettings.filter(x=>x.active&&(!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
+  // Uma loja Meta representativa é exibida como Instagram. Preservamos o nome interno
+  // aceito pelo backend para compatibilidade com a entrega e a cobrança existentes.
+  const eligibleMeta=dspSettings.filter(x=>x.active&&isMetaStore(x.name)&&
+    (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
+  const metaRepresentative=eligibleMeta.find(x=>x.name==='Facebook')?.name||eligibleMeta[0]?.name
+  const allowedDSP=dspSettings.filter(x=>x.active&&(!isMetaStore(x.name)||x.name===metaRepresentative)&&
+    (!currentPlan?.included_stores?.length||currentPlan.included_stores.includes(x.name)))
   const effectivePlatforms=allowedDSP.filter(x=>platforms.includes(x.name)).map(x=>x.name)
   const chargedDSP=allowedDSP.filter(x=>platforms.includes(x.name)&&x.is_extra&&Number(x.extra_fee)>0&&!(currentPlan?.has_instagram_included&&isMetaStore(x.name)))
   const legacyMeta=effectivePlatforms.some(isMetaStore)&&!currentPlan?.has_instagram_included&&
@@ -173,12 +180,13 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      const list=data as DspSetting[]
      setDspSettings(list)
      if(!draftRestored.current)setPlatforms(list.filter(x=>
+      (!isMetaStore(x.name)||x.name===metaRepresentative)&&
       (!currentPlan.included_stores.length||currentPlan.included_stores.includes(x.name))&&!x.is_extra&&
       !(isMetaStore(x.name)&&!currentPlan.has_instagram_included&&currentPlan.instagram_addon_fee>0)).map(x=>x.name))
      setDspLoading(false)
     })
    return()=>{active=false}
-  },[currentPlan?.id])
+  },[currentPlan?.id,metaRepresentative])
   useEffect(()=>()=>{if(coverUrl)URL.revokeObjectURL(coverUrl)},[coverUrl])
 
   const editArtist=(key:string,part:Partial<Artist>)=>setArtists(a=>a.map(x=>x.key===key?{...x,...part}:x))
@@ -248,6 +256,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   function check(stepIndex:number){
    const found:Record<string,string>={}
    if(stepIndex===0){
+    if(text(genre).length<2)found.genre='Informe o gênero do lançamento.'
+    if(format!=='single'&&!text(title))found.title='Informe o título do EP ou Álbum.'
     if(profilesLoading||profilesError||!profiles.length)found.artists='Cadastre um artista antes de continuar.'
     if(artists.filter(x=>x.role==='primary').length!==1)found.artists='Escolha um artista principal.'
     artists.forEach(a=>{if(!a.profile_id||!profiles.some(p=>p.id===a.profile_id&&p.name===a.name))
@@ -266,8 +276,6 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     if(!cover)found.cover='Envie uma capa de 3000 × 3000 px.'
    }
    if(stepIndex===1){
-    if(!text(title))found.title='Informe o título do lançamento.'
-    if(text(genre).length<2)found.genre='Informe o gênero do lançamento.'
     if(date<afterDays(14)||date>afterDays(1095))found.date='Escolha uma data a partir de 14 dias.'
     if(upc&&!/^\d{12,13}$/.test(upc.replace(/\s/g,'')))found.upc='UPC/EAN inválido.'
     if(!text(label)||text(label).length<2)found.label='Informe o selo.'
@@ -290,14 +298,14 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const next=()=>{
    setGeneralError('')
    if(!check(step))return
-   if(step===0&&format==='single'&&!title)setTitle(tracks[0]?.title||'')
+   if(step===0&&format==='single')setTitle(tracks[0]?.title||'')
    setStep(i=>Math.min(3,i+1))
   }
   async function saveDraft(){
    if(busy)return
    setDraftMessage('')
    const payload={
-    format,artists,tracks:tracks.map(({file,...t})=>t),title,genre,subgenre,date,upc,label,
+    format,artists,tracks:tracks.map(({file,...t})=>t),title:format==='single'?tracks[0]?.title||'':title,genre,subgenre,date,upc,label,
     pHolder,cHolder,pYear,cYear,platformMode,platforms,enableInstagram,rights,
     releaseMode,territoryMode,countries,publishingRights,contentId
    }
@@ -345,7 +353,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       }
       setProgress('Registrando lançamento e enviando para revisão...')
       const payload={
-        id,type:format,title:title.trim(),genre:genre.trim(),
+        id,type:format,title:(format==='single'?tracks[0]?.title||'':title).trim(),genre:genre.trim(),
         subgenre:subgenre.trim(),release_date:date,upc:upc.replace(/\s/g,''),
         artists:artists.map(a=>({profile_id:a.profile_id,name:a.name.trim(),role:a.role})),
         tracks:payloadTracks,cover_path:coverPath,rights_confirmed:rights,
@@ -421,7 +429,13 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
           <small>{f==='single'?'1 faixa':f==='ep'?'2 a 6 faixas':'7 ou mais faixas'}</small>
         </button>)}
       </div>
-      <h3>Dados dos artistas</h3>
+      <h3>Gênero do lançamento</h3>
+       <div className="sr-grid">
+        <label>Gênero *<input value={genre} maxLength={120} placeholder="Rap / Hip-hop" className={show('genre')} onChange={e=>setGenre(e.target.value)}/>{err('genre')}</label>
+        <label>Subgênero<input value={subgenre} maxLength={120} placeholder="Boom bap, Trap..." onChange={e=>setSubgenre(e.target.value)}/></label>
+       </div>
+       {err('title')}
+       <h3>Dados dos artistas</h3>
       <p className="mut">Selecione exclusivamente artistas cadastrados em “Meus Artistas”. Cada participante precisa de uma função.</p>
       {!profilesLoading&&!profilesError&&profiles.length===0&&<div className="sr-artist-alert" role="alert">Você precisa cadastrar pelo menos um artista em 'Meus Artistas' para criar um lançamento</div>}
       {profilesLoading&&<p className="mut" role="status">Carregando artistas cadastrados...</p>}
@@ -538,41 +552,27 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       <p className="sr-cover-guidance"><Info size={16}/> Capa quadrada em 3000 × 3000 px, até 15 MB. Sem URLs, QR Codes, logos de serviços de streaming ou conteúdo sem autorização. PNG é convertido para JPG antes do envio.</p>
      </section>}
      {step===1&&<section className="card sr-panel">
-      <h3>Dados do lançamento</h3>
-      <div className="sr-grid">
-        <label>Título do Single, EP ou Álbum *
-          <input value={title} maxLength={160} className={show('title')} onChange={e=>setTitle(e.target.value)}/>
-          {err('title')}</label>
-        <label>Gênero *
-          <input value={genre} maxLength={120} className={show('genre')} onChange={e=>setGenre(e.target.value)} placeholder="Rap / Hip-hop"/>
-          {err('genre')}</label>
-        <label>Subgênero
-          <input value={subgenre} maxLength={120} onChange={e=>setSubgenre(e.target.value)} placeholder="Boom bap, Trap..."/></label>
-        <label>UPC/EAN (opcional)
-          <input value={upc} maxLength={14} className={show('upc')} onChange={e=>setUpc(e.target.value)} placeholder="12 ou 13 dígitos"/>
-          {err('upc')}</label>
+      <h3>Dados de distribuição</h3>
+       <div className="sr-grid">
         <label>Data de lançamento (mínimo 14 dias) *
-          <input type="date" min={afterDays(14)} max={afterDays(1095)}
-            value={date} className={show('date')} onChange={e=>setDate(e.target.value)}/>
-          {err('date')}</label>
+         <input type="date" min={afterDays(14)} max={afterDays(1095)} value={date} className={show('date')} onChange={e=>setDate(e.target.value)}/>
+         {err('date')}</label>
         <label>Nome do selo *
-          <input value={label} maxLength={150} className={show('label')} onChange={e=>setLabel(e.target.value)}/>
-          {err('label')}</label>
-      </div>
-      <div className={'sr-date-badge '+planning.tone}>{planning.label} · {Math.max(days,0)} dias até o lançamento.</div>
-      <p className="sr-help mut">Planejar 28 dias ou mais pode dar tempo para revisão e apresentação às plataformas, mas não garante alcance ou posicionamento editorial.</p>
-      
-      <h3>Horário do lançamento</h3>
-      <div className="sr-four-choice-grid">
-       <label className="sr-four-choice"><input type="radio" name="releaseMode" checked={releaseMode==='local'} onChange={()=>setReleaseMode('local')}/>
+         <input value={label} maxLength={150} className={show('label')} onChange={e=>setLabel(e.target.value)}/>
+         {err('label')}</label>
+       </div>
+       <div className={'sr-date-badge '+planning.tone}>{planning.label} · {Math.max(days,0)} dias até o lançamento.</div>
+       <h3>Horário do lançamento</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-four-choice-grid">
+       <label className="sr-four-choice p-4 border rounded-xl flex items-start gap-3 cursor-pointer hover:border-blue-500"><input type="radio" name="releaseMode" checked={releaseMode==='local'} onChange={()=>setReleaseMode('local')}/>
         <span><strong>Lançamento Local</strong><small>00:00 no horário de cada país</small></span></label>
-       <label className="sr-four-choice"><input type="radio" name="releaseMode" checked={releaseMode==='global'} onChange={()=>setReleaseMode('global')}/>
+       <label className="sr-four-choice p-4 border rounded-xl flex items-start gap-3 cursor-pointer hover:border-blue-500"><input type="radio" name="releaseMode" checked={releaseMode==='global'} onChange={()=>setReleaseMode('global')}/>
         <span><strong>Lançamento Global</strong><small>Mesmo instante em todo o mundo (sujeito à disponibilidade das lojas)</small></span></label>
       </div>
       <h3>Territórios</h3>
-      <div className="sr-four-choice-grid">
-       <label className="sr-four-choice"><input type="radio" name="territoryMode" checked={territoryMode==='world'} onChange={()=>setTerritoryMode('world')}/> Mundo inteiro</label>
-       <label className="sr-four-choice"><input type="radio" name="territoryMode" checked={territoryMode==='selected'} onChange={()=>setTerritoryMode('selected')}/> Países selecionados</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-four-choice-grid">
+       <label className="sr-four-choice p-4 border rounded-xl flex items-start gap-3 cursor-pointer hover:border-blue-500"><input type="radio" name="territoryMode" checked={territoryMode==='world'} onChange={()=>setTerritoryMode('world')}/> Mundo inteiro</label>
+       <label className="sr-four-choice p-4 border rounded-xl flex items-start gap-3 cursor-pointer hover:border-blue-500"><input type="radio" name="territoryMode" checked={territoryMode==='selected'} onChange={()=>setTerritoryMode('selected')}/> Países selecionados</label>
       </div>
       {territoryMode==='selected'&&<div className="sr-territory-grid">
        {countriesOptions.map(([code,country])=><label key={code}><input type="checkbox" checked={countries.includes(code)} onChange={e=>setCountries(prev=>e.target.checked?[...prev,code]:prev.filter(x=>x!==code))}/>{country}</label>)}
@@ -582,29 +582,27 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       <p className="mut">Lojas incluídas vêm selecionadas. Extras exigem confirmação de pagamento antes do envio.</p>
       {dspLoading&&<p className="mut">Carregando lojas disponíveis...</p>}
       {dspError&&<p className="sr-error" role="alert">{dspError}</p>}
-      <div className="sr-dsp-section"><h4>Plataformas padrão</h4>
-       <div className="sr-dsp-grid">
-        {allowedDSP.filter(x=>!x.is_extra&&!(isMetaStore(x.name)&&legacyMeta>0)).map(x=><label className={'sr-dsp-option '+(platforms.includes(x.name)?'checked':'')} key={x.slug}>
-         <input type="checkbox" checked={platforms.includes(x.name)} disabled={addonPaid} onChange={e=>changePlatform(x.name,e.target.checked)}/>
-         <DspIcon name={x.name}/><span className="sr-dsp-name">{x.name}</span>
-        </label>)}
-       </div>
-      </div>
-      <div className="sr-dsp-section"><h4>Plataformas extras</h4>
-       <div className="sr-dsp-grid">
-        {allowedDSP.filter(x=>x.is_extra||isMetaStore(x.name)&&!currentPlan?.has_instagram_included&&Number(currentPlan?.instagram_addon_fee||0)>0).map(x=>{
-         const fee=currentPlan?.has_instagram_included&&isMetaStore(x.name)?0:
-          x.is_extra&&x.extra_fee>0?Number(x.extra_fee):isMetaStore(x.name)?legacyMeta:0
-         return <label className={'sr-dsp-option extra '+(platforms.includes(x.name)?'checked':'')} key={x.slug}>
-          <input type="checkbox" checked={platforms.includes(x.name)} disabled={addonPaid} onChange={e=>changePlatform(x.name,e.target.checked)}/>
-          <DspIcon name={x.name}/><span className="sr-dsp-name">{x.name}</span>
-          <small className="sr-dsp-price">{fee>0?'+ '+money(fee):'Incluído'}</small>
-         </label>
-        })}
-       </div>
-       {allowedDSP.filter(x=>x.is_extra).length===0&&!legacyMeta&&<p className="mut">Nenhuma plataforma extra habilitada pela equipe.</p>}
-      </div>
-      {currentPlan&&<p className="mut">Plano {currentPlan.name} · {monthlyUsed} de {currentPlan.monthly_releases_limit??'ilimitados'} lançamentos utilizados neste mês.</p>}
+      {([
+         {key:'streaming',title:'Plataformas de streaming',items:allowedDSP.filter(x=>!x.is_extra&&x.category!=='social'&&!isMetaStore(x.name))},
+         {key:'social',title:'Plataformas sociais',items:allowedDSP.filter(x=>!x.is_extra&&(x.category==='social'||isMetaStore(x.name))&&!(isMetaStore(x.name)&&!currentPlan?.has_instagram_included&&Number(currentPlan?.instagram_addon_fee||0)>0))},
+         {key:'extras',title:'Plataformas extras',items:allowedDSP.filter(x=>x.is_extra||isMetaStore(x.name)&&!currentPlan?.has_instagram_included&&Number(currentPlan?.instagram_addon_fee||0)>0)}
+        ] as const).map(group=><details className="sr-dsp-accordion" key={group.key} open={group.key==='streaming'}>
+         <summary>{group.title}<span>{group.items.length} plataformas</span></summary>
+         <div className="sr-dsp-grid">
+          {group.items.map(x=>{
+           const instagram=isMetaStore(x.name)
+           const fee=currentPlan?.has_instagram_included&&instagram?0:
+            x.is_extra&&Number(x.extra_fee)>0?Number(x.extra_fee):instagram?Number(currentPlan?.instagram_addon_fee||0):0
+           return <label className={'sr-dsp-option '+(group.key==='extras'?'extra ':'')+(platforms.includes(x.name)?'checked':'')} key={x.slug}>
+            <input type="checkbox" checked={platforms.includes(x.name)} disabled={addonPaid} onChange={e=>changePlatform(x.name,e.target.checked)}/>
+            <DspIcon name={instagram?'Instagram':x.name}/><span className="sr-dsp-name">{instagram?'Instagram':x.name}</span>
+            {group.key==='extras'&&<small className="sr-dsp-price">{fee>0?'+ '+money(fee):'Incluído'}</small>}
+           </label>
+          })}
+          {!group.items.length&&<p className="mut">Nenhuma plataforma disponível nesta categoria.</p>}
+         </div>
+       </details>)}
+       {currentPlan&&<p className="mut">Plano {currentPlan.name} · {monthlyUsed} de {currentPlan.monthly_releases_limit??'ilimitados'} lançamentos utilizados neste mês.</p>}
       {err('platforms')}{err('plan')}
       <div className="sr-four-total"><div><strong>Total adicional de plataformas extras</strong><small>Valor cobrado uma única vez por lançamento, via Pix</small></div><strong>{money(extraTotal)}</strong></div>
      </section>}
@@ -623,8 +621,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       {err('copyright')}
       
       <h3>Direitos de publicação</h3>
-      <div className="sr-four-choice-grid">
-       {[100,0,-1].map(v=><label key={v} className="sr-four-choice"><input type="radio" name="publishing" checked={v<0?![0,100].includes(publishingRights):publishingRights===v}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-four-choice-grid">
+       {[100,0,-1].map(v=><label key={v} className="sr-four-choice p-4 border rounded-xl flex items-start gap-3 cursor-pointer hover:border-blue-500"><input type="radio" name="publishing" checked={v<0?![0,100].includes(publishingRights):publishingRights===v}
          onChange={()=>setPublishingRights(v<0?50:v)}/>{v<0?'Outro':v+'%'}</label>)}
       </div>
       {![0,100].includes(publishingRights)&&<label>Percentual de direitos de publicação<input type="number" min={0} max={100} step=".01" value={publishingRights} onChange={e=>setPublishingRights(Number(e.target.value))}/></label>}
@@ -653,7 +651,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       <h3>Faixas</h3>
       <ol className="sr-track-review">{tracks.map((t,i)=><li key={t.key}>{i+1}. {t.title||'Sem título'} · {t.file?.name||'Sem áudio'} · {t.isrc||'ISRC pendente'}</li>)}</ol>
       <h3>Plataformas selecionadas ({effectivePlatforms.length})</h3>
-      <div className="sr-review-platforms">{effectivePlatforms.map(name=><span key={name}><DspIcon name={name} size={22}/>{name}</span>)}</div>
+      <div className="sr-review-platforms">{effectivePlatforms.map(name=><span key={name}><DspIcon name={isMetaStore(name)?'Instagram':name} size={22}/>{isMetaStore(name)?'Instagram':name}</span>)}</div>
       <div className="sr-four-total"><div><strong>Extras selecionados</strong><small>{extras.length?extras.map(x=>x.name+' '+money(x.fee)).join(' · '):'Sem taxas extras'}</small></div><strong>{money(extraTotal)}</strong></div>
       {extraTotal>0&&<p className="sr-notice">O Pix será cobrado antes do envio. O acesso às lojas extras só é liberado após confirmação do Mercado Pago.</p>}
       <p className="mut">A equipe revisará seu lançamento. Horários globais, territórios específicos e Content ID são solicitações registradas; a entrega efetiva depende das regras e capacidades da agregadora.</p>

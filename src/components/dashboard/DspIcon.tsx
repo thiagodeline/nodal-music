@@ -2,6 +2,7 @@
 import {Music2} from 'lucide-react'
 const brands:Record<string,{slug:string;color:string}>={
  'Spotify':{slug:'spotify',color:'1DB954'},
+ 'Instagram':{slug:'instagram',color:'E4405F'},
  'Apple Music':{slug:'applemusic',color:'FA243C'},
  'Apple Music 1':{slug:'applemusic',color:'FA243C'},
  'Youtube Music':{slug:'youtubemusic',color:'FF0000'},

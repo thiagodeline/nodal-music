@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -40,7 +41,7 @@ export default function OnboardingForm({ email, initialName = '', initialType = 
     window.location.replace('/onboarding/contract')
   }
   return (<main className="ob"><div className="ob-wrap">
-    <img src="/sintone-logo.svg" alt="SINTONE" className="ob-logo" />
+    <Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" className="ob-logo" priority />
     <h1>Escolha uma conta para criar</h1>
     {isProducer && <p className="ob-sub">O perfil Produção utiliza cadastro individual (CPF).</p>}
     <p className="ob-sub">Boas-vindas! Conte-nos quem você é para podermos personalizar sua experiência.</p>

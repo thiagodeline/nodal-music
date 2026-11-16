@@ -1,8 +1,10 @@
 'use client'
 import {useCallback,useEffect,useState} from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import {useRouter,useSearchParams} from 'next/navigation'
-import {Bell,ChevronDown,UploadCloud,CreditCard,UserRound,LogOut,Lock,Menu} from 'lucide-react'
+import {Bell,ChevronDown,UploadCloud,CreditCard,UserRound,LogOut,Lock,Menu,X} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import './dashboard.css'
 import './dashboard-horizontal.css'
@@ -10,20 +12,41 @@ import './dashboard-refinements.css'
 import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
 import Overview from './Overview'
-import Catalog from './Catalog'
-import NewRelease from './NewRelease'
-import Finance from './Finance'
-import Analytics from './Analytics'
+const Catalog=dynamic(()=>import('./Catalog'))
+const NewRelease=dynamic(()=>import('./NewRelease'),{loading:()=> <p className="mut">Preparando formulário…</p>})
+const Finance=dynamic(()=>import('./Finance'))
+const Analytics=dynamic(()=>import('./Analytics'))
 import {Account} from './Account'
 import Artists from './Artists'
 import Support from './Support'
 import {ContractBanner} from './ContractBanner'
-import RoyaltyInvites from './RoyaltyInvites'
-import NotificationsCenter from './NotificationsCenter'
-import ReleaseDrafts from './ReleaseDrafts'
+const RoyaltyInvites=dynamic(()=>import('./RoyaltyInvites'))
+const NotificationsCenter=dynamic(()=>import('./NotificationsCenter'))
+const ReleaseDrafts=dynamic(()=>import('./ReleaseDrafts'))
 import {PlanCards,type PublicPlan} from '@/components/billing/PlanCards'
 import '@/components/billing/plans.css'
 import {useCanReleaseMusic} from './useCanReleaseMusic'
+
+// Cache curta por usuário: deduplica leituras em mounts simultâneos sem reter dados entre sessões.
+type Snapshot=Awaited<ReturnType<typeof readSnapshot>>
+const snapshotCache=new Map<string,{expiry:number;value:Promise<Snapshot>}>()
+async function readSnapshot(sb:ReturnType<typeof createClient>,userId:string){
+ return Promise.all([
+  sb.from('profiles').select('*').eq('id',userId).single(),
+  sb.from('releases').select('*,release_tracks(id,position,title,isrc,audio_path,composers,producers,lyricists,language,explicit)').eq('artist_id',userId).order('created_at',{ascending:false}),
+  sb.from('reports').select('*').eq('artist_id',userId),
+  sb.from('withdrawals').select('*').eq('artist_id',userId).order('created_at',{ascending:false}),
+  sb.from('billing_subscriptions').select('plan_id,status,access_expires_at').eq('user_id',userId).order('created_at',{ascending:false}),
+  sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists').eq('published',true).eq('archived',false).order('price_brl')
+ ])
+}
+function cachedSnapshot(sb:ReturnType<typeof createClient>,userId:string,force:boolean){
+ const existing=snapshotCache.get(userId)
+ if(!force&&existing&&existing.expiry>Date.now())return existing.value
+ const promise=readSnapshot(sb,userId)
+ snapshotCache.set(userId,{expiry:Date.now()+15000,value:promise})
+ return promise
+}
 
 const ROUTES=['overview','catalog','drafts','new','profiles','analytics','split','financial','account','plans','support','notifications','contracts','privacy']
 const groups=[
@@ -40,15 +63,10 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const [unread,setUnread]=useState(0)
  const [navOpen,setNavOpen]=useState(false)
  const [staffAccess,setStaffAccess]=useState(false)
-   const load = useCallback(async () => {
+   const load = useCallback(async (force=true) => {
     const sb = createClient(); const { data: { user } } = await sb.auth.getUser(); if (!user) { location.href = '/login'; return }
-    const [me, r, rp, w, bs, catalog] = await Promise.all([
-      sb.from('profiles').select('*').eq('id', user.id).single(),
-      sb.from('releases').select('*,release_tracks(id,position,title,isrc,audio_path,composers,producers,lyricists,language,explicit)').eq('artist_id', user.id).order('created_at', { ascending: false }),
-      sb.from('reports').select('*').eq('artist_id', user.id),
-      sb.from('withdrawals').select('*').eq('artist_id', user.id).order('created_at', { ascending: false }),
-      sb.from('billing_subscriptions').select('plan_id,status,access_expires_at').eq('user_id',user.id).order('created_at',{ascending:false}),
-      sb.from('billing_plans').select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists').eq('published',true).eq('archived',false).order('price_brl')])
+    const [me,r,rp,w,bs,catalog]=await cachedSnapshot(sb,user.id,force)
+    if(me.data?.role==='admin'){window.location.replace('/admin');return}
     if (me.data?.onboarding_completed === false || me.data?.status === 'PENDING_ONBOARDING') { location.href = '/onboarding'; return }
     if(bs.error)console.error('Falha ao consultar modalidade do artista',bs.error.message)
     if(catalog.error)console.error('Falha ao consultar modalidades',catalog.error.message)
@@ -59,7 +77,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
     setD({ me: me.data, email: user.email ?? '', releases: (r.data ?? []).map(x=>({...x,tracks:(x.release_tracks??[]).sort((a:any,b:any)=>a.position-b.position)})), reports: rp.data ?? [], wds: w.data ?? [] })
   }, [])
 
- useEffect(()=>{void load()},[load])
+ useEffect(()=>{void load(false)},[load])
  useEffect(()=>{
   const update=()=>{
    const next=window.location.hash.slice(1)
@@ -92,12 +110,14 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const planTip='Plano Atual: '+(activePlan?.name||'Não identificado')+(activePlan?.description?' ('+activePlan.description+')':'')
  const uploadTip='Limite mensal: '+remain
  const restricted=expired&&!['plans','support','account','financial','catalog','notifications','contracts','privacy','profile','profiles'].includes(route)
- async function logout(){await createClient().auth.signOut();location.href='/'}
+ async function logout(){snapshotCache.clear();await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
  return <div className="nd nd-horizontal">
   <header className="nd-hnav">
-   <Link href="/dashboard" className="nd-hbrand" onClick={()=>jump('overview')}><img src="/sintone-logo.svg" alt="SINTONE"/></Link>
-   <nav className={'nd-hlinks '+(navOpen?'open':'')} aria-label="Navegação do artista">
+   <Link href="/dashboard" className="nd-hbrand" onClick={()=>jump('overview')}><Image src="/sintone-logo.svg" width={142} height={43} alt="SINTONE" priority/></Link>
+   <nav id="artist-mobile-navigation" className={'nd-hlinks '+(navOpen?'open':'')}
+    aria-label="Navegação do artista"
+    onClick={e=>{if((e.target as HTMLElement).closest('a'))setNavOpen(false)}}>
     <a className={route==='overview'?'active':''} href="/dashboard#overview">Visão Geral</a>
     {groups.map(group=><div className="nd-hgroup" key={group.name}>
      <button type="button" className={group.items.some(i=>i[0]===route)?'active':''}>{group.name} <ChevronDown size={15}/></button>
@@ -120,7 +140,9 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
       <button type="button" onClick={()=>void logout()}><LogOut size={15}/> Sair</button>
      </div>
     </div>
-    <button className="nd-hburger" onClick={()=>setNavOpen(x=>!x)} aria-label="Abrir navegação"><Menu size={21}/></button>
+    <button type="button" className="nd-hburger" onClick={()=>setNavOpen(x=>!x)}
+     aria-expanded={navOpen} aria-controls="artist-mobile-navigation"
+     aria-label={navOpen?'Fechar navegação':'Abrir navegação'}>{navOpen?<X size={21}/>:<Menu size={21}/>}</button>
    </div>
   </header>
   <main className="nd-hmain">

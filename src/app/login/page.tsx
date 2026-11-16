@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { LoaderCircle, LogIn } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import '../register/register.css'
@@ -24,13 +25,13 @@ export default function Login() {
     finally { setBusy(false) }
   }
   return <main className="rg-page"><div className="rg-container">
-    <aside className="rg-aside"><Link href="/"><img src="/sintone-logo.svg" alt="SINTONE"/></Link>
+    <aside className="rg-aside"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority/></Link>
       <div className="rg-aside-content"><span className="rg-eyebrow">BEM-VINDO DE VOLTA</span><h2>Sua música. Seu catálogo. Seu controle.</h2>
         <p>Acompanhe seus lançamentos e resultados pelo painel da SINTONE.</p></div>
       <p className="rg-aside-foot">Distribuição musical independente.</p>
     </aside>
     <section className="rg-panel"><div className="rg-form-wrap">
-      <div className="rg-mobile-brand"><Link href="/"><img src="/sintone-logo.svg" alt="SINTONE"/></Link></div>
+      <div className="rg-mobile-brand"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority/></Link></div>
       <div className="rg-heading"><span className="rg-eyebrow">ENTRAR NA PLATAFORMA</span><h1>Acesse sua conta</h1><p>Entre com seu e-mail e senha para continuar.</p></div>
       <form onSubmit={submit}>
         <div className="rg-group"><div className="rg-caption"><label htmlFor="login-email">E-mail</label></div><input id="login-email" name="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required/></div>

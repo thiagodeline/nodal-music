@@ -70,7 +70,7 @@ export const cookies: Sec[] = [
   ['O que são cookies', 'Cookies e tecnologias parecidas são pequenos arquivos guardados no seu navegador. Eles servem, por exemplo, para manter você conectado.'],
   ['O que usamos', 'Hoje usamos apenas itens estritamente necessários, sem os quais o painel não funciona:',
     '- Sessão de login (nomes que começam com sb-): mantêm você autenticado. Duração: até o fim da sessão ou até você sair.',
-    '- Aviso de cookies (nodal_cookies_notice, guardado no armazenamento local): lembra que você já viu este aviso.',
+    '- Aviso de cookies (sintone_cookies_notice, guardado no armazenamento local): lembra que você já viu este aviso.',
     'Não usamos cookies de publicidade, de rastreamento entre sites nem de análise de audiência.'],
   ['Consentimento', 'Cookies estritamente necessários dispensam consentimento. Se um dia passarmos a usar cookies de análise ou de marketing, vamos pedir sua escolha antes, e você poderá recusar sem perder o acesso ao serviço.'],
   ['Como gerenciar', 'Você pode apagar ou bloquear cookies nas configurações do navegador. Bloquear os cookies de sessão impede o login no painel.'],

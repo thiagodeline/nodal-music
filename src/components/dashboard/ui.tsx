@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 export type ReleaseTrack = {id?:string;position:number;title:string;isrc:string|null;audio_path:string;composers:string|null;producers:string|null;lyricists:string|null;language:string;explicit:boolean}
 export type Release = {tracks?:ReleaseTrack[];  id: string; title: string; type: string; main_artist: string | null; genre: string | null; subgenre?: string | null; featured_artists?: string | null; composers?: string | null; producers?: string | null; lyricists?: string | null; rejection_reason?: string | null; credits: string | null; isrc: string | null; upc: string | null; release_date: string | null; cover_path: string | null; status: string; created_at: string }
@@ -25,7 +26,7 @@ export const Badge = ({ s }: { s: string }) => { const [t, c] = ST[s] ?? [s, 'gr
 export function Cover({ path, size = 40 }: { path: string | null; size?: number }) {
   if (!path) return <div className="cov" style={{ width: size, height: size }} />
   const url = createClient().storage.from('covers').getPublicUrl(path).data.publicUrl
-  return <img className="cov" src={url} width={size} height={size} alt="" />
+  return <Image className="cov" src={url} width={size} height={size} sizes={`${size}px`} alt="Capa do lançamento" />
 }
 export function Kpi({ label, value, delta, action }: { label: string; value: string; delta?: number | null; action?: React.ReactNode }) {
   return (<div className="card kpi"><small>{label}</small><strong>{value}</strong>

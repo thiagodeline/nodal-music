@@ -18,7 +18,7 @@ export default function Overview({ d, can }: { d: Data; can: boolean }) {
   const active = d.releases.filter(r => r.status === 'approved' || r.status === 'live').length
   const dsp = group(d.reports, r => r.platform).slice(0, 5)
   return (<>
-    <div className="nd-hpromo nd-hwelcome"><strong>Olá, {d.me?.artist_name?.trim()||d.me?.name?.trim()||'Artista'}</strong></div>
+    <h1 className="nd-greeting text-2xl md:text-3xl font-bold text-slate-900">Olá, {d.me?.artist_name?.trim()||d.me?.name?.trim()||'Artista'}</h1>
     {banner&&<div className="nd-hpromo"><div><strong>{banner.headline}</strong><p>{banner.body}</p></div>{banner.cta_url.startsWith('/')&&!banner.cta_url.startsWith('//')&&<a className="btn" href={banner.cta_url}>{banner.cta_label}</a>}</div>}
     <section className="card nd-weekly-analysis">
       <div className="nd-section-head"><h3>Análise — últimos 7 dias</h3>
@@ -46,8 +46,8 @@ export default function Overview({ d, can }: { d: Data; can: boolean }) {
       <section className="card"><h3>Top lojas (DSPs)</h3><p className="mut">Participação nos streams reportados</p>{dsp.length?<Bars rows={dsp}/>:<p className="mut">Aguardando primeiros relatórios das lojas.</p>}</section>
     </div>
     <div className="card"><div className="row-h"><h3>Lançamentos recentes</h3><a className="link" href="/dashboard#catalog">Ver todos</a></div>
-      {d.releases.length ? <table><thead><tr><th>Faixa</th><th>Artista</th><th>Data</th><th>Status</th></tr></thead><tbody>
-        {d.releases.slice(0, 3).map(r => <tr key={r.id}><td><div className="cell"><Cover path={r.cover_path} />{r.title}</div></td><td>{r.main_artist || d.me?.artist_name || '—'}</td><td>{dt(r.release_date || r.created_at)}</td><td><Badge s={r.status} /></td></tr>)}</tbody></table>
+      {d.releases.length ? <div className="nd-table-scroll" role="region" aria-label="Lançamentos recentes" tabIndex={0}><table><thead><tr><th>Faixa</th><th>Artista</th><th>Data</th><th>Status</th></tr></thead><tbody>
+        {d.releases.slice(0, 3).map(r => <tr key={r.id}><td><div className="cell"><Cover path={r.cover_path} />{r.title}</div></td><td>{r.main_artist || d.me?.artist_name || '—'}</td><td>{dt(r.release_date || r.created_at)}</td><td><Badge s={r.status} /></td></tr>)}</tbody></table></div>
         : <div className="nd-no-releases"><h4>Nenhum lançamento ainda</h4><p className="mut">Cadastre um artista para começar a organizar seu catálogo.</p><Link className="btn" href="/dashboard/artistas">Cadastrar artista</Link></div>}</div>
   </>)
 }

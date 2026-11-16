@@ -72,6 +72,48 @@
 }
 @media(max-width:420px){.nd-horizontal .grid4{grid-template-columns:1fr}}
 
-/* Boas-vindas sem CTA ou texto secundário */
-.nd-horizontal .nd-hwelcome{min-height:106px;padding:27px 30px;background:linear-gradient(100deg,#2563eb,#1d4ed8);border:0;color:#fff;justify-content:flex-start;align-items:center}
-.nd-horizontal .nd-hwelcome strong{font-size:clamp(20px,2.6vw,28px);font-weight:750;color:#fff;letter-spacing:-.025em}
+
+/* Cabeçalho simples, sem card, padding ou superfície promocional. */
+.nd-horizontal .nd-greeting{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;min-height:0!important;color:#0f172a;font-size:clamp(24px,3vw,32px);line-height:1.25;letter-spacing:-.03em;font-weight:800}
+.nd-horizontal .nd-hmain{min-width:0;padding:24px clamp(16px,3vw,52px) 72px;gap:18px}
+.nd-horizontal .nd-hmain>*{min-width:0;max-width:100%}
+.nd-horizontal .nd-hmain .card{min-width:0;max-width:100%}
+.nd-horizontal .nd-table-scroll,.nd-horizontal .scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.nd-horizontal .nd-table-scroll>table,.nd-horizontal .scroll>table{min-width:620px;border-collapse:collapse}
+.nd-horizontal .nd-table-scroll:focus-visible,.nd-horizontal .scroll:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.nd-horizontal .grid2,.nd-horizontal .grid3,.nd-horizontal .grid4,.nd-horizontal .fin{min-width:0}
+.nd-horizontal .grid2>*,.nd-horizontal .grid3>*,.nd-horizontal .grid4>*,.nd-horizontal .fin>*{min-width:0}
+.nd-horizontal .nd-hnav{min-width:0;gap:16px}
+.nd-horizontal .nd-hlinks{min-width:0}
+.nd-horizontal .nd-hquick{min-width:0}
+.nd-horizontal .nd-hlinks a:focus-visible,.nd-horizontal .nd-hgroup button:focus-visible,.nd-horizontal .nd-hburger:focus-visible{outline:2px solid #2563eb;outline-offset:3px}
+@media(max-width:1000px){
+ .nd-horizontal .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .nd-horizontal .grid2,.nd-horizontal .fin{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+ .nd-horizontal .nd-hnav{padding:0 16px;gap:7px}
+ .nd-horizontal .nd-hquick{gap:5px}
+ .nd-horizontal .nd-hprofile{display:block}
+ .nd-horizontal .nd-hprofile>button{padding:8px}
+ .nd-horizontal .nd-hprofile .nd-hdropdown{position:absolute;top:100%;right:0;left:auto;min-width:min(260px,calc(100vw - 32px));z-index:90}
+ .nd-horizontal .nd-hburger{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;cursor:pointer}
+ .nd-horizontal .nd-hlinks.open{max-height:calc(100dvh - 65px);overflow-y:auto;overscroll-behavior:contain;padding:14px 16px 24px;z-index:80}
+ .nd-horizontal .nd-hlinks.open .nd-hdropdown{position:static;box-shadow:none;border:0;background:#f8fafc;width:100%}
+ .nd-horizontal .nd-hmain{padding:18px 16px 64px;gap:16px}
+ .nd-horizontal .nd-hquick .nd-hbell{padding:9px}
+ .nd-horizontal .nd-hquick .nd-hupload{padding:9px}
+}
+@media(max-width:520px){
+ .nd-horizontal .nd-hbrand img{width:99px;height:auto}
+ .nd-horizontal .nd-hnav{gap:4px}
+ .nd-horizontal .nd-hquick .nd-hprofile>button{padding:7px}
+ .nd-horizontal .nd-hquick .nd-hprofile>button>svg:last-child{display:none}
+ .nd-horizontal .nd-hquick .nd-houtline{display:none}
+ .nd-horizontal .nd-hquick .nd-hupload{min-width:38px;padding:8px}
+ .nd-horizontal .nd-hmain{padding:16px 12px 60px}
+ .nd-horizontal .nd-hmain .card{padding:16px}
+ .nd-horizontal .nd-weekly-grid,.nd-horizontal .grid2,.nd-horizontal .grid3,.nd-horizontal .grid4{grid-template-columns:1fr}
+ .nd-horizontal .nd-monthly-card{min-height:280px}
+ .nd-horizontal .nd-hpromo{padding:16px}
+}

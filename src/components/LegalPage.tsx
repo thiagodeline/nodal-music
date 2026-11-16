@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import '@/app/landing.css'
 import './legal.css'
 import { CO, type Sec } from '@/lib/legal'
@@ -12,7 +13,7 @@ function body(lines: string[]) {
 export default function LegalPage({ title, sections }: { title: string; sections: Sec[] }) {
   return (<>
     <header className="l-head"><div className="wrap l-bar">
-      <Link href="/"><img src="/logo.png" alt="Nodal Music" /></Link>
+      <Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={155} height={44} alt="SINTONE" priority /></Link>
       <div className="l-act"><Link className="btn ghost sm" href="/">Voltar ao site</Link></div>
     </div></header>
     <main className="legal">

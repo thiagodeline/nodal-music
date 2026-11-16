@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import './landing.css'
 import '@/components/legal.css'
 import {createClient} from '@/lib/supabase/server'
@@ -34,7 +35,7 @@ export default async function Home() {
   const checkoutReady=process.env.SINTONE_ENABLE_PAID_CHECKOUT==='true'&&process.env.SINTONE_PAYMENT_MODE==='one_time'&&!!(process.env.MERCADOPAGO_WEBHOOK_SECRET&&process.env.SUPABASE_SERVICE_ROLE_KEY&&process.env.MERCADOPAGO_ACCESS_TOKEN)
   return (<>
     <header className="l-head"><div className="wrap l-bar">
-      <Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
+      <Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={154} height={44} alt="SINTONE" priority /></Link>
       <nav className="l-links"><a href="#recursos">Recursos</a><a href="#como">Como funciona</a><a href="#faq">Perguntas</a>{plans.length>0&&<a href="#planos">Planos</a>}</nav>
       <div className="l-act"><Link className="btn ghost sm" href="/login">Entrar</Link><Link className="btn sm" href="/register">Criar conta</Link></div>
     </div></header>
@@ -99,7 +100,7 @@ export default async function Home() {
     </main>
 
     <footer className="wrap l-foot">
-      <img src="/sintone-logo.svg" alt="SINTONE" />
+      <Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={154} height={44} alt="SINTONE" /></Link>
       <div><nav className="l-legal" aria-label="Legal"><Link href="/termos">Termos</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">Seus dados (LGPD)</Link></nav><p style={{ marginTop: 10 }}>© {new Date().getFullYear()} SINTONE. Todos os direitos reservados.</p></div>
     </footer>
   </>)

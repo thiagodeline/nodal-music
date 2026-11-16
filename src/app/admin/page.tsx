@@ -15,10 +15,10 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{ta
   if(tab==='dsp')redirect('/admin/config-plataformas')
   const sb = ctx.supabase
   const [profiles, releases, contracts, totalUsers, pending, approved, totalReleases, pendingPayouts] = await Promise.all([
-    sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').order('created_at',{ascending:false}).range(0,999),
+    sb.from('profiles').select('id,name,artist_name,email,role,status,account_type,registration_profile,created_at,saldo_disponivel,phone,address,cpf,cnpj,birth_date').neq('role','admin').order('created_at',{ascending:false}).range(0,999),
     sb.from('releases').select('id,artist_id,title,type,main_artist,featured_artists,genre,subgenre,release_date,isrc,upc,composers,producers,lyricists,credits,explicit,cover_path,audio_path,status,created_at,rejection_reason,label_name,p_line,c_line,platforms,artists,delivery_status').order('created_at',{ascending:false}).range(0,999),
     sb.from('user_contracts').select('user_id,signed_name,signed_at,pdf_status').order('signed_at',{ascending:false}).range(0,999),
-    sb.from('profiles').select('id',{count:'exact',head:true}),
+    sb.from('profiles').select('id',{count:'exact',head:true}).neq('role','admin'),
     sb.from('releases').select('id',{count:'exact',head:true}).eq('status','pending'),
     sb.from('releases').select('id',{count:'exact',head:true}).eq('status','approved'),
     sb.from('releases').select('id',{count:'exact',head:true}),

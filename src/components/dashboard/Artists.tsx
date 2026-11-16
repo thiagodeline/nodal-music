@@ -13,7 +13,7 @@ function Row({ a, save, del }: { a: any; save: (id: string, sp: string, ap: stri
 }
 export default function Artists({ d }: { d: Data }) {
   const sb = useMemo(() => createClient(), []); const [rows, setRows] = useState<any[]>([]), [adding, setAdding] = useState(false), [name, setName] = useState(''), [msg, setMsg] = useState('')
-  const load = useCallback(async () => { const { data } = await sb.from('artist_profiles').select('*').order('created_at'); setRows(data ?? []) }, [sb])
+  const load = useCallback(async () => { const { data } = await sb.from('artist_profiles').select('*').eq('owner_id',d.me.id).order('created_at'); setRows(data ?? []) }, [sb])
   useEffect(() => { load() }, [load])
   async function add() {
     if (!name.trim()) return setMsg('Digite o nome do artista.')
@@ -24,10 +24,10 @@ export default function Artists({ d }: { d: Data }) {
     const s = spId(sp), a = apId(ap)
     if (s && !/^[A-Za-z0-9]{22}$/.test(s)) return setMsg('Spotify Artist ID inválido: são 22 letras e números (ou cole o link do artista).')
     if (a && !/^\d+$/.test(a)) return setMsg('Apple Music Artist ID inválido: só números (ou cole o link do artista).')
-    const { error } = await sb.from('artist_profiles').update({ spotify_artist_id: s || null, apple_artist_id: a || null }).eq('id', id)
+    const { error } = await sb.from('artist_profiles').update({ spotify_artist_id: s || null, apple_artist_id: a || null }).eq('id', id).eq('owner_id',d.me.id)
     setMsg(error ? 'Não foi possível salvar.' : 'IDs salvos.'); load()
   }
-  async function del(id: string) { if (!confirm('Remover este artista?')) return; await sb.from('artist_profiles').delete().eq('id', id); load() }
+  async function del(id: string) { if (!confirm('Remover este artista?')) return; await sb.from('artist_profiles').delete().eq('id', id).eq('owner_id',d.me.id); load() }
   return (<div className="card"><div className="head-row"><div><h3>Meus artistas</h3><p className="mut" style={{ margin: 0 }}>Vincule cada artista aos perfis das lojas. O ID está no link do perfil.</p></div>
     <button className="btn" onClick={() => setAdding(!adding)}><Plus size={15} style={{ verticalAlign: -2 }} /> Adicionar novo artista</button></div>
     {adding && <div className="ap" style={{ marginBottom: 16 }}><label>Nome do artista<input value={name} onChange={e => setName(e.target.value)} maxLength={120} /></label><span /><span /><button className="btn" onClick={add}>Adicionar</button></div>}

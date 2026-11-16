@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -79,7 +80,7 @@ export default function Register() {
   return <main className="rg-page">
     <div className="rg-container">
       <aside className="rg-aside">
-        <Link href="/" aria-label="Voltar para SINTONE"><img src="/sintone-logo.svg" alt="SINTONE" /></Link>
+        <Link href="/" aria-label="Voltar para SINTONE"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority /></Link>
         <div className="rg-aside-content"><span className="rg-eyebrow">SINTONE PARA CRIADORES</span>
           <h2>Sua música merece um caminho próprio.</h2>
           <p>Organize seu catálogo, acompanhe seus lançamentos e cresça com uma plataforma criada para o mercado independente.</p>
@@ -88,7 +89,7 @@ export default function Register() {
         <p className="rg-aside-foot">Distribuição musical independente.</p>
       </aside>
       <section className="rg-panel">
-        <div className="rg-mobile-brand"><Link href="/"><img src="/sintone-logo.svg" alt="SINTONE" /></Link></div>
+        <div className="rg-mobile-brand"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority /></Link></div>
         {done ? <div className="rg-success"><CircleCheck size={42} /><h1>Confira seu e-mail</h1><p>Se o cadastro foi aceito, você receberá uma mensagem para confirmar o endereço informado. Depois, entre para completar seu perfil.</p><Link href="/login" className="rg-submit">Ir para entrar</Link></div> :
         <div className="rg-form-wrap">
           <div className="rg-heading"><span className="rg-eyebrow">COMECE POR AQUI</span><h1>Crie sua conta</h1><p>Preencha seus dados para começar na SINTONE.</p></div>

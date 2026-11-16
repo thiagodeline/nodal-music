@@ -1,6 +1,8 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
+import NextImage from 'next/image'
+import dynamic from 'next/dynamic'
 import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X,Info,Headphones,FileAudio,ShieldAlert} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import {uploadReleaseAsset} from '@/lib/upload-release-asset'
@@ -8,7 +10,7 @@ import {isMetaStore} from '@/lib/dsp-catalog'
 import {SubscriptionCardForm} from '@/components/billing/SubscriptionCardForm'
 import {checkReleaseExtras} from '@/app/dashboard/billing-actions'
 import {DspIcon} from './DspIcon'
-import ReleaseAudioMini from './ReleaseAudioMini'
+const ReleaseAudioMini=dynamic(()=>import('./ReleaseAudioMini'))
 import ReleaseStoreItem from './ReleaseStoreItem'
 import {GENRES,LANGUAGES,releaseFormat} from './release-fields'
 import {inspectReleaseAudio,type AudioTechnicalInfo} from './release-audio-validation'
@@ -581,7 +583,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         onChange={e=>{void selectCover(e.target.files?.[0]);e.target.value=''}}/>
       </label>
       <div className="sr-two-cover-preview" aria-label="Prévia da capa">
-       {coverUrl?<img src={coverUrl} alt="Prévia da capa"/>:<span>Prévia da capa</span>}
+       {coverUrl?<NextImage src={coverUrl} alt="Prévia da capa" width={280} height={280} unoptimized/>:<span>Prévia da capa</span>}
       </div>
      </div>
      {err('cover')}
@@ -608,7 +610,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
    </div>}
    {step===2&&<section className="sr-two-panel">
     <div className="sr-two-panel-heading"><span><Check size={18}/></span><div><h2>Revisão dos dados</h2><p>Confira todas as informações antes de enviar o lançamento.</p></div></div>
-    <div className="sr-two-review-top">{coverUrl&&<img src={coverUrl} alt="Capa do lançamento"/>}
+    <div className="sr-two-review-top">{coverUrl&&<NextImage src={coverUrl} alt="Capa do lançamento" width={100} height={100} unoptimized/>}
      <div><h3>{title||'Sem título'}</h3><p>{fmtTitle[format]} · {tracks.length} faixa(s)</p>
       <p>{artists.filter(a=>a.role==='primary').map(a=>a.name).join(', ')}</p>
       <p>Lançamento: {date} · {useSpecificTime?releaseTime:'00:00'}</p></div></div>

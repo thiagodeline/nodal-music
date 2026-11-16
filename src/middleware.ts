@@ -25,8 +25,11 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
   // O painel administrativo faz checagem de RBAC própria no layout e nas ações.
   // Cargos de equipe não dependem do onboarding artístico.
-  if(path.startsWith('/admin'))return res
-  const { data: profile, error } = await sb.from('profiles').select('status, onboarding_completed').eq('id', user.id).maybeSingle()
+  if(path.startsWith('/admin'))return res // getAdminContext() valida RBAC no servidor
+  const { data: profile, error } = await sb.from('profiles')
+    .select('role,status,onboarding_completed').eq('id', user.id).maybeSingle()
+  // O login administrativo não participa do dashboard artístico nem do onboarding.
+  if(!error&&profile?.role==='admin')return go('/admin')
   if (error) return res // se o banco falhar, não prende o usuário; o RLS continua protegendo os dados
 
   let contractPdfReady = false

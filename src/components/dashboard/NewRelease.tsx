@@ -9,6 +9,7 @@ import {SubscriptionCardForm} from '@/components/billing/SubscriptionCardForm'
 import {checkReleaseExtras} from '@/app/dashboard/billing-actions'
 import {DspIcon} from './DspIcon'
 import ReleaseAudioMini from './ReleaseAudioMini'
+import ReleaseStoreItem from './ReleaseStoreItem'
 import {GENRES,LANGUAGES,releaseFormat} from './release-fields'
 import type {Data} from './ui'
 import './release-wizard.css'
@@ -76,8 +77,6 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [dspSettings,setDspSettings]=useState<DspSetting[]>([])
   const [dspLoading,setDspLoading]=useState(true)
   const [dspError,setDspError]=useState('')
-  const [territoryMode,setTerritoryMode]=useState<'world'|'selected'>('world')
-  const [countries,setCountries]=useState<string[]>(['BR'])
   const [publishingRights,setPublishingRights]=useState(100)
   const [contentId,setContentId]=useState(false)
   const draftRestored=useRef(false)
@@ -157,8 +156,6 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      if(v.platformMode==='selected')setPlatformMode('selected')
      if(Array.isArray(v.platforms))setPlatforms(v.platforms)
      setEnableInstagram(!!v.enableInstagram);setRights(!!v.rights)
-     if(v.territoryMode==='selected')setTerritoryMode('selected')
-     if(Array.isArray(v.countries))setCountries(v.countries)
      if(Number.isFinite(Number(v.publishingRights)))setPublishingRights(Number(v.publishingRights))
      setContentId(!!v.contentId)
      setDraftMessage('Metadados restaurados. Selecione novamente os arquivos de áudio e capa.')
@@ -268,7 +265,6 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      if(dspLoading||dspError)found.platforms=dspError||'Aguarde o catálogo de lojas.'
      if(!currentPlan||planLoading)found.plan='Plano indisponível.'
      if(currentPlan?.monthly_releases_limit!=null&&monthlyUsed>=currentPlan.monthly_releases_limit)found.plan='Limite mensal atingido.'
-     if(territoryMode==='selected'&&!countries.length)found.territories='Escolha ao menos um país.'
    }
    if(stepIndex===4&&!rights)found.rights='Confirme direitos e autorizações.'
    setErrors(found)
@@ -285,7 +281,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
    const payload={
     format,artists,tracks:tracks.map(({file,...t})=>t),title,genre,subgenre,language,date,releaseTime,upc,label,
     pHolder,cHolder,pYear,cYear,platformMode,platforms,enableInstagram,rights,
-    territoryMode,countries,publishingRights,contentId
+    publishingRights,contentId
    }
    const record={user_id:d.me.id,title:title.trim()||tracks[0]?.title||'Sem título',
     data:payload,updated_at:new Date().toISOString()}
@@ -336,7 +332,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
         artists:artists.map(a=>({profile_id:a.profile_id,name:a.name.trim(),role:a.role})),
         tracks:payloadTracks,cover_path:coverPath,rights_confirmed:rights,
         label_name:label.trim(),p_line:'℗ '+pYear+' '+pHolder.trim(),
-        c_line:'© '+cYear+' '+cHolder.trim(),platforms:effectivePlatforms,territories:territoryMode==='world'?['WORLD']:countries
+        c_line:'© '+cYear+' '+cHolder.trim(),platforms:effectivePlatforms,territories:['WORLD']
       }
       const response=await fetch('/api/releases',{method:'POST',
         headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
@@ -364,7 +360,6 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     days>=14?{label:'Prazo reduzido para divulgação',tone:'warn'}:
     {label:'Pouco tempo para revisão e divulgação',tone:'bad'}
   const stepTitles=['Informações gerais','Upload de faixas','Capa','Distribuição','Revisão e confirmação']
-  const countriesOptions=[["BR","Brasil"],["US","Estados Unidos"],["PT","Portugal"],["AR","Argentina"],["MX","México"],["FR","França"],["DE","Alemanha"],["GB","Reino Unido"],["ES","Espanha"],["CA","Canadá"],["JP","Japão"],["AO","Angola"]] as const
   const money=(n:number)=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
   const changePlatform=(name:string,checked:boolean)=>{
    if(addonPaid)return
@@ -408,8 +403,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
          onChange={e=>setLabel(e.target.value)}/>{err('label')}</label>
        </div>
        <label>UPC/EAN (opcional)<input value={upc} maxLength={13} inputMode="numeric"
-        placeholder="Gerado provisoriamente caso esteja vazio" onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>
-       <p className="sr-upc-note">Se o UPC ficar vazio, será gerado um identificador numérico provisório, não registrado na GS1. A equipe deverá validar ou substituir o código antes da entrega às DSPs.</p>
+        placeholder="Preenchido pela iMusics, se não informado" onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>
+       <p className="sr-upc-note">Se não tiver UPC/EAN, deixe em branco. O código será obtido externamente pela iMusics durante o processo de distribuição.</p>
       </section>
       <section className="card sr-panel">
        <h3>Dados dos artistas</h3>
@@ -485,7 +480,16 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
           <label>Idioma da faixa<select value={t.language} onChange={e=>editTrack(t.key,{language:e.target.value})}>
            {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}</select></label>
          </div>
-         <label className="sr-check"><input type="checkbox" checked={t.explicit} onChange={e=>editTrack(t.key,{explicit:e.target.checked})}/> Conteúdo explícito</label>
+         <label className={'sr-explicit-card '+(t.explicit?'is-on':'')}>
+          <input type="checkbox" role="switch" aria-label="Conteúdo explícito" checked={t.explicit}
+           onChange={e=>editTrack(t.key,{explicit:e.target.checked})}/>
+          <span className="sr-explicit-track" aria-hidden="true"><span/></span>
+          <span className="sr-explicit-description">
+           <strong>Conteúdo explícito</strong>
+           <small>Letras ou linguagem explícita</small>
+          </span>
+          <span className={'sr-explicit-status '+(t.explicit?'active':'')}>{t.explicit?'Sim':'Não'}</span>
+         </label>
          <p className="sr-notice">Confirme os autores e permissões de samples antes da distribuição. ISRC vazio será analisado pela equipe.</p>
         </div>}
        </article>)}
@@ -511,39 +515,28 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       </div>
       <div className={'sr-date-badge '+planning.tone}>{planning.label} · {Math.max(days,0)} dias até o lançamento.</div>
       <p className="sr-notice"><Info size={16}/> O horário é uma solicitação registrada para a equipe. A disponibilidade de hora exata varia conforme a loja e a agregadora.</p>
-      <h3>Territórios</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-four-choice-grid">
-       <label className="sr-four-choice"><input type="radio" checked={territoryMode==='world'} onChange={()=>setTerritoryMode('world')}/> Mundo inteiro</label>
-       <label className="sr-four-choice"><input type="radio" checked={territoryMode==='selected'} onChange={()=>setTerritoryMode('selected')}/> Países selecionados</label>
-      </div>
-      {territoryMode==='selected'&&<div className="sr-territory-grid">{countriesOptions.map(([code,country])=>
-       <label key={code}><input type="checkbox" checked={countries.includes(code)} onChange={e=>
-        setCountries(old=>e.target.checked?[...old,code]:old.filter(x=>x!==code))}/>{country}</label>)}</div>}
-      {err('territories')}
       <h3>Plataformas de distribuição</h3>
       <p className="mut">Lojas incluídas vêm selecionadas. Extras exigem confirmação de pagamento antes do envio.</p>
       {dspLoading&&<p className="mut">Carregando lojas disponíveis...</p>}
       {dspError&&<p className="sr-error" role="alert">{dspError}</p>}
-      {([
-         {key:'streaming',title:'Plataformas de streaming',items:allowedDSP.filter(x=>!x.is_extra&&x.category!=='social'&&!isMetaStore(x.name))},
-         {key:'social',title:'Plataformas sociais',items:allowedDSP.filter(x=>!x.is_extra&&(x.category==='social'||isMetaStore(x.name)))},
-         {key:'extras',title:'Plataformas extras',items:allowedDSP.filter(x=>x.is_extra)}
-        ] as const).map(group=><details className="sr-dsp-accordion" key={group.key} open={group.key==='streaming'}>
-         <summary>{group.title}<span>{group.items.length} plataformas</span></summary>
-         <div className="sr-dsp-grid">
-          {group.items.map(x=>{
-           const instagram=isMetaStore(x.name)
-           const fee=currentPlan?.has_instagram_included&&instagram?0:
-            x.is_extra&&Number(x.extra_fee)>0&&!(instagram&&currentPlan?.has_instagram_included)?Number(x.extra_fee):0
-           return <label className={'sr-dsp-option '+(group.key==='extras'?'extra ':'')+(platforms.includes(x.name)?'checked':'')} key={x.slug}>
-            <input type="checkbox" checked={platforms.includes(x.name)} disabled={addonPaid} onChange={e=>changePlatform(x.name,e.target.checked)}/>
-            <DspIcon name={instagram?'Instagram':x.name}/><span className="sr-dsp-name">{instagram?'Instagram':x.name}</span>
-            {group.key==='extras'&&<small className="sr-dsp-price">{fee>0?'+ '+money(fee):'Incluído'}</small>}
-           </label>
-          })}
-          {!group.items.length&&<p className="mut">Nenhuma plataforma disponível nesta categoria.</p>}
-         </div>
-       </details>)}
+      <div className="sr-store-section">
+       <div className="sr-store-section-title"><h4>Streaming e plataformas sociais</h4>
+        <span>{allowedDSP.filter(x=>!x.is_extra).length} lojas</span></div>
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid">
+        {allowedDSP.filter(x=>!x.is_extra).map(store=><ReleaseStoreItem key={store.slug}
+         name={store.name} checked={platforms.includes(store.name)} disabled={addonPaid}
+         onChange={checked=>changePlatform(store.name,checked)}/>)}
+       </div>
+      </div>
+      {allowedDSP.some(x=>x.is_extra)&&<div className="sr-store-section">
+       <div className="sr-store-section-title"><h4>Plataformas extras</h4><span>Taxa por lançamento</span></div>
+       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid">
+        {allowedDSP.filter(x=>x.is_extra).map(store=><ReleaseStoreItem key={store.slug}
+         name={store.name} checked={platforms.includes(store.name)} disabled={addonPaid}
+         fee={store.is_extra&&!(isMetaStore(store.name)&&currentPlan?.has_instagram_included)?Number(store.extra_fee):0}
+         onChange={checked=>changePlatform(store.name,checked)}/>)}
+       </div>
+      </div>}
        {currentPlan&&<p className="mut">Plano {currentPlan.name} · {monthlyUsed} de {currentPlan.monthly_releases_limit??'ilimitados'} lançamentos utilizados neste mês.</p>}
       {err('platforms')}{err('plan')}
       <div className="sr-four-total"><div><strong>Total adicional de plataformas extras</strong><small>Valor cobrado uma única vez por lançamento, via Pix</small></div><strong>{money(extraTotal)}</strong></div>
@@ -562,7 +555,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        <span><strong>Selo</strong>{label||'—'}</span>
        <span><strong>℗ Gravação</strong>{pYear} · {pHolder}</span>
        <span><strong>© Lançamento</strong>{cYear} · {cHolder}</span>
-       <span><strong>UPC</strong>{upc||'Será gerado provisoriamente'}</span>
+       <span><strong>UPC</strong>{upc||'Pendente — iMusics'}</span>
        <span><strong>Data e horário solicitados</strong>{date} às {releaseTime}</span>
        <span><strong>Plataformas</strong>{effectivePlatforms.length}</span>
       </div>
@@ -572,13 +565,17 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        {t.isrc||'ISRC pendente'} · {t.explicit?'Explícita':'Não explícita'}
       </li>)}</ol>
       <h3>Plataformas selecionadas</h3>
-      <div className="sr-review-platforms">{effectivePlatforms.map(name=><span key={name}><DspIcon name={name} size={22}/>{name}</span>)}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid sr-review-store-grid">
+       {effectivePlatforms.map(name=><div className="sr-store-option" key={name}>
+        <DspIcon name={name} size={32}/><span className="sr-store-name">{name}</span>
+       </div>)}
+      </div>
       <div className="sr-four-total"><div><strong>Total das plataformas extras</strong>
        <small>{extras.length?extras.map(x=>x.name+' '+money(x.fee)).join(' · '):'Nenhum extra pago'}</small></div>
        <strong>{money(extraTotal)}</strong></div>
       <label className="sr-check"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/>
        Confirmo que possuo todos os direitos necessários para distribuir os áudios, obras, samples e capa.</label>{err('rights')}
-      <p className="sr-notice">O lançamento será enviado como pendente para revisão da equipe SINTONE. UPC provisório, ISRC e horário poderão exigir conferência antes da entrega às lojas.</p>
+      <p className="sr-notice">O lançamento será enviado como pendente para revisão da equipe SINTONE. UPC não informado será obtido pela iMusics. ISRC e horário poderão exigir conferência antes da entrega às lojas.</p>
      </section>}
      {addonCheckout&&currentPlan&&<SubscriptionCardForm plan={{id:currentPlan.id,name:currentPlan.name,price_brl:currentPlan.price_brl,frequency:1}}
       addonReleaseId={releaseId.current} addonPrice={extraTotal} selectedStores={effectivePlatforms}

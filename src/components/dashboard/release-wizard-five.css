@@ -15,3 +15,42 @@
 .sr-five .sr-section-label{font-size:13px;font-weight:650;color:#334155}
 .sr-five .sr-upc-note{font-size:12px;line-height:1.5;color:#64748b}
 @media(max-width:920px){.sr-five .sr-four-shell{grid-template-columns:1fr}}
+
+/* SoundOn-inspired two-column store rows */
+.sr-five .sr-store-section{display:grid;gap:12px;margin:15px 0 18px}
+.sr-five .sr-store-section-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sr-five .sr-store-section-title h4{font-size:15px;margin:0;color:#0f172a}
+.sr-five .sr-store-section-title>span{color:#64748b;font-size:12px}
+.sr-five .sr-store-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media(min-width:768px){.sr-five .sr-store-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sr-five .sr-store-option{min-width:0;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;background:#fff;display:flex;flex-direction:column;justify-content:center;transition:background .15s,border-color .15s}
+.sr-five .sr-store-option.selected{border-color:#93c5fd;background:#f8fbff}
+.sr-five .sr-store-option.disabled{opacity:.68}
+.sr-five .sr-store-primary{display:flex!important;align-items:center!important;gap:12px!important;width:100%;cursor:pointer;margin:0}
+.sr-five .sr-store-primary input[type=checkbox]{width:18px!important;height:18px!important;min-width:18px;flex:none;accent-color:#2563eb;margin:0}
+.sr-five .sr-store-logo{flex:none;width:43px;height:43px;display:grid;place-items:center;border-radius:11px;background:#f1f5f9;border:1px solid #e2e8f0}
+.sr-five .sr-store-content{display:grid;min-width:0;gap:3px;flex:1}
+.sr-five .sr-store-content strong{color:#0f172a;font-size:13px;font-weight:750;line-height:1.35;overflow-wrap:anywhere}
+.sr-five .sr-store-hint{font-size:10px;color:#64748b;line-height:1.4}
+.sr-five .sr-store-help{display:block;margin:4px 0 0 73px;font-size:11px;line-height:1.5;color:#e11d48;text-decoration:none}
+.sr-five .sr-store-help:hover{text-decoration:underline}
+.sr-five .sr-store-fee{margin-left:auto;padding:5px 7px;border-radius:999px;white-space:nowrap;font-size:10px;font-weight:750}
+.sr-five .sr-store-fee.paid{background:#ecfdf5;color:#047857}
+.sr-five .sr-store-fee.included{background:#f1f5f9;color:#475569}
+.sr-five .sr-review-store-grid .sr-store-option{flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;min-height:62px}
+.sr-five .sr-review-store-grid .sr-store-name{font-size:13px;font-weight:650;color:#334155}
+/* Explicit track setting with switch and soft contextual badge */
+.sr-five .sr-explicit-card{display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;padding:15px 16px!important;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc;cursor:pointer}
+.sr-five .sr-explicit-card.is-on{border-color:#fda4af;background:#fff7f8}
+.sr-five .sr-explicit-card input[type=checkbox]{position:absolute;opacity:0;width:1px;height:1px}
+.sr-five .sr-explicit-track{height:24px;width:43px;border-radius:999px;background:#cbd5e1;padding:3px;flex:none;transition:background .2s}
+.sr-five .sr-explicit-track>span{display:block;width:18px;height:18px;background:white;border-radius:50%;box-shadow:0 1px 2px #0002;transition:transform .2s}
+.sr-five .sr-explicit-card.is-on .sr-explicit-track{background:#e11d48}
+.sr-five .sr-explicit-card.is-on .sr-explicit-track>span{transform:translateX(19px)}
+.sr-five .sr-explicit-card:focus-within{outline:2px solid #2563eb;outline-offset:2px}
+.sr-five .sr-explicit-description{display:grid;flex:1;gap:3px;min-width:0}
+.sr-five .sr-explicit-description strong{font-size:13px;color:#0f172a}
+.sr-five .sr-explicit-description small{font-size:11px;color:#64748b}
+.sr-five .sr-explicit-status{font-size:10px;font-weight:750;padding:5px 9px;color:#64748b;background:#e2e8f0;border-radius:999px;flex:none}
+.sr-five .sr-explicit-status.active{color:#be123c;background:#ffe4e6}
+@media(max-width:480px){.sr-five .sr-store-primary{gap:8px!important}.sr-five .sr-store-logo{width:38px;height:38px}.sr-five .sr-store-help{margin-left:65px}.sr-five .sr-store-option{padding:10px}}

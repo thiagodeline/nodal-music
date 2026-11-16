@@ -1,7 +1,7 @@
 'use client'
 
 import {useEffect,useRef,useState} from 'react'
-import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X,Info} from 'lucide-react'
+import {Check,ChevronLeft,ChevronRight,Music2,Plus,Trash2,UploadCloud,X,Info,Headphones,FileAudio,ShieldAlert} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import {uploadReleaseAsset} from '@/lib/upload-release-asset'
 import {isMetaStore} from '@/lib/dsp-catalog'
@@ -11,26 +11,29 @@ import {DspIcon} from './DspIcon'
 import ReleaseAudioMini from './ReleaseAudioMini'
 import ReleaseStoreItem from './ReleaseStoreItem'
 import {GENRES,LANGUAGES,releaseFormat} from './release-fields'
+import {inspectReleaseAudio,type AudioTechnicalInfo} from './release-audio-validation'
 import type {Data} from './ui'
 import './release-wizard.css'
 import './release-wizard-four.css'
 import './release-wizard-five.css'
+import './release-two-pages.css'
 
 type Format='single'|'ep'|'album'
 type ArtistRole='primary'|'featured'|'remixer'
 type Artist={key:string;profile_id:string;name:string;role:ArtistRole}
-type Contributor={key:string;name:string;role:'featured'|'producer'|'composer'|'instrumentalist'|'remixer'|'engineer'}
+type Contributor={key:string;name:string;profile_id?:string;role:'vocal'|'featured'|'producer'|'instrumentalist'|'remixer'|'engineer'}
 type Track={
   key:string;title:string;isrc:string;file:File|null;featured_artists:string;
   contributors:Contributor[];composers:string;producers:string;lyricists:string;
-  credits:string;explicit:boolean;language:string;genre:string;subgenre:string
+  credits:string;explicit:boolean;language:string;genre:string;subgenre:string;
+  isOriginal:boolean;isInstrumental:boolean;isRemix:boolean;tiktokPreviewStart:number
 }
 type Profile={id:string;name:string}
 type DspSetting={name:string;slug:string;is_extra:boolean;extra_fee:number;active:boolean;category:string}
 type CurrentPlan={id:string;name:string;price_brl:number;monthly_releases_limit:number|null;max_artists:number;included_stores:string[];has_instagram_included:boolean;instagram_addon_fee:number}
 const trackNew=():Track=>({
   key:crypto.randomUUID(),title:'',isrc:'',file:null,featured_artists:'',
-  contributors:[],composers:'',producers:'',lyricists:'',credits:'',explicit:false,language:'pt',genre:'',subgenre:''
+  contributors:[{key:crypto.randomUUID(),name:'',role:'vocal'},{key:crypto.randomUUID(),name:'',role:'producer'}],composers:'',producers:'',lyricists:'',credits:'',explicit:false,language:'pt',genre:'',subgenre:'',isOriginal:true,isInstrumental:false,isRemix:false,tiktokPreviewStart:0
 })
 const today=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'America/Sao_Paulo'})
 const afterDays=(n:number)=>{
@@ -52,16 +55,23 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const [profiles,setProfiles]=useState<Profile[]>([])
   const [profilesLoading,setProfilesLoading]=useState(true)
   const [profilesError,setProfilesError]=useState(false)
-  const [tracks,setTracks]=useState<Track[]>(()=>[])
+  const [tracks,setTracks]=useState<Track[]>(()=>[trackNew()])
+  const [audioSpecs,setAudioSpecs]=useState<Record<string,AudioTechnicalInfo>>({})
+  const [composerProfiles,setComposerProfiles]=useState<Record<string,{key:string;profile_id:string;legalName:string}[]>>({})
+  const [advancedTracks,setAdvancedTracks]=useState<Record<string,boolean>>({})
+  const [isrcModes,setIsrcModes]=useState<Record<string,'have'|'generate'>>({})
   const [dropActive,setDropActive]=useState(false)
   const [trackDurations,setTrackDurations]=useState<Record<string,number>>({})
-  const [expandedTrack,setExpandedTrack]=useState<string|null>(null)
+  const [expandedTrack,setExpandedTrack]=useState<string|null>(()=>tracks[0]?.key||null)
   const format=releaseFormat(tracks.length)
   const [title,setTitle]=useState('')
   const [genre,setGenre]=useState('')
   const [subgenre,setSubgenre]=useState('')
   const [language,setLanguage]=useState('pt')
   const [releaseTime,setReleaseTime]=useState('00:00')
+  const [useSpecificTime,setUseSpecificTime]=useState(false)
+  const [hasExistingUpc,setHasExistingUpc]=useState(false)
+  const [showStoreChooser,setShowStoreChooser]=useState(false)
   const [date,setDate]=useState(afterDays(28))
   const [upc,setUpc]=useState('')
   const [label,setLabel]=useState('SINTONE')
@@ -150,10 +160,12 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
      if(Array.isArray(v.artists))setArtists(v.artists)
      if(Array.isArray(v.tracks)&&v.tracks.length)setTracks(v.tracks.map((t:any)=>({...trackNew(),...t,key:t.key||crypto.randomUUID(),file:null})))
      setTitle(v.title||'');setGenre(v.genre||'');setSubgenre(v.subgenre||'')
-     setDate(v.date||afterDays(28));setUpc(v.upc||'');setLabel(v.label||'SINTONE');setLanguage(v.language||'pt');setReleaseTime(v.releaseTime||'00:00')
+     setDate(v.date||afterDays(28));setUpc(v.upc||'');setHasExistingUpc(!!v.upc);setLabel(v.label||'SINTONE');setLanguage(v.language||'pt');setReleaseTime(v.releaseTime||'00:00');setUseSpecificTime(!!v.useSpecificTime)
      setPHolder(v.pHolder||'');setCHolder(v.cHolder||'')
      setPYear(Number(v.pYear)||new Date().getFullYear());setCYear(Number(v.cYear)||new Date().getFullYear())
-     if(v.platformMode==='selected')setPlatformMode('selected')
+     if(v.platformMode==='selected'){setPlatformMode('selected');setShowStoreChooser(true)}
+     if(v.composerProfiles&&typeof v.composerProfiles==='object')setComposerProfiles(v.composerProfiles)
+     if(v.isrcModes&&typeof v.isrcModes==='object')setIsrcModes(v.isrcModes)
      if(Array.isArray(v.platforms))setPlatforms(v.platforms)
      setEnableInstagram(!!v.enableInstagram);setRights(!!v.rights)
      if(Number.isFinite(Number(v.publishingRights)))setPublishingRights(Number(v.publishingRights))
@@ -184,18 +196,27 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   const err=(key:string)=>errors[key]&&<small className="sr-error" role="alert">{errors[key]}</small>
   const show=(key:string)=>errors[key]?'sr-input-error':''
   const addArtist=()=>{if(artists.length>=20)return;setArtists(a=>[...a,{key:crypto.randomUUID(),profile_id:'',name:'',role:'featured'}])}
-  const addAudioFiles=(files:File[])=>{
-    if(!files.length)return
-    if(tracks.length+files.length>100){setGeneralError('Máximo de 100 faixas.');return}
-    const bad=files.find(f=>!/\.(wav|flac)$/i.test(f.name)||f.size<1000||f.size>250*1024*1024)
-    if(bad){setGeneralError('Áudio inválido: '+bad.name+'. Envie WAV/FLAC de até 250 MB.');return}
-    const next=files.map(f=>({...trackNew(),file:f,title:f.name.replace(/\.(wav|flac)$/i,'').replace(/[_-]+/g,' ').trim(),language}))
-    setTracks(old=>[...old,...next]);setExpandedTrack(next[0].key);setGeneralError('')
+  const addAudioFiles=async(files:File[])=>{
+   if(!files.length)return
+   if(tracks.length+files.length>100){setGeneralError('Limite de 100 faixas por lançamento.');return}
+   try{
+    const analyzed=await Promise.all(files.map(async file=>({file,spec:await inspectReleaseAudio(file)})))
+    const existing=tracks.length===1&&!tracks[0].file&&!tracks[0].title.trim()
+    const incoming=analyzed.map(({file,spec})=>{
+     const t=trackNew()
+     return {track:{...t,title:file.name.replace(/\.(wav|flac)$/i,'').replace(/[_-]/g,' ').trim(),file,genre,language},spec}
+    })
+    if(existing)setTracks(incoming.map(x=>x.track))
+    else setTracks(prev=>[...prev,...incoming.map(x=>x.track)])
+    setAudioSpecs(prev=>({...prev,...Object.fromEntries(incoming.map(x=>[x.track.key,x.spec]))}))
+    setExpandedTrack(incoming[0].track.key);setGeneralError('')
+   }catch(e){setGeneralError(e instanceof Error?e.message:'Áudio inválido.')}
   }
   const removeTrack=(key:string)=>{
     setTracks(old=>old.filter(t=>t.key!==key))
     if(expandedTrack===key)setExpandedTrack(null)
     setTrackDurations(old=>{const next={...old};delete next[key];return next})
+    setAudioSpecs(old=>{const next={...old};delete next[key];return next})
     setAddonPaid(false)
   }
   const selectProfile=(a:Artist,profileId:string)=>{
@@ -204,8 +225,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   }
   const selectCover=async(f?:File)=>{
     if(!f)return
-    if(!/\.(jpe?g|png)$/i.test(f.name)||!['image/jpeg','image/png'].includes(f.type)||f.size>15*1024*1024){
-      setErrors(v=>({...v,cover:'Envie um JPG ou PNG de até 15 MB.'}));return
+    if(!/\.jpe?g$/i.test(f.name)||f.type!=='image/jpeg'||f.size>15*1024*1024){
+      setErrors(v=>({...v,cover:'Envie um JPG de até 15 MB.'}));return
     }
     const url=URL.createObjectURL(f)
     try{
@@ -213,73 +234,94 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       await new Promise<void>((resolve,reject)=>{
         pic.onload=()=>resolve();pic.onerror=()=>reject(new Error('Imagem inválida.'));pic.src=url
       })
-      if(pic.naturalWidth!==3000||pic.naturalHeight!==3000)throw Error('A capa deve ter exatamente 3000 × 3000 pixels.')
-      let file=f
-      if(f.type==='image/png'){
-       const canvas=document.createElement('canvas');canvas.width=3000;canvas.height=3000
-       const context=canvas.getContext('2d')
-       if(!context)throw Error('Não foi possível converter a capa.')
-       context.fillStyle='#ffffff';context.fillRect(0,0,3000,3000);context.drawImage(pic,0,0)
-       const jpeg=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/jpeg',.94))
-       if(!jpeg||jpeg.size>15*1024*1024)throw Error('Capa convertida ultrapassa 15 MB.')
-       file=new File([jpeg],f.name.replace(/\.png$/i,'.jpg'),{type:'image/jpeg'})
-      }
+      if(![1440,3000].includes(pic.naturalWidth)||pic.naturalWidth!==pic.naturalHeight)throw Error('A capa deve ter 1440 × 1440 ou 3000 × 3000 pixels.')
+      const file=f
       setCover(file);setCoverUrl(url);setErrors(v=>({...v,cover:''}))
     }catch(e){URL.revokeObjectURL(url);setErrors(v=>({...v,cover:e instanceof Error?e.message:'Capa inválida.'}))}
   }
 
+  const composerItems=(key:string)=>composerProfiles[key]||[]
+  const updateComposer=(key:string,rowKey:string,change:Partial<{profile_id:string;legalName:string}>)=>
+   setComposerProfiles(old=>({...old,[key]:(old[key]||[]).map(item=>item.key===rowKey?{...item,...change}:item)}))
+  const addComposer=(key:string)=>setComposerProfiles(old=>({...old,
+   [key]:[...(old[key]||[]),{key:crypto.randomUUID(),profile_id:'',legalName:''}]}))
+  const changeContributor=(trackKey:string,contributorKey:string,change:Partial<Contributor>)=>
+   setTracks(old=>old.map(t=>t.key===trackKey?{...t,contributors:t.contributors.map(c=>c.key===contributorKey?{...c,...change}:c)}:t))
+  const readyTracks=tracks.map((t,i)=>({...t,
+   composers:composerItems(t.key).map(c=>c.legalName.trim()).filter(Boolean).join(', '),
+   producers:t.contributors.filter(c=>c.role==='producer').map(c=>c.name.trim()).filter(Boolean).join(', '),
+   featured_artists:t.contributors.filter(c=>c.role==='featured').map(c=>c.name.trim()).filter(Boolean).join(', '),
+   genre:t.genre||genre
+  }))
   function check(stepIndex:number){
    const found:Record<string,string>={}
    if(stepIndex===0){
-     if(!text(title))found.title='Informe o título do lançamento.'
-     if(!GENRES.some(g=>g===genre))found.genre='Selecione um gênero válido.'
-     if(subgenre&&!GENRES.some(g=>g===subgenre))found.subgenre='Selecione o gênero secundário.'
-     if(!LANGUAGES.some(l=>l.code===language))found.language='Selecione um idioma válido.'
-     if(!text(label)||text(label).length<2)found.label='Informe o selo.'
-     if(!text(pHolder)||!text(cHolder))found.copyright='Preencha os titulares ℗ e ©.'
-     if(!Number.isInteger(pYear)||!Number.isInteger(cYear)||pYear<1900||cYear<1900||pYear>2200||cYear>2200)found.copyright='Ano de copyright inválido.'
-     if(upc&&!/^\d{12,13}$/.test(upc.replace(/\s/g,'')))found.upc='UPC/EAN inválido.'
-     if(profilesLoading||profilesError||!profiles.length)found.artists='Cadastre pelo menos um artista.'
-     if(artists.filter(a=>a.role==='primary').length!==1)found.artists='Selecione um artista principal.'
-     artists.forEach(a=>{if(!a.profile_id||!profiles.some(p=>p.id===a.profile_id&&p.name===a.name))
-      found['artist.'+a.key]='Escolha um perfil artístico válido.'})
+    if(profilesLoading||profilesError||!profiles.length)found.artists='Cadastre um perfil artístico antes de continuar.'
+    if(artists.some(a=>!a.profile_id||!profiles.some(p=>p.id===a.profile_id)))
+     found.artists='Selecione um artista em cada campo'
+    if(!artists.some(a=>a.role==='primary'&&a.profile_id))
+     found.primary='Pelo menos um artista primário deve estar selecionado'
+    if(!tracks.length||tracks.length>100)found.tracks='Adicione de 1 a 100 faixas.'
+    const seen=new Set<string>()
+    tracks.forEach((t,i)=>{
+     const key='track.'+t.key+'.',spec=audioSpecs[t.key]
+     if(!t.title.trim())found[key+'title']='Informe o nome da música.'
+     if(!GENRES.some(g=>g===t.genre))found[key+'genre']='Selecione o gênero principal.'
+     if(!t.file||!spec)found[key+'audio']='Envie áudio WAV/FLAC validado (5–1.800 s).'
+     if(spec&&(spec.duration<5||spec.duration>1800))found[key+'audio']='Duração inválida.'
+     if(isrcModes[t.key]==='have'&&!t.isrc.trim())found[key+'isrc']='Informe o ISRC da música.'
+     const code=t.isrc.replace(/-/g,'').toUpperCase().trim()
+     if(!isrcValid(code)||(code&&seen.has(code)))found[key+'isrc']='ISRC inválido ou duplicado.'
+     if(code)seen.add(code)
+     if(!t.contributors.some(c=>c.role==='vocal'&&c.profile_id&&c.name))
+      found[key+'vocal']='Informe pelo menos um vocal (intérprete). Pode ser o mesmo nome do artista.'
+     if(!t.contributors.some(c=>c.role==='producer'&&c.profile_id&&c.name))
+      found[key+'producer']='Informe pelo menos um produtor. Pode ser o mesmo nome do artista.'
+     if(t.contributors.some(c=>!c.profile_id||!c.name))
+      found[key+'contributors']='Selecione um perfil em cada colaborador.'
+     const composers=composerItems(t.key)
+     if(!composers.length||composers.some(c=>c.legalName.trim().split(/\s+/).length<2))
+      found[key+'composers']='Informe o nome completo de cada compositor.'
+     const forbidden=new Set(t.contributors.filter(c=>['vocal','producer'].includes(c.role)).map(c=>c.profile_id))
+     if(composers.some(c=>(c.profile_id&&forbidden.has(c.profile_id))||t.contributors.some(v=>['vocal','producer'].includes(v.role)&&v.name.trim().toLowerCase()===c.legalName.trim().toLowerCase())))
+      found[key+'composers']='Produtores e vocais não podem ser selecionados como compositores.'
+     if(!LANGUAGES.some(l=>l.code===t.language))found[key+'language']='Selecione um idioma.'
+     if(t.tiktokPreviewStart<0||spec&&t.tiktokPreviewStart>Math.max(0,spec.duration-5))
+      found[key+'preview']='Trecho de prévia fora da duração da faixa.'
+     if(![true,false].includes(t.isOriginal)||![true,false].includes(t.isInstrumental)||![true,false].includes(t.isRemix))
+      found[key+'advanced']='Responda às perguntas de versão.'
+    })
    }
    if(stepIndex===1){
-     if(!countValid(format,tracks.length))found.count='Envie de 1 a 100 faixas.'
-     const seen=new Set<string>()
-     tracks.forEach((t,i)=>{
-       const key='track.'+t.key+'.',code=t.isrc.replace(/-/g,'').toUpperCase().trim()
-       if(!text(t.title))found[key+'title']='Informe o título da faixa '+(i+1)
-       if(!t.file)found[key+'audio']='Selecione áudio WAV/FLAC.'
-       if(text(t.composers).length<2)found[key+'composers']='Informe os compositores da faixa '+(i+1)
-       if(!isrcValid(code)||(code&&seen.has(code)))found[key+'isrc']='ISRC inválido ou duplicado.'
-       if(code)seen.add(code)
-       if(t.contributors.some(c=>!text(c.name)))found[key+'contributors']='Informe o nome dos colaboradores.'
-     })
+    if(!title.trim()&&!tracks[0]?.title.trim())found.title='Informe o título do lançamento.'
+    if(!cover)found.cover='Envie a capa JPG de 1440×1440 ou 3000×3000 px.'
+    if(date<afterDays(14)||date>afterDays(1095))found.date='Selecione a data a partir de 14 dias.'
+    if(!pHolder.trim()||!cHolder.trim())found.copyright='Informe os titulares ℗ e ©.'
+    if(pYear<1900||cYear<1900||pYear>2200||cYear>2200)found.copyright='Ano inválido.'
+    if(!label.trim())found.label='Informe o selo.'
+    if(hasExistingUpc&&!/^\d{12,13}$/.test(upc))found.upc='Informe UPC/EAN de 12 ou 13 dígitos.'
+    if(useSpecificTime&&!/^([01]\d|2[0-3]):[0-5]\d$/.test(releaseTime))found.time='Horário inválido.'
+    if(!effectivePlatforms.length)found.platforms='Selecione pelo menos uma plataforma.'
+    if(dspLoading||dspError)found.platforms=dspError||'Aguarde a lista de lojas.'
+    if(!currentPlan||planLoading)found.plan='Plano indisponível.'
+    if(currentPlan?.monthly_releases_limit!=null&&monthlyUsed>=currentPlan.monthly_releases_limit)
+     found.plan='Limite mensal de lançamentos atingido.'
    }
-   if(stepIndex===2&&!cover)found.cover='Envie capa de 3000 × 3000 px.'
-   if(stepIndex===3){
-     if(date<afterDays(14)||date>afterDays(1095))found.date='Selecione uma data a partir de 14 dias.'
-     if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(releaseTime))found.time='Horário inválido.'
-     if(!effectivePlatforms.length)found.platforms='Selecione ao menos uma plataforma.'
-     if(dspLoading||dspError)found.platforms=dspError||'Aguarde o catálogo de lojas.'
-     if(!currentPlan||planLoading)found.plan='Plano indisponível.'
-     if(currentPlan?.monthly_releases_limit!=null&&monthlyUsed>=currentPlan.monthly_releases_limit)found.plan='Limite mensal atingido.'
-   }
-   if(stepIndex===4&&!rights)found.rights='Confirme direitos e autorizações.'
+   if(stepIndex===2&&!rights)found.rights='Confirme os direitos e autorizações.'
    setErrors(found)
-   return Object.keys(found).length===0
+   return !Object.keys(found).length
   }
   const next=()=>{
    setGeneralError('')
    if(!check(step))return
-   setStep(i=>Math.min(4,i+1))
+   if(step===0&&!title.trim())setTitle(tracks[0]?.title||'')
+   setStep(i=>Math.min(2,i+1))
   }
   async function saveDraft(){
    if(busy)return
    setDraftMessage('')
    const payload={
-    format,artists,tracks:tracks.map(({file,...t})=>t),title,genre,subgenre,language,date,releaseTime,upc,label,
+    format,artists,tracks:tracks.map(({file,...t})=>t),title,genre,subgenre,language,date,releaseTime,upc,label,composerProfiles,isrcModes,useSpecificTime,hasExistingUpc,
     pHolder,cHolder,pYear,cYear,platformMode,platforms,enableInstagram,rights,
     publishingRights,contentId
    }
@@ -292,7 +334,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
    if(!result.error)setDraftId(result.data?.id||draftId)
   }
   async function send(){
-    for(let i=0;i<5;i++)if(!check(i)){setStep(i);return}
+    for(let i=0;i<3;i++)if(!check(i)){setStep(i);return}
     if(busy)return
     if(extraTotal>0&&!addonPaid){
      const paid=await checkReleaseExtras(releaseId.current)
@@ -311,8 +353,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
       uploadPaths.current.push({bucket:'covers',path:coverPath})
       await uploadReleaseAsset('covers',coverPath,cover!,p=>setProgress('Capa: '+p+'%'))
       const payloadTracks=[]
-      for(let i=0;i<tracks.length;i++){
-        const t=tracks[i],ext=/\.flac$/i.test(t.file!.name)?'flac':'wav'
+      for(let i=0;i<readyTracks.length;i++){
+        const t=readyTracks[i],ext=/\.flac$/i.test(t.file!.name)?'flac':'wav'
         const audioPath=user.id+'/'+id+'/tracks/'+String(i+1).padStart(2,'0')+'.'+ext
         uploadPaths.current.push({bucket:'audio',path:audioPath})
         await uploadReleaseAsset('audio',audioPath,t.file!,p=>setProgress('Faixa '+(i+1)+'/'+tracks.length+': '+p+'%'))
@@ -321,14 +363,16 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
           audio_path:audioPath,featured_artists:t.featured_artists.trim(),
           composers:t.composers.trim(),producers:t.producers.trim(),
           lyricists:t.lyricists.trim(),credits:t.credits.trim(),
-          explicit:t.explicit,language:t.language,duration_seconds:trackDurations[t.key]||null,
+          explicit:t.explicit,language:t.language,duration_seconds:audioSpecs[t.key]?.duration||null,
+          audio_sample_rate:audioSpecs[t.key]?.sampleRate,audio_bit_depth:audioSpecs[t.key]?.bitDepth,
+          is_original:t.isOriginal,is_instrumental:t.isInstrumental,is_remix:t.isRemix,tiktok_preview_start:t.tiktokPreviewStart,genre:t.genre,subgenre:t.subgenre,
           contributors:t.contributors.map(c=>({name:c.name.trim(),role:c.role}))
         })
       }
       setProgress('Registrando lançamento e enviando para revisão...')
       const payload={
-        id,type:format,title:title.trim(),genre:genre.trim(),language,release_time:releaseTime,
-        subgenre:subgenre.trim(),release_date:date,upc:upc.replace(/\s/g,''),
+        id,type:format,title:title.trim(),genre:(tracks[0]?.genre||genre).trim(),language,release_time:useSpecificTime?releaseTime:'00:00',
+        subgenre:subgenre.trim(),release_date:date,upc:hasExistingUpc?upc.replace(/\s/g,''):'',
         artists:artists.map(a=>({profile_id:a.profile_id,name:a.name.trim(),role:a.role})),
         tracks:payloadTracks,cover_path:coverPath,rights_confirmed:rights,
         label_name:label.trim(),p_line:'℗ '+pYear+' '+pHolder.trim(),
@@ -354,244 +398,242 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     }finally{setBusy(false)}
   }
 
-  const roleTitle:Record<ArtistRole,string>={primary:'Artista principal',featured:'Participação / feat.',remixer:'Remixer'}
-  const days=date?Math.round((new Date(date+'T12:00:00Z').getTime()-new Date(today()+'T12:00:00Z').getTime())/86400000):0
-  const planning=days>=28?{label:'Janela recomendada para planejamento',tone:'good'}:
-    days>=14?{label:'Prazo reduzido para divulgação',tone:'warn'}:
-    {label:'Pouco tempo para revisão e divulgação',tone:'bad'}
-  const stepTitles=['Informações gerais','Upload de faixas','Capa','Distribuição','Revisão e confirmação']
+  const roleTitle:Record<ArtistRole,string>={primary:'Artista primário',featured:'Participação',remixer:'Remixer'}
+  const stepTitles=['Dados da faixa','Dados do lançamento','Revisão']
+
   const money=(n:number)=>n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
-  const changePlatform=(name:string,checked:boolean)=>{
-   if(addonPaid)return
-   setPlatforms(prev=>checked?[...prev,name]:prev.filter(x=>x!==name))
-  }
+  const roles:Record<Contributor['role'],string>={vocal:'Vocal / Intérprete',producer:'Produtor',featured:'Participação / feat.',instrumentalist:'Instrumentista',remixer:'Remixer',engineer:'Técnico de áudio'}
   const duration=(n:number)=>Number.isFinite(n)?Math.floor(n/60)+':'+String(Math.floor(n%60)).padStart(2,'0'):'—'
-  return <div className="sr sr-four sr-five">
-   <header className="sr-header sr-four-header">
-    <span className="sr-kicker">DISTRIBUIÇÃO DIGITAL · SINTONE</span>
-    <h2>Novo lançamento</h2>
-    <p>Preencha cinco etapas para enviar seu projeto à revisão da equipe.</p>
+  const toggleStore=(name:string,checked:boolean)=>{
+   if(addonPaid)return
+   setPlatforms(prev=>checked?[...new Set([...prev,name])]:prev.filter(x=>x!==name))
+  }
+  return <div className="sr sr-two">
+   <header className="sr-two-heading">
+    <div><span className="sr-two-kicker">SINTONE / DISTRIBUIÇÃO MUSICAL</span>
+      <h1>Cadastre sua música</h1><p>Organize os créditos, revise os direitos e envie à equipe SINTONE.</p></div>
+    <div className="sr-two-counter">Etapa {Math.min(step+1,2)} de 2</div>
    </header>
-   <div className="sr-four-shell">
-    <aside className="sr-four-side" aria-label="Etapas do lançamento">
-     <span className="sr-four-side-label">SEU LANÇAMENTO</span>
-     {stepTitles.map((name,i)=><button key={name} type="button" disabled={busy||i>step}
-      className={'sr-four-nav '+(i===step?'active':i<step?'completed':'')}
-      aria-current={step===i?'step':undefined} onClick={()=>{if(i<step){setStep(i);setErrors({})}}}>
-      <span className="sr-four-step-circle">{i<step?<Check size={16}/>:i+1}</span><span>{name}</span>
-     </button>)}
-     <div className="sr-four-side-foot"><Info size={17}/> Salve o rascunho sempre que desejar preservar os metadados. Os arquivos de áudio e capa precisarão ser selecionados novamente.</div>
-    </aside>
-    <div className="sr-four-work">
-     <div className="sr-four-stage-head"><span>ETAPA {step+1} DE 5</span><h3>{stepTitles[step]}</h3></div>
-     {step===0&&<>
-      <section className="card sr-panel">
-       <h3>Informações do lançamento</h3>
-       <label>Título do lançamento *<input maxLength={160} value={title} className={show('title')}
-        placeholder="Nome do Single, EP ou Álbum" onChange={e=>setTitle(e.target.value)}/>{err('title')}</label>
-       <div className="sr-grid">
-        <label>Gênero *<select className={show('genre')} value={genre} onChange={e=>setGenre(e.target.value)}>
-         <option value="">Selecione um gênero</option>{GENRES.map(g=><option key={g} value={g}>{g}</option>)}
-        </select>{err('genre')}</label>
-        <label>Gênero secundário<select value={subgenre} onChange={e=>setSubgenre(e.target.value)}>
-         <option value="">Nenhum</option>{GENRES.map(g=><option key={g} value={g}>{g}</option>)}
-        </select>{err('subgenre')}</label>
-        <label>Idioma do lançamento *<select value={language} onChange={e=>setLanguage(e.target.value)}>
-         {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
-        </select>{err('language')}</label>
-        <label>Record Label / Selo *<input maxLength={150} value={label}
-         onChange={e=>setLabel(e.target.value)}/>{err('label')}</label>
-       </div>
-       <label>UPC/EAN (opcional)<input value={upc} maxLength={13} inputMode="numeric"
-        placeholder="Opcional — deixe em branco se não tiver" onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>
-       <p className="sr-upc-note">Se você ainda não possui UPC/EAN, deixe este campo em branco. A SINTONE cuidará da identificação do lançamento durante o processo de distribuição.</p>
-      </section>
-      <section className="card sr-panel">
-       <h3>Dados dos artistas</h3>
-      <p className="mut">Selecione exclusivamente artistas cadastrados em “Meus Artistas”. Cada participante precisa de uma função.</p>
-      {!profilesLoading&&!profilesError&&profiles.length===0&&<div className="sr-artist-alert" role="alert">Você precisa cadastrar pelo menos um artista em 'Meus Artistas' para criar um lançamento</div>}
-      {profilesLoading&&<p className="mut" role="status">Carregando artistas cadastrados...</p>}
-      {profilesError&&<p className="sr-error" role="alert">Não foi possível carregar os artistas. Recarregue a página.</p>}
-      {artists.map((a,i)=><div className="sr-artist-row" key={a.key}>
-        <span className="sr-num">{i+1}</span>
-        <label>Perfil artístico
-          <select value={a.profile_id} onChange={e=>selectProfile(a,e.target.value)}>
-            <option value="" disabled>Selecione um artista cadastrado</option>
-            {profiles.map(p=><option value={p.id} key={p.id}>{p.name}</option>)}
-          </select></label>
-        <label>Nome do artista
-          <input value={a.name} className={show('artist.'+a.key)} readOnly aria-readonly="true" placeholder="Selecione um perfil artístico"/>
-          {err('artist.'+a.key)}
-        </label>
-        <label>Função
-          <select value={a.role} onChange={e=>editArtist(a.key,{role:e.target.value as ArtistRole})}>
-            {(Object.keys(roleTitle) as ArtistRole[]).map(k=><option key={k} value={k}>{roleTitle[k]}</option>)}
-          </select></label>
-        {i>0&&<button type="button" className="sr-icon" aria-label="Remover artista" onClick={()=>setArtists(v=>v.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>}
-      </div>)}
-      {err('artists')}
-      <button type="button" className="btn ghost sm" onClick={addArtist} disabled={artists.length>=20||profilesLoading||profilesError||!profiles.length}><Plus size={15}/> Adicionar artista</button>
-      </section>
-      <section className="card sr-panel">
-       <h3>Copyrights do lançamento</h3>
-       <div className="sr-grid">
-        <label>℗ Ano da gravação<input type="number" min={1900} max={2200} value={pYear} onChange={e=>setPYear(Number(e.target.value))}/></label>
-        <label>℗ Titular da gravação *<input maxLength={150} value={pHolder} onChange={e=>setPHolder(e.target.value)}/></label>
-        <label>© Ano do lançamento<input type="number" min={1900} max={2200} value={cYear} onChange={e=>setCYear(Number(e.target.value))}/></label>
-        <label>© Titular do lançamento *<input maxLength={150} value={cHolder} onChange={e=>setCHolder(e.target.value)}/></label>
-       </div>{err('copyright')}
-      </section>
-     </>}
-     {step===1&&<section className="card sr-panel">
-      <div className="sr-section-top"><div><h3>Arquivos de áudio</h3>
-       <p className="mut">{tracks.length} faixa(s) · formato identificado automaticamente: <strong>{fmtTitle[format]}</strong></p></div></div>
-      <label className={'sr-audio-drop '+(dropActive?'dragging':'')} onDragOver={e=>{e.preventDefault();setDropActive(true)}}
-       onDragLeave={e=>{e.preventDefault();setDropActive(false)}} onDrop={e=>{e.preventDefault();setDropActive(false);addAudioFiles(Array.from(e.dataTransfer.files))}}>
-       <UploadCloud size={27}/><strong>Selecione ou arraste arquivos WAV/FLAC</strong>
-       <small>Múltiplos arquivos, até 250 MB por faixa; máximo 100 faixas</small>
-       <input type="file" multiple accept=".wav,.flac,audio/wav,audio/flac" onChange={e=>{
-        addAudioFiles(Array.from(e.target.files||[]));e.target.value=''
-       }}/>
+   <nav aria-label="Etapas do cadastro" className="sr-two-steps">
+    {stepTitles.map((label,i)=><button key={label} type="button" className={i===step?'active':i<step?'done':''}
+     disabled={busy||i>step} aria-current={step===i?'step':undefined} onClick={()=>{if(i<step){setStep(i);setErrors({})}}}>
+     <span>{i<step?<Check size={15}/>:i+1}</span>{label}</button>)}
+   </nav>
+   {step===0&&<div className="sr-two-sections">
+    <section className="sr-two-panel">
+     <div className="sr-two-panel-heading"><span>01</span><div><h2>Dados dos artistas da música</h2><p>Utilize os perfis artísticos vinculados à sua conta.</p></div></div>
+     {profilesLoading&&<p className="sr-two-muted">Carregando seus perfis...</p>}
+     {!profilesLoading&&!profiles.length&&<p className="sr-two-error">Cadastre um perfil na área Artistas antes de continuar.</p>}
+     {artists.map((a,i)=><div className="sr-two-row" key={a.key}>
+      <label>Perfil do artista
+       <select value={a.profile_id} onChange={e=>selectProfile(a,e.target.value)}>
+        <option value="">Selecione o artista</option>
+        {profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+       </select>
       </label>
-      {err('count')}
-      <div className="sr-track-list">
-       {tracks.map((t,i)=><article key={t.key} className="sr-track-item">
-        <div className="sr-track-item-header">
-         <div><strong>{i+1}. {t.title||'Faixa sem título'}</strong><p className="mut">{t.file?.name||'Áudio pendente'} · {duration(trackDurations[t.key]||0)}</p></div>
-         <div className="sr-track-item-actions">
-          <button type="button" className="btn ghost sm" onClick={()=>setExpandedTrack(expandedTrack===t.key?null:t.key)}>Editar faixa</button>
-          <button type="button" className="sr-icon" onClick={()=>removeTrack(t.key)} aria-label={'Excluir faixa '+(i+1)}><Trash2 size={17}/></button>
-         </div>
+      <label>Função<select value={a.role} onChange={e=>editArtist(a.key,{role:e.target.value as ArtistRole})}>
+       {(Object.keys(roleTitle) as ArtistRole[]).map(k=><option key={k} value={k}>{roleTitle[k]}</option>)}
+      </select></label>
+      {i>0&&<button type="button" className="sr-two-delete" aria-label="Remover artista" onClick={()=>setArtists(arr=>arr.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>}
+     </div>)}
+     {err('artists')}{err('primary')}
+     <button type="button" className="sr-two-add" disabled={artists.length>=20} onClick={addArtist}><Plus size={16}/> Adicionar artista</button>
+    </section>
+
+    <section className="sr-two-panel">
+     <div className="sr-two-panel-heading"><span>02</span><div><h2>Dados da música</h2><p>Informações e arquivo de áudio de cada faixa.</p></div></div>
+     <div className="sr-two-subheader"><strong>{tracks.length} faixa(s) · {fmtTitle[format]}</strong>
+       <button type="button" className="sr-two-add" onClick={()=>{const t=trackNew();setTracks(v=>[...v,t]);setExpandedTrack(t.key)}} disabled={tracks.length>=100}><Plus size={15}/> Nova faixa</button></div>
+     <label className={'sr-two-upload '+(dropActive?'dragging':'')} onDragOver={e=>{e.preventDefault();setDropActive(true)}}
+      onDragLeave={e=>{e.preventDefault();setDropActive(false)}} onDrop={e=>{e.preventDefault();setDropActive(false);void addAudioFiles(Array.from(e.dataTransfer.files))}}>
+      <UploadCloud size={25}/><strong>Insira o arquivo de áudio</strong>
+      <small>Arraste ou selecione WAV / FLAC · 16 bits / 44,1 kHz ou 24 bits / 96 kHz · 5 a 1.800 segundos</small>
+      <input type="file" accept=".wav,.flac" multiple onChange={e=>{void addAudioFiles(Array.from(e.target.files||[]));e.target.value=''}}/>
+     </label>
+     {err('tracks')}
+     {tracks.map((t,index)=><article className="sr-two-track" key={t.key}>
+      <div className="sr-two-track-top"><div><strong>{index+1}. {t.title||'Nova música'}</strong>
+       <small>{t.file?.name||'Nenhum áudio selecionado'} {audioSpecs[t.key]?' · '+duration(audioSpecs[t.key].duration):''}</small></div>
+       <div className="sr-two-inline">
+        <button type="button" className="sr-two-add" onClick={()=>setExpandedTrack(expandedTrack===t.key?null:t.key)}>
+         {expandedTrack===t.key?'Fechar':'Editar faixa'}</button>
+        <button type="button" className="sr-two-delete" onClick={()=>{removeTrack(t.key);if(tracks.length===1)setTracks([trackNew()])}} aria-label="Excluir faixa"><Trash2 size={16}/></button>
+       </div></div>
+      <div className="sr-two-player"><span><Headphones size={16}/> Ouça aqui a sua música</span>
+       <ReleaseAudioMini file={t.file} onDuration={n=>setTrackDurations(old=>({...old,[t.key]:n}))}/></div>
+      {expandedTrack===t.key&&<div className="sr-two-track-fields">
+       <div className="sr-two-subsection">
+        <h3>ISRC</h3>
+        <div className="sr-two-radio-group">
+         <label><input type="radio" name={'isrc-'+t.key} checked={isrcModes[t.key]==='have'} onChange={()=>setIsrcModes(v=>({...v,[t.key]:'have'}))}/> Tenho o ISRC desta música e quero informar.</label>
+         <label><input type="radio" name={'isrc-'+t.key} checked={isrcModes[t.key]!=='have'} onChange={()=>{setIsrcModes(v=>({...v,[t.key]:'generate'}));editTrack(t.key,{isrc:''})}}/> Não tenho o ISRC e quero que a distribuidora crie.</label>
         </div>
-        <ReleaseAudioMini file={t.file} onDuration={n=>setTrackDurations(d=>d[t.key]===n?d:{...d,[t.key]:n})}/>
-        {expandedTrack===t.key&&<div className="sr-track-edit">
-         <div className="sr-grid">
-          <label>Título da faixa *<input value={t.title} maxLength={160} className={show('track.'+t.key+'.title')}
-           onChange={e=>editTrack(t.key,{title:e.target.value})}/>{err('track.'+t.key+'.title')}</label>
-          <label>ISRC (opcional)<input value={t.isrc} maxLength={15} placeholder="BRABC2600001"
-           onChange={e=>editTrack(t.key,{isrc:e.target.value.toUpperCase()})}/>{err('track.'+t.key+'.isrc')}</label>
-          <label>Artista principal da faixa<select value={artists.find(a=>a.role==='primary')?.profile_id||''} disabled>
-           <option value={artists.find(a=>a.role==='primary')?.profile_id||''}>{artists.find(a=>a.role==='primary')?.name||'Selecionado na etapa 1'}</option>
-          </select></label>
-          <label>Participações / Feats<input value={t.featured_artists} maxLength={350}
-           onChange={e=>editTrack(t.key,{featured_artists:e.target.value})} placeholder="Artistas convidados"/></label>
-          <label>Compositores *<input value={t.composers} maxLength={700} className={show('track.'+t.key+'.composers')}
-           onChange={e=>editTrack(t.key,{composers:e.target.value})}/>{err('track.'+t.key+'.composers')}</label>
-          <label>Idioma da faixa<select value={t.language} onChange={e=>editTrack(t.key,{language:e.target.value})}>
-           {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}</select></label>
-         </div>
-         <label className={'sr-explicit-card '+(t.explicit?'is-on':'')}>
-          <input type="checkbox" role="switch" aria-label="Conteúdo explícito" checked={t.explicit}
-           onChange={e=>editTrack(t.key,{explicit:e.target.checked})}/>
-          <span className="sr-explicit-track" aria-hidden="true"><span/></span>
-          <span className="sr-explicit-description">
-           <strong>Conteúdo explícito</strong>
-           <small>Letras ou linguagem explícita</small>
-          </span>
-          <span className={'sr-explicit-status '+(t.explicit?'active':'')}>{t.explicit?'Sim':'Não'}</span>
-         </label>
-         <p className="sr-notice">Confirme os autores e permissões de samples antes da distribuição. ISRC vazio será analisado pela equipe.</p>
-        </div>}
-       </article>)}
-      </div>
-      {tracks.length===0&&<p className="mut">Nenhum arquivo selecionado. Adicione áudio para avançar.</p>}
-     </section>}
-     {step===2&&<section className="card sr-panel"><h3>Capa do lançamento *</h3>
-      <label className="sr-cover-picker">
-        {coverUrl?<img src={coverUrl} alt="Prévia da capa do lançamento"/>:<UploadCloud size={27}/>}
-        <span>{cover?cover.name:'Selecionar capa JPG/PNG · 3000×3000 px · até 15 MB'}</span>
-        <input type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" onChange={e=>void selectCover(e.target.files?.[0])}/>
-      </label>
-      {err('cover')}
-      
-      <p className="sr-cover-guidance"><Info size={16}/> Capa quadrada em 3000 × 3000 px, até 15 MB. Sem URLs, QR Codes, logos de serviços de streaming ou conteúdo sem autorização. PNG é convertido para JPG antes do envio.</p></section>}
-     {step===3&&<section className="card sr-panel">
-      <h3>Data e horário de lançamento</h3>
-      <div className="sr-grid">
-       <label>Data de lançamento *<input type="date" min={afterDays(14)} max={afterDays(1095)}
-        value={date} onChange={e=>setDate(e.target.value)}/>{err('date')}</label>
-       <label>Horário solicitado *<input type="time" step={60} value={releaseTime}
-        onChange={e=>setReleaseTime(e.target.value)}/>{err('time')}</label>
-      </div>
-      <div className={'sr-date-badge '+planning.tone}>{planning.label} · {Math.max(days,0)} dias até o lançamento.</div>
-      <p className="sr-notice"><Info size={16}/> O horário é uma solicitação registrada para a equipe. A disponibilidade de hora exata varia conforme a loja e a agregadora.</p>
-      <h3>Plataformas de distribuição</h3>
-      <p className="mut">Lojas incluídas vêm selecionadas. Extras exigem confirmação de pagamento antes do envio.</p>
-      {dspLoading&&<p className="mut">Carregando lojas disponíveis...</p>}
-      {dspError&&<p className="sr-error" role="alert">{dspError}</p>}
-      <div className="sr-store-section">
-       <div className="sr-store-section-title"><h4>Streaming e plataformas sociais</h4>
-        <span>{allowedDSP.filter(x=>!x.is_extra).length} lojas</span></div>
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid">
-        {allowedDSP.filter(x=>!x.is_extra).map(store=><ReleaseStoreItem key={store.slug}
-         name={store.name} checked={platforms.includes(store.name)} disabled={addonPaid}
-         onChange={checked=>changePlatform(store.name,checked)}/>)}
+        {isrcModes[t.key]==='have'&&<label>ISRC da música *<input value={t.isrc} maxLength={15} onChange={e=>editTrack(t.key,{isrc:e.target.value.toUpperCase()})} placeholder="BRABC2600001"/>{err('track.'+t.key+'.isrc')}</label>}
+        <div className="sr-two-grid">
+         <label>Nome da música *<input maxLength={160} value={t.title} onChange={e=>editTrack(t.key,{title:e.target.value})}/>{err('track.'+t.key+'.title')}</label>
+         <label>Gênero principal *<select value={t.genre} onChange={e=>{editTrack(t.key,{genre:e.target.value});if(index===0)setGenre(e.target.value)}}>
+          <option value="">Selecione</option>{GENRES.map(g=><option value={g} key={g}>{g}</option>)}</select>{err('track.'+t.key+'.genre')}</label>
+        </div>
+        <label>Áudio selecionado<input value={t.file?.name||'Selecione acima o arquivo WAV ou FLAC'} disabled readOnly/>{err('track.'+t.key+'.audio')}</label>
+        {audioSpecs[t.key]&&<p className="sr-two-valid"><Check size={15}/> {audioSpecs[t.key].bitDepth} bits / {(audioSpecs[t.key].sampleRate/1000).toLocaleString('pt-BR')} kHz · {duration(audioSpecs[t.key].duration)} · parâmetros conferidos</p>}
        </div>
-      </div>
-      {allowedDSP.some(x=>x.is_extra)&&<div className="sr-store-section">
-       <div className="sr-store-section-title"><h4>Plataformas extras</h4><span>Taxa por lançamento</span></div>
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid">
-        {allowedDSP.filter(x=>x.is_extra).map(store=><ReleaseStoreItem key={store.slug}
-         name={store.name} checked={platforms.includes(store.name)} disabled={addonPaid}
-         fee={store.is_extra&&!(isMetaStore(store.name)&&currentPlan?.has_instagram_included)?Number(store.extra_fee):0}
-         onChange={checked=>changePlatform(store.name,checked)}/>)}
+       <div className="sr-two-subsection">
+        <h3>Colaboradores da faixa</h3>
+        {t.contributors.map(c=><div key={c.key} className="sr-two-row">
+         <label>Perfil<select value={c.profile_id||''} onChange={e=>{const p=profiles.find(x=>x.id===e.target.value);changeContributor(t.key,c.key,{profile_id:p?.id||'',name:p?.name||''})}}>
+          <option value="">Selecione um perfil</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+         <label>Função<select value={c.role} onChange={e=>changeContributor(t.key,c.key,{role:e.target.value as Contributor['role']})}>
+          {(Object.keys(roles) as Contributor['role'][]).map(key=><option key={key} value={key}>{roles[key]}</option>)}</select></label>
+         <button type="button" className="sr-two-delete" onClick={()=>editTrack(t.key,{contributors:t.contributors.filter(x=>x.key!==c.key)})} aria-label="Remover colaborador"><Trash2 size={16}/></button>
+        </div>)}
+        {err('track.'+t.key+'.vocal')}{err('track.'+t.key+'.producer')}{err('track.'+t.key+'.contributors')}
+        <button type="button" className="sr-two-add" onClick={()=>editTrack(t.key,{contributors:[...t.contributors,{key:crypto.randomUUID(),name:'',role:'instrumentalist'}]})}><Plus size={15}/> Adicionar colaborador</button>
+       </div>
+       <div className="sr-two-subsection">
+        <h3>Compositores da faixa</h3>
+        {composerItems(t.key).map(c=><div key={c.key} className="sr-two-row">
+         <label>Perfil do compositor<select value={c.profile_id} onChange={e=>updateComposer(t.key,c.key,{profile_id:e.target.value})}>
+          <option value="">Outro / Não cadastrado</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+         <label>Nome completo civil *<input value={c.legalName} maxLength={160} onChange={e=>updateComposer(t.key,c.key,{legalName:e.target.value})} placeholder="Nome e sobrenome"/></label>
+         <button type="button" className="sr-two-delete" onClick={()=>setComposerProfiles(old=>({...old,[t.key]:composerItems(t.key).filter(x=>x.key!==c.key)}))} aria-label="Remover compositor"><Trash2 size={16}/></button>
+        </div>)}
+        {err('track.'+t.key+'.composers')}
+        <div className="sr-two-warning"><ShieldAlert size={18}/> <p>Atenção ao nome do Compositor. Certifique-se de que o nome completo esteja correto, pois ele será utilizado para o registro de direitos autorais. Nomes artísticos serão barrados e rejeitados pelas plataformas. Produtores e vocais não podem ser selecionados como compositores.</p></div>
+        <button type="button" className="sr-two-add" onClick={()=>addComposer(t.key)}><Plus size={15}/> Adicionar compositor</button>
+       </div>
+       <div className="sr-two-subsection">
+        <h3>Dados complementares</h3>
+        <strong className="sr-two-label">Classificação indicativa</strong>
+        <div className="sr-two-radio-group">
+         <label><input type="radio" checked={t.explicit} name={'explicit-'+t.key} onChange={()=>editTrack(t.key,{explicit:true})}/> Explícito</label>
+         <label><input type="radio" checked={!t.explicit} name={'explicit-'+t.key} onChange={()=>editTrack(t.key,{explicit:false})}/> Não explícito — adequado para menores</label>
+        </div>
+        <label>Idioma<select value={t.language} onChange={e=>editTrack(t.key,{language:e.target.value})}>
+         {LANGUAGES.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}</select>{err('track.'+t.key+'.language')}</label>
+        <button type="button" className="sr-two-advanced" aria-expanded={!!advancedTracks[t.key]} onClick={()=>setAdvancedTracks(v=>({...v,[t.key]:!v[t.key]}))}>
+         Dados avançados <ChevronRight size={15}/></button>
+        {!!advancedTracks[t.key]&&<div className="sr-two-advanced-body">
+         <strong className="sr-two-label">Esta música é autoral?</strong>
+         <div className="sr-two-radio-group"><label><input type="radio" name={'original-'+t.key} checked={t.isOriginal} onChange={()=>editTrack(t.key,{isOriginal:true})}/> Sim, esta versão é a primeira</label>
+          <label><input type="radio" name={'original-'+t.key} checked={!t.isOriginal} onChange={()=>editTrack(t.key,{isOriginal:false})}/> Não, ela é versão de outra música</label></div>
+         <strong className="sr-two-label">Esta música é instrumental?</strong>
+         <div className="sr-two-radio-group"><label><input type="radio" name={'inst-'+t.key} checked={t.isInstrumental} onChange={()=>editTrack(t.key,{isInstrumental:true})}/> Sim, é apenas melodia</label>
+          <label><input type="radio" name={'inst-'+t.key} checked={!t.isInstrumental} onChange={()=>editTrack(t.key,{isInstrumental:false})}/> Não, ela contém letra</label></div>
+         <strong className="sr-two-label">Esta música é um remix?</strong>
+         <div className="sr-two-radio-group"><label><input type="radio" name={'remix-'+t.key} checked={t.isRemix} onChange={()=>editTrack(t.key,{isRemix:true})}/> Sim, é montagem de outra música</label>
+          <label><input type="radio" name={'remix-'+t.key} checked={!t.isRemix} onChange={()=>editTrack(t.key,{isRemix:false})}/> Não, a trilha é única</label></div>
+         <div className="sr-two-grid">
+          <label>Gênero secundário<select value={t.subgenre} onChange={e=>editTrack(t.key,{subgenre:e.target.value})}>
+           <option value="">Nenhum</option>{GENRES.map(g=><option key={g} value={g}>{g}</option>)}</select></label>
+          <label>Preview TikTok — início do trecho (segundos)<input type="number" min={0} max={Math.max(0,(audioSpecs[t.key]?.duration||0)-5)}
+           step={1} value={t.tiktokPreviewStart} onChange={e=>editTrack(t.key,{tiktokPreviewStart:Number(e.target.value)})}/>{err('track.'+t.key+'.preview')}</label>
+         </div>
+         <p className="sr-two-muted">O trecho escolhido será enviado como preferência para análise da equipe; a loja pode não oferecer suporte à seleção exata.</p>
+        </div>}
        </div>
       </div>}
-       {currentPlan&&<p className="mut">Plano {currentPlan.name} · {monthlyUsed} de {currentPlan.monthly_releases_limit??'ilimitados'} lançamentos utilizados neste mês.</p>}
-      {err('platforms')}{err('plan')}
-      <div className="sr-four-total"><div><strong>Total adicional de plataformas extras</strong><small>Valor cobrado uma única vez por lançamento, via Pix</small></div><strong>{money(extraTotal)}</strong></div>
-
-     </section>}
-     {step===4&&<section className="card sr-panel">
-      <h3>Revisão final</h3>
-      <div className="sr-four-review-cover">{coverUrl?<img src={coverUrl} alt="Capa do lançamento"/>:<Music2 size={35}/>}
-       <div><strong>{title||'Sem título'}</strong><small>{fmtTitle[format]} · {tracks.length} faixa(s)</small>
-        <small>{artists.filter(a=>a.role==='primary').map(a=>a.name).join(', ')||'Artista não informado'}</small></div>
-      </div>
-      <div className="sr-summary">
-       <span><strong>Título</strong>{title||'—'}</span>
-       <span><strong>Gênero / Secundário</strong>{genre}{subgenre?' / '+subgenre:''}</span>
-       <span><strong>Idioma</strong>{LANGUAGES.find(x=>x.code===language)?.label}</span>
-       <span><strong>Selo</strong>{label||'—'}</span>
-       <span><strong>℗ Gravação</strong>{pYear} · {pHolder}</span>
-       <span><strong>© Lançamento</strong>{cYear} · {cHolder}</span>
-       <span><strong>UPC</strong>{upc||'Pendente — SINTONE'}</span>
-       <span><strong>Data e horário solicitados</strong>{date} às {releaseTime}</span>
-       <span><strong>Plataformas</strong>{effectivePlatforms.length}</span>
-      </div>
-      <h3>Faixas</h3>
-      <ol className="sr-track-review">{tracks.map((t,i)=><li key={t.key}>
-       {i+1}. {t.title||'Sem título'} · {duration(trackDurations[t.key]||0)} ·
-       {t.isrc||'ISRC pendente'} · {t.explicit?'Explícita':'Não explícita'}
-      </li>)}</ol>
-      <h3>Plataformas selecionadas</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sr-store-grid sr-review-store-grid">
-       {effectivePlatforms.map(name=><div className="sr-store-option" key={name}>
-        <DspIcon name={name} size={32}/><span className="sr-store-name">{name}</span>
-       </div>)}
-      </div>
-      <div className="sr-four-total"><div><strong>Total das plataformas extras</strong>
-       <small>{extras.length?extras.map(x=>x.name+' '+money(x.fee)).join(' · '):'Nenhum extra pago'}</small></div>
-       <strong>{money(extraTotal)}</strong></div>
-      <label className="sr-check"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/>
-       Confirmo que possuo todos os direitos necessários para distribuir os áudios, obras, samples e capa.</label>{err('rights')}
-      <p className="sr-notice">O lançamento será enviado como pendente para revisão da equipe SINTONE. Caso o UPC não tenha sido informado, a equipe SINTONE cuidará da identificação. ISRC e horário poderão exigir conferência antes da entrega às lojas.</p>
-     </section>}
-     {addonCheckout&&currentPlan&&<SubscriptionCardForm plan={{id:currentPlan.id,name:currentPlan.name,price_brl:currentPlan.price_brl,frequency:1}}
-      addonReleaseId={releaseId.current} addonPrice={extraTotal} selectedStores={effectivePlatforms}
-      onClose={()=>{setAddonCheckout(false);void checkReleaseExtras(releaseId.current).then(setAddonPaid)}}/>}
-     {generalError&&<p className="sr-error sr-global" role="alert">{generalError}</p>}
-     {draftMessage&&<p className="sr-progress" role="status">{draftMessage}</p>}
-     {progress&&<p className="sr-progress" role="status">{progress}</p>}
-     <footer className="sr-footer sr-four-footer">
-      {step>0&&<button type="button" className="btn ghost" disabled={busy} onClick={()=>{setStep(v=>v-1);setErrors({})}}><ChevronLeft size={16}/> Voltar</button>}
-      <button type="button" className="btn ghost sm" disabled={busy} onClick={()=>void saveDraft()}>Salvar rascunho</button>
-      <span className="mut">Etapa {step+1} de 5</span>
-      {step<4?<button type="button" className="btn" disabled={busy} onClick={next}>Continuar <ChevronRight size={16}/></button>:
-      <button type="button" className="btn" disabled={busy||extraTotal>0&&addonCheckout} onClick={()=>void send()}>
-       {busy?'Enviando arquivos...':extraTotal>0&&!addonPaid?'Pagar extras e distribuir':'Distribuir'} <Check size={16}/></button>}
-     </footer>
+     </article>)}
+    </section>
+   </div>}
+   {step===1&&<div className="sr-two-sections">
+    <section className="sr-two-panel">
+     <div className="sr-two-panel-heading"><span>01</span><div><h2>Dados do lançamento</h2><p>Data, direitos de publicação e lojas de distribuição.</p></div></div>
+     <label>Nome do lançamento *<input maxLength={160} value={title} placeholder="Título do Single, EP ou Álbum" onChange={e=>setTitle(e.target.value)}/>{err('title')}</label>
+     <div className="sr-two-calendar">
+      <div className="sr-two-recommended"><span>Sugestão de data com maior alcance</span><strong>{afterDays(28)}</strong><small>Prazo recomendado de planejamento (28 dias)</small></div>
+      <label>Escolha a data do seu lançamento *<input type="date" min={afterDays(14)} max={afterDays(1095)} value={date} onChange={e=>setDate(e.target.value)}/>{err('date')}</label>
+      <p className="sr-two-valid"><Check size={15}/> Data selecionada: {date||'Nenhuma'}</p>
+     </div>
+     <div className="sr-two-grid">
+      <label>Ano de publicação ℗<select value={pYear} onChange={e=>setPYear(Number(e.target.value))}>
+       {Array.from({length:101},(_,i)=>new Date().getFullYear()+1-i).map(y=><option value={y} key={y}>{y}</option>)}</select></label>
+      <label>Titular do Copyright ℗ *<input maxLength={150} value={pHolder} onChange={e=>setPHolder(e.target.value)}/></label>
+      <label>Ano de publicação ©<select value={cYear} onChange={e=>setCYear(Number(e.target.value))}>
+       {Array.from({length:101},(_,i)=>new Date().getFullYear()+1-i).map(y=><option value={y} key={y}>{y}</option>)}</select></label>
+      <label>Titular do Copyright © *<input maxLength={150} value={cHolder} onChange={e=>setCHolder(e.target.value)}/></label>
+     </div>{err('copyright')}
+     <label>Selo *<input maxLength={150} value={label} onChange={e=>setLabel(e.target.value)}/>{err('label')}</label>
+     <h3>Escolha onde você quer distribuir sua música</h3>
+     <div className="sr-two-radio-group">
+      <label><input type="radio" name="platformMode" checked={platformMode==='all'} onChange={()=>{setPlatformMode('all');setPlatforms(allowedDSP.filter(x=>!x.is_extra).map(x=>x.name));setShowStoreChooser(false)}}/> Todas as plataformas incluídas no plano</label>
+      <label><input type="radio" name="platformMode" checked={platformMode==='selected'} onChange={()=>{setPlatformMode('selected');setShowStoreChooser(true)}}/> Apenas em plataformas selecionadas</label>
+     </div>
+     {platformMode==='selected'&&<button className="sr-two-add" type="button" onClick={()=>setShowStoreChooser(v=>!v)}>Selecione as plataformas aqui <ChevronRight size={15}/></button>}
+     {platformMode==='selected'&&showStoreChooser&&<div className="sr-two-stores">
+      {allowedDSP.map(store=><ReleaseStoreItem key={store.slug} name={store.name}
+       checked={platforms.includes(store.name)} disabled={addonPaid}
+       fee={store.is_extra&&!currentPlan?.has_instagram_included?Number(store.extra_fee):store.is_extra?0:undefined}
+       onChange={v=>toggleStore(store.name,v)}/>)}
+     </div>}
+     {err('platforms')}{err('plan')}{dspError&&<p className="sr-two-error">{dspError}</p>}
+     <div className="sr-two-total"><span>Extras selecionados</span><strong>{money(extraTotal)}</strong></div>
+    </section>
+    <section className="sr-two-panel">
+     <div className="sr-two-panel-heading"><span>02</span><div><h2>Capa para as plataformas</h2><p>Selecione uma imagem do seu dispositivo.</p></div></div>
+     <label className="sr-two-cover">
+      {coverUrl?<img src={coverUrl} alt="Prévia da capa"/>:<UploadCloud size={29}/>}
+      <strong>{cover?'Trocar capa':'Subir minha capa'}</strong>
+      <small>{cover?.name||'Selecione um JPG do computador ou celular'}</small>
+      <input type="file" accept=".jpg,.jpeg,image/jpeg" onChange={e=>{void selectCover(e.target.files?.[0]);e.target.value=''}}/>
+     </label>{err('cover')}
+     <div className="sr-two-warning"><Info size={18}/><div><strong>Diretrizes para capa</strong>
+      <p>Formato aceito: JPG | Tamanho aceito: 1440×1440px ou 3000×3000px. Sem sites/URLs, sem imagens pixeladas ou de baixa qualidade, sem logotipos de lojas (Spotify, iTunes etc.), sem pornografia ou discurso de ódio e sem reutilizar artes de outros álbuns.</p>
+     </div></div>
+    </section>
+    <section className="sr-two-panel">
+     <div className="sr-two-panel-heading"><span>03</span><div><h2>Dados avançados</h2><p>Horário e código identificador do lançamento.</p></div></div>
+     <strong className="sr-two-label">Especificar horário de lançamento?</strong>
+     <div className="sr-two-radio-group">
+      <label><input type="radio" name="hour" checked={useSpecificTime} onChange={()=>setUseSpecificTime(true)}/> Sim, quero um horário específico</label>
+      <label><input type="radio" name="hour" checked={!useSpecificTime} onChange={()=>{setUseSpecificTime(false);setReleaseTime('00:00')}}/> Não, quero o lançamento padrão às 0h</label>
+     </div>
+     {useSpecificTime&&<label>Horário pretendido<input type="time" step={60} value={releaseTime} onChange={e=>setReleaseTime(e.target.value)}/>{err('time')}</label>}
+     <strong className="sr-two-label">Esta música já tem UPC?</strong>
+     <div className="sr-two-radio-group">
+      <label><input type="radio" name="upc" checked={hasExistingUpc} onChange={()=>setHasExistingUpc(true)}/> Sim, esta música já foi lançada</label>
+      <label><input type="radio" name="upc" checked={!hasExistingUpc} onChange={()=>{setHasExistingUpc(false);setUpc('')}}/> Não lancei esta música ainda</label>
+     </div>
+     {hasExistingUpc&&<label>UPC / EAN *<input inputMode="numeric" maxLength={13} value={upc} onChange={e=>setUpc(e.target.value.replace(/\D/g,''))}/>{err('upc')}</label>}
+     <p className="sr-two-muted">Se não houver UPC, a equipe SINTONE cuidará da identificação durante a distribuição.</p>
+    </section>
+   </div>}
+   {step===2&&<section className="sr-two-panel">
+    <div className="sr-two-panel-heading"><span><Check size={18}/></span><div><h2>Revisão dos dados</h2><p>Confira todas as informações antes de enviar o lançamento.</p></div></div>
+    <div className="sr-two-review-top">{coverUrl&&<img src={coverUrl} alt="Capa do lançamento"/>}
+     <div><h3>{title||'Sem título'}</h3><p>{fmtTitle[format]} · {tracks.length} faixa(s)</p>
+      <p>{artists.filter(a=>a.role==='primary').map(a=>a.name).join(', ')}</p>
+      <p>Lançamento: {date} · {useSpecificTime?releaseTime:'00:00'}</p></div></div>
+    <div className="sr-two-review-grid">
+     <div><small>Selo</small><strong>{label}</strong></div>
+     <div><small>℗ Gravação</small><strong>{pYear} · {pHolder}</strong></div>
+     <div><small>© Lançamento</small><strong>{cYear} · {cHolder}</strong></div>
+     <div><small>UPC</small><strong>{hasExistingUpc?upc:'Pendente — SINTONE'}</strong></div>
     </div>
-   </div>
+    <h3>Faixas e créditos</h3>
+    {readyTracks.map((t,i)=><div key={t.key} className="sr-two-review-track">
+     <strong>{i+1}. {t.title}</strong><small>{t.genre} · {duration(audioSpecs[t.key]?.duration||0)} · {t.explicit?'Explícito':'Não explícito'} · ISRC {t.isrc||'a atribuir'}</small>
+     <small>Compositores: {t.composers}</small></div>)}
+    <h3>Plataformas ({effectivePlatforms.length})</h3>
+    <div className="sr-two-stores">{effectivePlatforms.map(name=><div className="sr-two-review-store" key={name}><DspIcon name={name} size={27}/>{name}</div>)}</div>
+    <div className="sr-two-total"><span>Taxa adicional</span><strong>{money(extraTotal)}</strong></div>
+    <label className="sr-two-consent"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/>
+     Declaro possuir todos os direitos e autorizações necessários para distribuir a gravação, os compositores, os samples e a capa.</label>
+    {err('rights')}
+   </section>}
+   {addonCheckout&&currentPlan&&<SubscriptionCardForm plan={{id:currentPlan.id,name:currentPlan.name,price_brl:currentPlan.price_brl,frequency:1}}
+    addonReleaseId={releaseId.current} addonPrice={extraTotal} selectedStores={effectivePlatforms}
+    onClose={()=>{setAddonCheckout(false);void checkReleaseExtras(releaseId.current).then(setAddonPaid)}}/>}
+   {generalError&&<p role="alert" className="sr-two-error">{generalError}</p>}
+   {draftMessage&&<p role="status" className="sr-two-info">{draftMessage}</p>}
+   {progress&&<p role="status" className="sr-two-info">{progress}</p>}
+   <footer className="sr-two-footer">
+    {step>0&&<button type="button" className="sr-two-secondary" disabled={busy} onClick={()=>{setStep(v=>v-1);setErrors({})}}><ChevronLeft size={16}/> Voltar</button>}
+    <button type="button" className="sr-two-secondary" disabled={busy} onClick={()=>void saveDraft()}>Salvar rascunho</button>
+    <span>{step===2?'Revisão final':step===0?'Página 1 de 2':'Página 2 de 2'}</span>
+    {step<2?<button type="button" className="sr-two-primary" disabled={busy} onClick={next}>
+     {step===1?'Ir para revisão dos dados':'Próximo'} <ChevronRight size={17}/></button>:
+    <button type="button" className="sr-two-primary" disabled={busy||extraTotal>0&&addonCheckout} onClick={()=>void send()}>
+     {busy?'Enviando...':extraTotal>0&&!addonPaid?'Pagar extras e distribuir':'Distribuir'} <Check size={17}/></button>}
+   </footer>
   </div>
 }

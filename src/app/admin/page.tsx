@@ -1,6 +1,7 @@
 import { notFound,redirect } from 'next/navigation'
 import { getAdminContext } from '@/lib/admin-access'
 import AdminPanel, { type AdminRelease, type AdminReleaseTrack, type AdminUser, type AdminContract } from '@/components/admin/AdminPanel'
+import type {AdminSpotifyProfile} from '@/components/admin/AdminSpotifyProfiles'
 
 export const metadata = { title: 'Administração | SINTONE' }
 export const dynamic = 'force-dynamic'
@@ -26,6 +27,19 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{ta
   ])
   if (profiles.error || releases.error || contracts.error || totalUsers.error || pending.error || approved.error || totalReleases.error || pendingPayouts.error) {
     throw new Error('Falha ao carregar informações administrativas. Confirme as permissões do Supabase e tente novamente.')
+  }
+  const [spotifyProfilesResult,releaseArtistsResult]=await Promise.all([
+    sb.from('artist_profiles').select('id,owner_id,name,spotify_id,spotify_url,is_first_spotify_release').order('created_at',{ascending:false}).range(0,999),
+    sb.from('release_artists').select('release_id,profile_id,name,role,spotify_id,spotify_url,is_first_spotify_release').range(0,9999)
+  ])
+  if(spotifyProfilesResult.error||releaseArtistsResult.error)throw new Error('Falha ao consultar os perfis Spotify da equipe.')
+  const spotifyProfiles=(spotifyProfilesResult.data||[]).map(p=>({...p,role:'profile'})) as AdminSpotifyProfile[]
+  const spotifyById=new Map(spotifyProfiles.map(p=>[p.id,p]))
+  const participantsByRelease=new Map<string,AdminRelease['artists']>()
+  for(const item of releaseArtistsResult.data||[]){
+    const list=participantsByRelease.get(item.release_id)||[]
+    list.push({name:item.name,role:item.role,profile_id:item.profile_id||undefined,spotify_id:item.spotify_id,spotify_url:item.spotify_url,is_first_spotify_release:item.is_first_spotify_release})
+    participantsByRelease.set(item.release_id,list)
   }
   const releaseIds=(releases.data??[]).map(r=>r.id)
   const allTracks: AdminReleaseTrack[]=[]
@@ -56,13 +70,17 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{ta
     credits:r.credits,explicit:r.explicit,created_at:r.created_at,status:r.status,
     rejection_reason:r.rejection_reason,has_audio:!!r.audio_path,
     label_name:r.label_name,p_line:r.p_line,c_line:r.c_line,delivery_status:r.delivery_status||'awaiting',platforms:r.platforms||[],
-    artists:r.artists||[],tracks:byRelease.get(r.id)||[],
+    artists:participantsByRelease.get(r.id)||((r.artists||[]) as AdminRelease['artists']).map(a=>{
+      const profile=a.profile_id?spotifyById.get(a.profile_id):null
+      return {...a,spotify_id:profile?.spotify_id||null,spotify_url:profile?.spotify_url||null,is_first_spotify_release:!!profile?.is_first_spotify_release}
+    }),tracks:byRelease.get(r.id)||[],
     cover_url: r.cover_path ? sb.storage.from('covers').getPublicUrl(r.cover_path).data.publicUrl : null,
   }))
   return <AdminPanel
     allowedTabs={ctx.tabs} isGeneral={ctx.isGeneral}
     adminLabel={ctx.user.email || 'Administrador'}
     users={users}
+    spotifyProfiles={spotifyProfiles}
     releases={releaseRows}
     contracts={contractRows}
     metrics={{

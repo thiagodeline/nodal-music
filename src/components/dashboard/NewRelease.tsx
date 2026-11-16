@@ -12,6 +12,8 @@ import {checkReleaseExtras} from '@/app/dashboard/billing-actions'
 import {DspIcon} from './DspIcon'
 const ReleaseAudioMini=dynamic(()=>import('./ReleaseAudioMini'))
 import ReleaseStoreItem from './ReleaseStoreItem'
+import SpotifyProfileFields from './SpotifyProfileFields'
+import {parseSpotifyArtist} from '@/lib/spotify-profile'
 import {GENRES,LANGUAGES,releaseFormat} from './release-fields'
 import {inspectReleaseAudio,type AudioTechnicalInfo} from './release-audio-validation'
 import type {Data} from './ui'
@@ -30,7 +32,7 @@ type Track={
   credits:string;explicit:boolean;language:string;genre:string;subgenre:string;
   isOriginal:boolean;isInstrumental:boolean;isRemix:boolean;tiktokPreviewStart:number
 }
-type Profile={id:string;name:string}
+type Profile={id:string;name:string;spotify_id:string|null;spotify_url:string|null;spotify_artist_id:string|null;is_first_spotify_release:boolean}
 type DspSetting={name:string;slug:string;is_extra:boolean;extra_fee:number;active:boolean;category:string}
 type CurrentPlan={id:string;name:string;price_brl:number;monthly_releases_limit:number|null;max_artists:number;included_stores:string[];has_instagram_included:boolean;instagram_addon_fee:number;charge_extra_platform_fees:boolean}
 const trackNew=():Track=>({
@@ -119,7 +121,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
   useEffect(()=>{
     let mounted=true
     const sb=createClient()
-    sb.from('artist_profiles').select('id,name').eq('owner_id',d.me?.id).order('created_at').then(({data,error})=>{
+    sb .from('artist_profiles').select('id,name,spotify_id,spotify_url,spotify_artist_id,is_first_spotify_release').eq('owner_id',d.me?.id).order('created_at').then(({data,error})=>{
       if(!mounted)return
       setProfilesLoading(false)
       setProfilesError(!!error)
@@ -262,6 +264,8 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
     if(profilesLoading||profilesError||!profiles.length)found.artists='Cadastre um perfil artístico antes de continuar.'
     if(artists.some(a=>!a.profile_id||!profiles.some(p=>p.id===a.profile_id)))
      found.artists='Selecione um artista em cada campo'
+    if(artists.some(a=>{const p=profiles.find(x=>x.id===a.profile_id);return p&&!p.is_first_spotify_release&&!p.spotify_id&&!p.spotify_artist_id}))
+     found.artists='Informe o perfil do Spotify ou marque primeiro lançamento e salve antes de continuar.'
     if(!artists.some(a=>a.role==='primary'&&a.profile_id))
      found.primary='Pelo menos um artista primário deve estar selecionado'
     if(!tracks.length||tracks.length>100)found.tracks='Adicione de 1 a 100 faixas.'
@@ -441,6 +445,15 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        title={artists.length===1?'Mantenha ao menos um campo de artista':'Remover artista'}
        aria-label={'Remover artista '+(i+1)} onClick={()=>setArtists(arr=>arr.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>
      </div>)}
+     {artists.map(a=>{const p=profiles.find(x=>x.id===a.profile_id);return p?<div key={'spotify-'+a.key} style={{margin:'10px 0 22px',padding:'16px',border:'1px solid #dbeafe',borderRadius:14,background:'#f8fafc'}}><strong style={{display:'block',marginBottom:11}}>Spotify — {p.name}</strong>
+      <SpotifyProfileFields key={p.id} initial={p} save={async(value,first)=>{
+        const parsed=first?{spotify_id:null,spotify_url:null,is_first_spotify_release:true}:parseSpotifyArtist(value)
+        const sb=createClient()
+        const {error}=await sb.from('artist_profiles').update({...parsed,spotify_artist_id:parsed.spotify_id}).eq('id',p.id).eq('owner_id',d.me.id)
+        if(error)throw Error(error.message)
+        setProfiles(prev=>prev.map(x=>x.id===p.id?{...x,...parsed,spotify_artist_id:parsed.spotify_id}:x))
+      }}/>
+     </div>:null})}
      {err('artists')}{err('primary')}
      <button type="button" className="sr-two-add" disabled={artists.length>=20} onClick={addArtist}><Plus size={16}/> Adicionar artista</button>
     </section>

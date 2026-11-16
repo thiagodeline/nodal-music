@@ -23,6 +23,8 @@ import AdminRoyaltySplits from './AdminRoyaltySplits'
 import AdminBanners from './AdminBanners'
 import AdminQA from './AdminQA'
 import ReleaseQuickPreview from './ReleaseQuickPreview'
+import SpotifyBadge from './SpotifyBadge'
+import type {AdminSpotifyProfile} from './AdminSpotifyProfiles'
 
 export type AdminReleaseTrack = {
   id:string;release_id:string;position:number;title:string;isrc:string|null;audio_path:string;
@@ -37,7 +39,7 @@ export type AdminRelease = {
   lyricists:string|null;credits:string|null;explicit:boolean|null;created_at:string;
   status:string;rejection_reason:string|null;cover_url:string|null;has_audio:boolean;
   label_name:string|null;p_line:string|null;c_line:string|null;delivery_status:string;
-  artists:{name:string;role:string;profile_id?:string}[];
+  artists:{name:string;role:string;profile_id?:string;spotify_id?:string|null;spotify_url?:string|null;is_first_spotify_release?:boolean}[];
   platforms:string[];tracks:AdminReleaseTrack[]
 }
 export type AdminUser = {
@@ -47,7 +49,7 @@ export type AdminUser = {
 }
 export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
-  adminLabel:string;allowedTabs:AdminTab[];isGeneral:boolean; users:AdminUser[]; releases:AdminRelease[]; contracts:AdminContract[];
+  adminLabel:string;allowedTabs:AdminTab[];isGeneral:boolean; users:AdminUser[]; spotifyProfiles:AdminSpotifyProfile[]; releases:AdminRelease[]; contracts:AdminContract[];
   metrics:{users:number;pending:number;approved:number;total:number;payouts:number};
   truncatedUsers:boolean;truncatedReleases:boolean
 }
@@ -69,7 +71,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
   return <div className="sa-detail-field"><dt>{label}</dt><dd>{typeof value==='boolean' ? (value?'Sim':'Não') : display(value)}</dd></div>
 }
 
-export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
+export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spotifyProfiles,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
   const searchParams=useSearchParams()
   const requested=searchParams.get('tab')||allowedTabs[0]||'releases'
@@ -194,7 +196,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,relea
             {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>Nenhum lançamento encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
-            <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral}/>
+            <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral} spotifyProfiles={spotifyProfiles}/>
           </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases}/>}
         </div>
       </main>
@@ -214,6 +216,9 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,relea
             <Field label="©" value={selected.c_line}/><Field label="Plataformas" value={selected.platforms.join(', ')}/>
             <Field label="Artistas e funções" value={selected.artists.map(a=>a.name+' ('+a.role+')').join(', ')}/>
           </dl>
+          <div style={{margin:'18px 0'}}><h3 className="sa-section-title">Perfis de artista no Spotify</h3>
+           {selected.artists.length?selected.artists.map((a,i)=><SpotifyBadge key={a.profile_id||i} artist={a}/>):<p>Nenhum artista registrado.</p>}
+          </div>
           <AdminQA release={selected}/>
           <h3 className="sa-section-title">Ficha técnica e créditos</h3><dl className="sa-details">
             <Field label="Compositores" value={selected.composers}/><Field label="Produtores" value={selected.producers}/>

@@ -5,10 +5,12 @@ import {useRouter} from 'next/navigation'
 import {adminSaveArtist,adminSetBalance} from '@/app/admin/management-actions'
 import {getContractDownloadUrl} from '@/app/admin/actions'
 import type {AdminUser,AdminContract} from './AdminPanel'
+import AdminSpotifyProfiles,{type AdminSpotifyProfile} from './AdminSpotifyProfiles'
+import SpotifyBadge from './SpotifyBadge'
 type Status='PENDING_ONBOARDING'|'PENDING_CONTRACT'|'ACTIVE'|'BLOCKED'
 type Draft={name:string;artist_name:string;phone:string;address:string;birth_date:string;cpf:string;cnpj:string;status:Status}
 const input='sa-x-input'
-export default function AdminAccounts({users,contracts,canEditBalance=false}:{users:AdminUser[];contracts:AdminContract[];canEditBalance?:boolean}) {
+export default function AdminAccounts({users,contracts,canEditBalance=false,spotifyProfiles}:{users:AdminUser[];contracts:AdminContract[];canEditBalance?:boolean;spotifyProfiles:AdminSpotifyProfile[]}) {
   const router=useRouter()
   const [selected,setSelected]=useState<string|null>(null)
   const [draft,setDraft]=useState<Draft|null>(null)
@@ -47,9 +49,10 @@ export default function AdminAccounts({users,contracts,canEditBalance=false}:{us
   return <div className="sa-x-wrap">
     <p className="sa-x-note">Saldo = royalties líquidos + ajustes auditados − saques. Alterações exigem justificativa.</p>
     <div className="sa-table-scroll"><table className="sa-table">
-      <thead><tr><th>Artista / E-mail</th><th>Status</th><th>Saldo disponível</th><th>Contrato</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Artista / E-mail</th><th>Spotify ID / Link</th><th>Status</th><th>Saldo disponível</th><th>Contrato</th><th>Ações</th></tr></thead>
       <tbody>{users.map(u=><tr key={u.id}>
         <td><strong>{u.artist_name||u.name||'Sem nome'}</strong><small className="sa-x-small">{u.email}</small></td>
+        <td>{spotifyProfiles.filter(p=>p.owner_id===u.id).map(p=><SpotifyBadge key={p.id} artist={p}/>)}{!spotifyProfiles.some(p=>p.owner_id===u.id)&&<small>Sem perfil cadastrado</small>}</td>
         <td>{u.status}</td><td>{canEditBalance?'R$ '+Number(u.saldo_disponivel||0).toFixed(2):'Restrito ao financeiro'}</td>
         <td>{ready(u.id)?<button className="sa-action-pill" onClick={()=>void download(u.id)}><Download size={14}/> Baixar PDF</button>:'Pendente'}</td>
         <td><button className="sa-action-pill" onClick={()=>open(u)}><Settings2 size={14}/> Gerenciar</button></td>
@@ -73,6 +76,7 @@ export default function AdminAccounts({users,contracts,canEditBalance=false}:{us
         </select></label>
       </div>
       <button className="sa-x-button" disabled={busy} onClick={()=>save('account')}>Salvar dados cadastrais</button>
+      <AdminSpotifyProfiles profiles={spotifyProfiles.filter(p=>p.owner_id===selected)}/>
       {canEditBalance&&<><div className="sa-x-sep"/>
       <label>Definir saldo disponível (R$)<input type="number" step="0.01" min="0" className={input} value={balance} onChange={e=>setBalance(e.target.value)}/></label>
       <label>Motivo do ajuste (obrigatório)<input minLength={10} maxLength={500} className={input} value={reason} onChange={e=>setReason(e.target.value)}/></label>

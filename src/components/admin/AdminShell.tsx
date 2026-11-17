@@ -6,6 +6,7 @@ import type {AdminTab,StaffRole} from '@/lib/admin-access'
 import './admin.css'
 import './admin-extras.css'
 import './admin-modules.css'
+import './admin-dark.css'
 const groups=[
  {heading:'OPERACIONAL & CATÁLOGO',items:[
   {key:'releases',name:'Lançamentos',Icon:Music2,badge:'releases'},

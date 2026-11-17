@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { replyToTicket, closeTicket } from '@/app/admin/actions'
 import { MessageSquare, X, Send } from 'lucide-react'
+import AdminSkeleton from './AdminSkeleton'
 
 type Ticket = {
   id:string;user_id:string;subject:string;category:string;message:string;
@@ -69,7 +70,7 @@ export default function AdminTickets(){
   }
   return <div className="sa-ticket-module">
     {error&&<p className="sa-feedback error" role="alert">{error}</p>}
-    {loading?<p className="sa-ticket-padding">Carregando chamados...</p>:
+    {loading?<AdminSkeleton/>:
       tickets.length===0?<div className="sa-empty"><MessageSquare size={36}/><h3>Nenhum chamado recebido</h3><p>Os tickets dos artistas aparecerão aqui.</p></div>:
       <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>Assunto</th><th>Artista / Email</th><th>Data de abertura</th><th>Status</th></tr></thead>
       <tbody>{tickets.map(t=><tr key={t.id} className="sa-ticket-row" onClick={()=>void open(t)}>

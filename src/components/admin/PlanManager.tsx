@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react'
 import {DSP,META_STORES} from '@/lib/dsp-catalog'
 import './plan-manager.css'
+import AdminSkeleton from './AdminSkeleton'
 type Plan={
  id:string;name:string;description:string;price_brl:number;royalty_commission:number;
  monthly_releases_limit:number|null;max_artists:number;included_stores:string[];
@@ -75,7 +76,7 @@ export default function PlanManager(){
   {message&&<p role="status" className="pm-alert">{message}</p>}
   <div className="pm-layout">
    <section className="pm-list"><h2>Planos cadastrados</h2>
-    {loading?<p>Carregando...</p>:plans.filter(p=>!p.archived).map(p=><article className={'pm-plan '+(editing===p.id?'selected':'')} key={p.id}>
+    {loading?<AdminSkeleton rows={3}/>:plans.filter(p=>!p.archived).map(p=><article className={'pm-plan '+(editing===p.id?'selected':'')} key={p.id}>
       <div><strong>{p.name}</strong><small>{p.published?'Publicado':'Oculto'}{p.is_default?' · Plano padrão':''}</small></div>
       <b>{fmt(p.price_brl)}</b>
       <p>{p.monthly_releases_limit==null?'Lançamentos ilimitados':p.monthly_releases_limit+' lançamentos/mês'} · {p.max_artists} artistas · {Number(p.price_brl)===0||p.charge_extra_platform_fees?'Taxas extras aplicáveis':'Sem taxas de plataformas extras'}</p>

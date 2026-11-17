@@ -1,7 +1,8 @@
 'use client'
 import {useCallback,useEffect,useMemo,useState} from 'react'
 import {createClient} from '@/lib/supabase/client'
-import {Copy,Paperclip} from 'lucide-react'
+import {Copy,Paperclip,Wallet} from 'lucide-react'
+import AdminSkeleton from './AdminSkeleton'
 type Withdrawal={id:string;artist_id:string;amount:number;pix_key:string;status:string;created_at:string}
 export default function AdminPayouts(){
  const sb=useMemo(()=>createClient(),[])
@@ -37,7 +38,7 @@ export default function AdminPayouts(){
  return <section className="sa-mod-panel">
   <h2>Saques e repasses</h2><p className="sa-x-note">A SINTONE não transfere PIX ou Stripe automaticamente. Marque como pago somente após executar o pagamento externo e conferir o comprovante.</p>
   {error&&<p role="alert" className="sa-error">{error}</p>}
-  {loading?<p>Carregando solicitações...</p>:<div className="sa-table-scroll"><table className="sa-mod-table">
+  {loading?<AdminSkeleton/>:<div className="sa-table-scroll"><table className="sa-mod-table">
    <thead><tr><th>Artista</th><th>Data</th><th>Valor</th><th>Chave PIX</th><th>Status</th><th>Ação</th></tr></thead>
    <tbody>{rows.map(w=><tr key={w.id}><td>{users[w.artist_id]||w.artist_id}</td><td>{new Date(w.created_at).toLocaleDateString('pt-BR')}</td>
     <td>{Number(w.amount).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td><td><div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}><span>{w.pix_key}</span><button type="button" className="sa-action-pill" onClick={()=>void navigator.clipboard.writeText(w.pix_key).then(()=>setCopied(w.id)).catch(()=>setError('Não foi possível copiar a chave PIX.'))}><Copy size={14}/>{copied===w.id?'Copiado':'Copiar chave PIX'}</button></div></td><td>{w.status==='pending'?'Pendente':w.status==='paid'?'Pago':'Rejeitado'}</td>
@@ -47,6 +48,6 @@ export default function AdminPayouts(){
       <small>{receipt?receipt.name:'PDF, PNG ou JPG até 5 MB'}</small>
      </label>
      <button type="button" disabled={busy===w.id||reference.trim().length<8||!receipt} onClick={()=>void send(w.id)}>Confirmar repasse efetuado</button></div>}</td></tr>)}</tbody>
-  </table>{!rows.length&&<p>Nenhuma solicitação de saque registrada.</p>}</div>}
+  </table>{!rows.length&&<div className="sa-empty"><Wallet size={36}/><h3>Nenhum saque pendente no momento</h3><p>As solicitações de saque aparecerão aqui.</p></div>}</div>}
  </section>
 }

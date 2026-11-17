@@ -8,7 +8,7 @@ import {ShieldCheck,Users,Save} from 'lucide-react'
 const labels:Record<StaffRole,string>={
  admin:'Administrador Geral',qc_specialist:'Controle de Qualidade',
  ingestion_manager:'Ingestão e DSPs',customer_success:'Suporte / CS',
- a_and_r:'A&R / Selos',royalty_financial:'Financeiro / Royalties'
+ a_and_r:'A&R / Selos',royalty_financial:'Financeiro / Royalties',ui_designer:'Designer de Interface'
 }
 type Row={id:string;email:string;role:StaffRole;user_id:string}
 export default function TeamRoles(){

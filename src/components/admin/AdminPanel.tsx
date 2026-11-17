@@ -80,6 +80,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
   const [selectedId,setSelectedId]=useState<string|null>(null)
+  const [zoomCover,setZoomCover]=useState(false)
   const [busy,setBusy]=useState('')
   const [feedback,setFeedback]=useState<{type:'success'|'error';text:string}|null>(null)
   const [audio,setAudio]=useState('')
@@ -104,14 +105,14 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
 
   useEffect(()=>{
     if(!selectedId)return
-    const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelectedId(null)}
+    const close=(e:KeyboardEvent)=>{if(e.key==='Escape'){setSelectedId(null);setZoomCover(false)}}
     document.addEventListener('keydown',close)
     return ()=>document.removeEventListener('keydown',close)
   },[selectedId])
 
   const flash=(type:'success'|'error',text:string)=>setFeedback({type,text})
   const open=(r:AdminRelease,mode:'details'|'approve'|'reject'='details')=>{setSelectedId(r.id);setReviewMode(mode);setRejecting(mode==='reject');setReason('');setAudio('');setAudioError('');setFeedback(null)}
-  const close=()=>{setSelectedId(null);setRejecting(false);setAudio('')}
+  const close=()=>{setSelectedId(null);setRejecting(false);setAudio('');setZoomCover(false)}
   const changeTab=(next:AdminTab)=>{if(!allowedTabs.includes(next))return;router.push('/admin?tab='+next);setSearch('');setFeedback(null)}
   async function play(id:string,trackId?:string){
     setAudioBusy(true);setAudioError('');setAudio('')
@@ -153,7 +154,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
   ]
   return <>
       <main className="sa-content">
-        <div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>Painel administrativo</h1><p>Analise lançamentos e acompanhe os artistas da plataforma.</p></div>
+        <div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>{!searchParams.has("tab")?"Painel administrativo":({releases:"Lançamentos",artists:"Artistas e contas",royalties:"Importar royalties",support:"Suporte",payouts:"Saques e Repasses",delivery:"Entregas às lojas",splits:"Divisões de royalties",banners:"Banners promocionais"} as Record<string,string>)[tab]}</h1><p>{!searchParams.has("tab")?"Visão geral dos lançamentos e atividades da SINTONE.":"Gerencie esta seção com as permissões do seu cargo."}</p></div>
           <span className="sa-secure"><ShieldCheck size={15}/> Acesso administrativo</span>
         </div>
         {tab==='releases'&&<div className="sa-metrics">{tiles.filter(tile=>allowedTabs.includes(tile.tab as AdminTab)).map(({label,value,Icon,desc,filter:status,tab:target})=><button type="button" className={'sa-metric sa-metric-button '+(tab===target&&filter===status?'sa-metric-selected':'')} key={label} onClick={()=>{changeTab(target as typeof tab);setFilter(status)}} aria-label={'Abrir '+label}>
@@ -193,7 +194,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
                   <button className="sa-action-pill" onClick={()=>open(r)}><Eye size={14}/> Detalhes</button></div></td>
                 </tr>)}
             </tbody></table></div>
-            {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>Nenhum lançamento encontrado</h3><p>Experimente alterar os filtros ou a busca.</p></div>}
+            {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>{filter==="pending"?"Nenhum lançamento aguardando revisão":"Nenhum lançamento encontrado"}</h3><p>{filter==="pending"?"Todos os lançamentos recebidos já foram analisados.":"Experimente alterar os filtros ou a busca."}</p></div>}
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral} spotifyProfiles={spotifyProfiles}/>
@@ -201,10 +202,10 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
         </div>
       </main>
     {selected&&<div className="sa-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}>
-      <section className="sa-dialog" role="dialog" aria-modal="true" aria-label={'Detalhes do lançamento '+selected.title}>
+      <section className="sa-dialog sa-review-drawer" role="dialog" aria-modal="true" aria-label={'Detalhes do lançamento '+selected.title}>
         <header className="sa-dialog-header"><div><span className="sa-kicker">REVISÃO DE LANÇAMENTO</span><h2>{selected.title}</h2></div><button onClick={close} aria-label="Fechar detalhes"><X size={21}/></button></header>
         <div className="sa-dialog-body">
-          <div className="sa-dialog-overview"><Cover url={selected.cover_url} title={selected.title} big/>
+          <div className="sa-dialog-overview"><button type="button" className="sa-cover-zoom" onClick={()=>setZoomCover(true)} disabled={!selected.cover_url} aria-label="Ampliar capa do lançamento"><Cover url={selected.cover_url} title={selected.title} big/><span>Ampliar capa</span></button>
             <div className="sa-dialog-summary"><span className={statusClass(selected.status)}>{statusLabels[selected.status]||selected.status}</span><h3>{selected.title}</h3><p>{display(selected.main_artist)}</p><small><CalendarDays size={14}/> Data prevista: {fmtDate(selected.release_date)}</small></div></div>
           <h3 className="sa-section-title">Informações do lançamento</h3><dl className="sa-details">
             <Field label="Título / Álbum" value={selected.title}/><Field label="Tipo" value={selected.type}/>
@@ -246,5 +247,6 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
         </footer>
       </section>
     </div>}
+    {zoomCover&&selected?.cover_url&&<div className="sa-zoom-backdrop" role="dialog" aria-modal="true" aria-label="Capa ampliada" onClick={()=>setZoomCover(false)}><button type="button" aria-label="Fechar imagem ampliada" onClick={()=>setZoomCover(false)}><X size={24}/></button><img src={selected.cover_url} alt={"Capa ampliada de "+selected.title}/></div>}
   </>
 }

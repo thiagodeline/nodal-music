@@ -1,6 +1,6 @@
 import {createClient} from '@/lib/supabase/server'
 
-export type StaffRole='admin'|'qc_specialist'|'ingestion_manager'|'customer_success'|'a_and_r'|'royalty_financial'
+export type StaffRole='admin'|'qc_specialist'|'ingestion_manager'|'customer_success'|'a_and_r'|'royalty_financial'|'ui_designer'
 export type AdminTab='releases'|'artists'|'royalties'|'plans'|'banners'|'dsp'|'support'|'payouts'|'splits'|'delivery'|'team'
 export const ROLE_TABS:Record<StaffRole,readonly AdminTab[]>={
  admin:['releases','artists','royalties','plans','banners','dsp','support','payouts','splits','delivery','team'],
@@ -8,7 +8,8 @@ export const ROLE_TABS:Record<StaffRole,readonly AdminTab[]>={
  ingestion_manager:['delivery'],
  customer_success:['support'],
  a_and_r:['artists'],
- royalty_financial:['royalties','payouts']
+ royalty_financial:['royalties','payouts','splits'],
+ ui_designer:['banners','dsp']
 }
 export async function getAdminContext(required:StaffRole|'staff'='admin'){
  const supabase=await createClient()

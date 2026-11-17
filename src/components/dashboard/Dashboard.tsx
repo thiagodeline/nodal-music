@@ -4,11 +4,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {useRouter,useSearchParams} from 'next/navigation'
-import {Bell,ChevronDown,UploadCloud,CreditCard,UserRound,LogOut,Lock,Menu,X} from 'lucide-react'
+import {Bell,Lock} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import './dashboard.css'
 import './dashboard-horizontal.css'
 import './dashboard-refinements.css'
+import './dashboard-premium.css'
+import ArtistSidebar from './ArtistSidebar'
 import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
 import Overview from './Overview'
@@ -112,45 +114,15 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const restricted=expired&&!['plans','support','account','financial','catalog','notifications','contracts','privacy','profile','profiles'].includes(route)
  async function logout(){snapshotCache.clear();await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
- return <div className="nd nd-horizontal">
-  <header className="nd-hnav">
-   <Link href="/dashboard" className="nd-hbrand" onClick={()=>jump('overview')}><Image src="/sintone-logo.svg" width={142} height={43} alt="SINTONE" priority/></Link>
-   <nav id="artist-mobile-navigation" className={'nd-hlinks '+(navOpen?'open':'')}
-    aria-label="Navegação do artista"
-    onClick={e=>{if((e.target as HTMLElement).closest('a'))setNavOpen(false)}}>
-    <a className={route==='overview'?'active':''} href="/dashboard#overview">Visão Geral</a>
-    {groups.map(group=><div className="nd-hgroup" key={group.name}>
-     <button type="button" className={group.items.some(i=>i[0]===route)?'active':''}>{group.name} <ChevronDown size={15}/></button>
-     <div className="nd-hdropdown">{group.items.map(([key,label])=><a key={key} href={key==='profiles'?'/dashboard/artistas':'/dashboard#'+key}>{label}</a>)}</div>
-    </div>)}
-   </nav>
-   <div className="nd-hquick">
-    {plans.length>1&&<a href="/dashboard/planos" className="nd-houtline" title={planTip}><CreditCard size={16}/> <span>Atualizar</span></a>}
-    <button className="nd-hupload" title={uploadTip} disabled={locked} onClick={()=>{window.location.href='/novo-lancamento'}}><UploadCloud size={16}/><span>Carregar</span></button>
-    <Link href="/notificacoes" className="nd-hbell" title="Notificações" aria-label={unread+' notificações não lidas'}><Bell size={19}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</Link>
-    <div className="nd-hgroup nd-hprofile">
-     <button type="button" aria-label="Menu do perfil" title={d?.email||'Conta'}><UserRound size={20}/><ChevronDown size={13}/></button>
-     <div className="nd-hdropdown nd-hprofile-menu">
-      <small title={d?.email}>{d?.email}</small>
-      <a href="/dashboard/configuracoes">Configurações da conta</a>
-      <a href="/dashboard/planos">Plano e faturamento</a>
-      <a href="/dashboard#contracts">Gestão de contratos</a>
-      <a href="/privacidade">Política de Privacidade</a>
-      {(d?.me?.role==='admin'||staffAccess)&&<Link href="/admin">Painel Admin</Link>}
-      <button type="button" onClick={()=>void logout()}><LogOut size={15}/> Sair</button>
-     </div>
-    </div>
-    <button type="button" className="nd-hburger" onClick={()=>setNavOpen(x=>!x)}
-     aria-expanded={navOpen} aria-controls="artist-mobile-navigation"
-     aria-label={navOpen?'Fechar navegação':'Abrir navegação'}>{navOpen?<X size={21}/>:<Menu size={21}/>}</button>
-   </div>
-  </header>
+ return <div className="nd nd-horizontal nd-premium">
+  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread} open={navOpen} setOpen={setNavOpen} onLogout={()=>void logout()}/>
+  <div className="nd-premium-mobile-top"><span>SINTONE / PAINEL</span><a href="/dashboard#notifications" aria-label={unread+' notificações não lidas'}><Bell size={20}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</a></div>
   <main className="nd-hmain">
    {!d?<p className="mut">Carregando seu painel…</p>:<>
     {expired&&<div className="banner red" role="alert"><Lock size={20}/><p>Seu período de acesso terminou. <a href="/dashboard#plans">Renove seu plano</a> para continuar distribuindo.</p></div>}
     {route!=='contracts'&&route!=='notifications'&&<ContractBanner status={gate.status} signed={!!d.me?.contract_accepted_at}/>}
     {restricted?<div className="card"><h3>Acesso restrito</h3><p>Renove o plano para utilizar esta seção.</p><a className="btn" href="/dashboard#plans">Ver planos</a></div>:<>
-     {route==='overview'&&<Overview d={d} can={!locked}/>}
+     {route==='overview'&&<Overview d={d} can={!locked} unread={unread} reload={()=>void load(true)}/>}
      {route==='catalog'&&<Catalog d={d} can={!locked}/>}
      {route==='drafts'&&<ReleaseDrafts userId={d.me.id}/>}
      {route==='profiles'&&<Artists d={d}/>}

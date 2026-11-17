@@ -5,12 +5,15 @@ import Image from 'next/image'
 import { LoaderCircle, LogIn } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import '../register/register.css'
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons'
 
 export default function Login() {
   const [busy,setBusy]=useState(false)
   const [error,setError]=useState('')
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('novo') === '1') window.location.replace('/register')
+    const query=new URLSearchParams(window.location.search)
+    if(query.get('novo')==='1')window.location.replace('/register')
+    if(query.get('auth_error')==='1')setError('Não foi possível finalizar o login social. Entre usando e-mail e senha.')
   },[])
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setError(''); setBusy(true)
@@ -24,21 +27,22 @@ export default function Login() {
     } catch { setError('Falha de conexão. Tente novamente.') }
     finally { setBusy(false) }
   }
-  return <main className="rg-page"><div className="rg-container">
+  return <main className="rg-page rg-dark-auth"><div className="rg-container">
     <aside className="rg-aside"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority/></Link>
-      <div className="rg-aside-content"><span className="rg-eyebrow">BEM-VINDO DE VOLTA</span><h2>Sua música. Seu catálogo. Seu controle.</h2>
+      <div className="rg-aside-content"><span className="rg-eyebrow">SINTONE / ARTISTAS</span><h2>ENTRAR NO SINTONE.</h2>
         <p>Acompanhe seus lançamentos e resultados pelo painel da SINTONE.</p></div>
       <p className="rg-aside-foot">Distribuição musical independente.</p>
     </aside>
     <section className="rg-panel"><div className="rg-form-wrap">
       <div className="rg-mobile-brand"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority/></Link></div>
-      <div className="rg-heading"><span className="rg-eyebrow">ENTRAR NA PLATAFORMA</span><h1>Acesse sua conta</h1><p>Entre com seu e-mail e senha para continuar.</p></div>
+      <div className="rg-heading"><span className="rg-eyebrow">ACESSO À PLATAFORMA</span><h1>ENTRAR NA CONTA</h1><p>Entre com seu e-mail e senha para continuar.</p></div>
       <form onSubmit={submit}>
         <div className="rg-group"><div className="rg-caption"><label htmlFor="login-email">E-mail</label></div><input id="login-email" name="email" type="email" autoComplete="email" placeholder="voce@exemplo.com" required/></div>
         <div className="rg-group"><div className="rg-caption"><label htmlFor="login-password">Senha</label></div><input id="login-password" name="password" type="password" autoComplete="current-password" placeholder="Sua senha" required/></div>
         {error && <div className="rg-alert" role="alert">{error}</div>}
         <button type="submit" className="rg-submit" disabled={busy}>{busy ? <><LoaderCircle className="rg-spin" size={18}/> Entrando…</> : <><LogIn size={18}/> Entrar</>}</button>
       </form>
+      <SocialAuthButtons/>
       <p className="rg-login">Ainda não tem conta? <Link href="/register">Criar conta grátis</Link></p>
     </div></section>
   </div></main>

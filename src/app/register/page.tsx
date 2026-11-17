@@ -9,6 +9,7 @@ import { Check, CircleCheck, Eye, EyeOff, LoaderCircle, LockKeyhole } from 'luci
 import { createClient } from '@/lib/supabase/client'
 import { ensureProfile } from '@/lib/profile'
 import './register.css'
+import SocialAuthButtons from '@/components/auth/SocialAuthButtons'
 
 const schema = z.object({
   fullName: z.string().trim().min(5, 'Digite seu nome e sobrenome.').max(160).refine(n => n.split(/\s+/).length > 1, 'Informe nome e sobrenome.'),
@@ -77,12 +78,12 @@ export default function Register() {
     }
   }
 
-  return <main className="rg-page">
+  return <main className="rg-page rg-dark-auth">
     <div className="rg-container">
       <aside className="rg-aside">
         <Link href="/" aria-label="Voltar para SINTONE"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority /></Link>
-        <div className="rg-aside-content"><span className="rg-eyebrow">SINTONE PARA CRIADORES</span>
-          <h2>Sua música merece um caminho próprio.</h2>
+        <div className="rg-aside-content"><span className="rg-eyebrow">SINTONE / ARTISTAS</span>
+          <h2>CRIE SUA CONTA SINTONE.</h2>
           <p>Organize seu catálogo, acompanhe seus lançamentos e cresça com uma plataforma criada para o mercado independente.</p>
           <div className="rg-points"><span><CircleCheck size={18} /> Painel de lançamentos</span><span><CircleCheck size={18} /> Royalties com transparência</span><span><CircleCheck size={18} /> Controle do seu catálogo</span></div>
         </div>
@@ -92,7 +93,7 @@ export default function Register() {
         <div className="rg-mobile-brand"><Link href="/"><Image src="/sintone-logo.svg" width={156} height={44} alt="SINTONE" priority /></Link></div>
         {done ? <div className="rg-success"><CircleCheck size={42} /><h1>Confira seu e-mail</h1><p>Se o cadastro foi aceito, você receberá uma mensagem para confirmar o endereço informado. Depois, entre para completar seu perfil.</p><Link href="/login" className="rg-submit">Ir para entrar</Link></div> :
         <div className="rg-form-wrap">
-          <div className="rg-heading"><span className="rg-eyebrow">COMECE POR AQUI</span><h1>Crie sua conta</h1><p>Preencha seus dados para começar na SINTONE.</p></div>
+          <div className="rg-heading"><span className="rg-eyebrow">CADASTRO GRATUITO</span><h1>CRIAR CONTA</h1><p>Preencha seus dados para começar na SINTONE.</p></div>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="rg-group">
               {field('rg-name', 'Nome completo', errors.fullName?.message)}
@@ -144,6 +145,7 @@ export default function Register() {
             {feedback && <div className="rg-alert" role="alert">{feedback}</div>}
             <button className="rg-submit" type="submit" disabled={isSubmitting || !isValid}>{isSubmitting ? <><LoaderCircle className="rg-spin" size={18}/> Criando conta…</> : <><LockKeyhole size={17}/> Criar conta grátis</>}</button>
           </form>
+          <SocialAuthButtons requireTerms termsAccepted={termsAccepted}/>
           <p className="rg-login">Já tem uma conta? <Link href="/login">Entrar na SINTONE</Link></p>
         </div>}
       </section>

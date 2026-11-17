@@ -21,6 +21,7 @@ import './release-wizard.css'
 import './release-wizard-four.css'
 import './release-wizard-five.css'
 import './release-two-pages.css'
+import './release-wizard-dark.css'
 
 type Format='single'|'ep'|'album'
 type ArtistRole='primary'|'featured'|'remixer'

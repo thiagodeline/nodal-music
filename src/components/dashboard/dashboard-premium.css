@@ -132,3 +132,6 @@
 }
 @media(max-width:420px){.nd-premium-greeting h1{font-size:22px}.nd-premium-section-title h2{font-size:22px}.nd-welcome-profile{gap:12px}.nd-avatar-upload{width:65px;height:65px;min-width:65px}.nd-welcome-text h2{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.nd-premium-sidebar,.nd-premium .nd-hmain,.nd-side-label,.nd-side-brand-name,.nd-side-identity-copy{transition:none!important}}
+
+/* O novo símbolo já é branco sobre preto; não inverter suas cores. */
+.nd-premium-sidebar .nd-sidebar-brand img{filter:none}

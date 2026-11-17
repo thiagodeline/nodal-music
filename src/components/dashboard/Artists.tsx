@@ -26,7 +26,7 @@ export default function Artists({d}:{d:Data}){
  return <div className="card"><div className="head-row"><div><h3>Meus artistas</h3><p className="mut">Identifique corretamente os perfis do Spotify antes de distribuir.</p></div><button className="btn" type="button" onClick={()=>setAdding(!adding)}><Plus size={15}/> Adicionar artista</button></div>
  {adding&&<div className="ap"><label>Nome do artista<input maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label><button className="btn" type="button" onClick={()=>void add()}>Criar perfil</button></div>}
  {msg&&<p role="status">{msg}</p>}
- {rows.length?<div style={{display:'grid',gap:18}}>{rows.map(row=><div key={row.id} style={{padding:18,border:'1px solid #e2e8f0',borderRadius:15}}>
+ {rows.length?<div style={{display:'grid',gap:18}}>{rows.map(row=><div key={row.id} className="nd-artist-profile-card">
  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,marginBottom:14}}><strong>{row.name}</strong><button className="btn bad sm" type="button" onClick={()=>void remove(row.id)}><Trash2 size={14}/> Excluir</button></div>
  <SpotifyProfileFields key={row.id} initial={row} includeApple save={(spotify,first,apple)=>save(row,spotify,first,apple)} />
  </div>)}</div>:<Empty title="Nenhum artista cadastrado" text="Cadastre um perfil para vincular o Spotify ao seu lançamento."/>}</div>

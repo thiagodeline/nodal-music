@@ -1,0 +1,27 @@
+/* Campos Spotify e Apple — uma única identidade visual nas telas de artistas e lançamento. */
+.nd-premium .spotify-fields-dark{color:#d4d4d8}
+.nd-premium .spotify-fields-dark label{color:#d4d4d8!important}
+.nd-premium .spotify-fields-dark .spotify-profile-input,
+.nd-premium .sr.sr-two .spotify-fields-dark .spotify-profile-input{
+ display:block;width:100%;max-width:100%;min-height:43px;
+ padding:10px 12px;border:1px solid #3f3f46!important;border-radius:7px;
+ background:#1a1a1e!important;color:#fff!important;color-scheme:dark;
+ font:inherit;font-size:13px;box-shadow:none
+}
+.nd-premium .spotify-fields-dark .spotify-profile-input::placeholder{color:#71717a;opacity:1}
+.nd-premium .spotify-fields-dark .spotify-profile-input:focus{
+ outline:none;border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6!important
+}
+.nd-premium .spotify-fields-dark .spotify-profile-input:disabled{
+ background:#27272a!important;color:#a1a1aa!important;cursor:not-allowed
+}
+.nd-premium .spotify-fields-dark small,.nd-premium .spotify-fields-dark p{color:#a1a1aa}
+.nd-premium .spotify-fields-dark input[type=checkbox]{accent-color:#2563eb}
+.nd-premium .nd-artist-profile-card{
+ background:#121215;border:1px solid #303035;border-radius:15px;padding:18px;color:#f4f4f5
+}
+.nd-premium .sr.sr-two .sr-spotify-card{
+ display:block;margin:10px 0 22px;padding:16px;border:1px solid #303035;
+ border-radius:14px;background:#121215;color:#d4d4d8
+}
+.nd-premium .sr.sr-two .sr-spotify-card>strong{color:#fff}

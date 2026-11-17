@@ -446,7 +446,7 @@ export default function NewRelease({d,reload}:{d:Data;reload:()=>void}) {
        title={artists.length===1?'Mantenha ao menos um campo de artista':'Remover artista'}
        aria-label={'Remover artista '+(i+1)} onClick={()=>setArtists(arr=>arr.filter(x=>x.key!==a.key))}><Trash2 size={17}/></button>
      </div>)}
-     {artists.map(a=>{const p=profiles.find(x=>x.id===a.profile_id);return p?<div key={'spotify-'+a.key} style={{margin:'10px 0 22px',padding:'16px',border:'1px solid #dbeafe',borderRadius:14,background:'#f8fafc'}}><strong style={{display:'block',marginBottom:11}}>Spotify — {p.name}</strong>
+     {artists.map(a=>{const p=profiles.find(x=>x.id===a.profile_id);return p?<div key={'spotify-'+a.key} className="sr-spotify-card"><strong style={{display:'block',marginBottom:11}}>Spotify — {p.name}</strong>
       <SpotifyProfileFields key={p.id} initial={p} save={async(value,first)=>{
         const parsed=first?{spotify_id:null,spotify_url:null,is_first_spotify_release:true}:parseSpotifyArtist(value)
         const sb=createClient()

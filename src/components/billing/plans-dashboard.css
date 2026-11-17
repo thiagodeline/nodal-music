@@ -19,3 +19,38 @@
 .st-plan-sintone li{gap:10px;color:#334155;font-size:13px;align-items:flex-start}
 .st-plan-sintone li svg{flex:none;margin-top:2px;color:#2563eb;stroke-width:2.5}
 @media(max-width:420px){.st-plan-grid-dashboard>.st-plan.st-plan-sintone{width:100%;max-width:340px;flex:0 1 100%}}
+
+/* Dark Premium exclusivo da área autenticada; não altera planos da Landing. */
+.nd-premium .st-plan-dashboard-area .st-plan-grid-dashboard>.st-plan.st-plan-sintone{
+ background:#121215!important;border:1px solid #303035!important;color:#f4f4f5!important;
+ border-radius:16px;box-shadow:none!important
+}
+.nd-premium .st-plan-grid-dashboard>.st-plan.st-plan-sintone:hover{
+ box-shadow:0 12px 30px rgba(0,0,0,.25)!important
+}
+.nd-premium .st-plan-sintone .st-plan-band{
+ background:linear-gradient(110deg,#18181b,#172554)!important;border:0
+}
+.nd-premium .st-plan-sintone .st-plan-content{
+ background:#121215!important;color:#f4f4f5!important
+}
+.nd-premium .st-plan-sintone .st-plan-content h3,
+.nd-premium .st-plan-sintone .st-plan-price,
+.nd-premium .st-plan-sintone .st-plan-content li,
+.nd-premium .st-plan-sintone .st-plan-content li span{
+ color:#fff!important
+}
+.nd-premium .st-plan-sintone .st-plan-desc,
+.nd-premium .st-plan-sintone .st-plan-cycle,
+.nd-premium .st-plan-sintone .st-plan-price span{color:#d4d4d8!important}
+.nd-premium .st-plan-sintone .st-plan-badge{
+ background:#172554!important;color:#93c5fd!important;border:1px solid #1e40af!important
+}
+.nd-premium .st-plan-sintone ul{border-top:1px solid #303035!important}
+.nd-premium .st-plan-sintone li svg{color:#3b82f6!important}
+.nd-premium .st-plan-sintone .st-plan-current{
+ background:#172554!important;color:#bfdbfe!important;border:1px solid #1e40af!important
+}
+.nd-premium .st-plan-sintone .st-plan-unavailable{
+ background:#27272a!important;color:#d4d4d8!important
+}

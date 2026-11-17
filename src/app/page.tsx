@@ -1,15 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import {ArrowRight,Instagram,Youtube,Music2} from 'lucide-react'
-import './landing.css'
-import '@/components/legal.css'
+import {ArrowRight,ArrowUpRight,Instagram,Youtube,Music2} from 'lucide-react'
 import {createClient} from '@/lib/supabase/server'
 import type {PublicPlan} from '@/components/billing/PlanCards'
 import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
-import '@/components/billing/plans.css'
 import LandingBelowHero from '@/components/landing/LandingBelowHero'
 import HeroCarousel from '@/components/landing/HeroCarousel'
-import '@/components/landing/landing-refresh.css'
+import '@/components/landing/editorial.css'
 
 export const dynamic='force-dynamic'
 
@@ -32,32 +29,35 @@ export default async function Home() {
     && process.env.SINTONE_PAYMENT_MODE === 'one_time'
     && !!(process.env.MERCADOPAGO_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.MERCADOPAGO_ACCESS_TOKEN)
 
-  return <div className="st-home">
-    <header className="st-simple-header">
-      <div className="st-simple-header-inner">
-        <Link href="/" aria-label="Página inicial da SINTONE"><Image src="/sintone-logo.svg" alt="SINTONE" width={156} height={44} priority /></Link>
-        <nav className="st-simple-auth" aria-label="Acesso à plataforma">
-          <Link href="/login">ENTRAR</Link>
-          <Link href="/register">INSCREVA-SE</Link>
-        </nav>
-      </div>
-    </header>
-
+  return <div className="st-home um-home">
+    <a className="um-skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <header className="um-header"><div className="um-container um-header-inner">
+     <Link className="um-header-logo" href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" alt="SINTONE" width={166} height={46} priority/></Link>
+     <nav className="um-top-nav" aria-label="Navegação principal">
+      <a href="#recursos">RECURSOS</a><a href="#carreira">CARREIRA</a>{plans.length>1&&<a href="#planos">PLANOS</a>}<a href="#faq">FAQ</a>
+     </nav>
+     <div className="um-header-actions"><Link className="um-login" href="/login">ENTRAR</Link><Link className="um-signup" href="/register">CADASTRE-SE <ArrowUpRight size={16}/></Link></div>
+    </div></header>
     <main id="conteudo">
-      {landing.announcement_active&&<div className="st-announcement"><Link href={landing.announcement_link}>{landing.announcement_text} <ArrowRight size={15}/></Link></div>}
-      <HeroCarousel images={heroImages} landing={landing}/>
-
-      <LandingBelowHero landing={landing} plans={plans.length>1?plans:[]} checkoutReady={checkoutReady}/>
+     {landing.announcement_active&&<div className="um-announcement"><Link href={landing.announcement_link}>{landing.announcement_text}<ArrowRight size={16}/></Link></div>}
+     <HeroCarousel images={heroImages} landing={landing}/>
+     <LandingBelowHero landing={landing} plans={plans} checkoutReady={checkoutReady}/>
     </main>
-
-    <footer className="st-footer"><div className="wrap st-footer-inner"><div className="st-footer-brand"><Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={150} height={43} alt="SINTONE"/></Link><p>Distribuição musical com transparência, clareza e pessoas do seu lado.</p></div>
-      <div className="st-footer-nav"><div><strong>Plataforma</strong><Link href="/register">Criar conta</Link><Link href="/login">Acessar painel</Link><a href="#recursos">Recursos</a></div><div><strong>Informações</strong><Link href="/termos">Termos de uso</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">LGPD</Link></div>
-      <div className="st-footer-social"><strong>Redes sociais</strong>
-       {landing.social_links.instagram&&<a href={landing.social_links.instagram} target="_blank" rel="noopener noreferrer"><Instagram size={17}/> Instagram</a>}
-       {landing.social_links.youtube&&<a href={landing.social_links.youtube} target="_blank" rel="noopener noreferrer"><Youtube size={17}/> YouTube</a>}
-       {landing.social_links.tiktok&&<a href={landing.social_links.tiktok} target="_blank" rel="noopener noreferrer"><Music2 size={17}/> TikTok</a>}
-       {!Object.values(landing.social_links).some(Boolean)&&<span className="st-social-pending">Canais oficiais em breve</span>}
-      </div></div>
-    </div><div className="wrap st-footer-bottom"><span>© {new Date().getFullYear()} SINTONE. Todos os direitos reservados.</span><span>Tecnologia SINTONE · Feito para música independente.</span></div></footer>
+    <footer className="um-footer"><div className="um-container">
+     <div className="um-footer-lead"><span>[ SINTONE / {new Date().getFullYear()} ]</span><h2>SUA MÚSICA<br/>NÃO TEM LIMITES.</h2><Link href="/register">FAÇA PARTE DA SINTONE <ArrowUpRight size={20}/></Link></div>
+     <div className="um-footer-grid">
+      <div className="um-footer-brand"><Link href="/" aria-label="Início da SINTONE"><Image src="/sintone-logo.svg" alt="SINTONE" width={175} height={46}/></Link><p>Distribuição musical independente, com transparência, qualidade e respeito ao artista.</p></div>
+      <nav aria-label="Links da plataforma"><strong>PLATAFORMA</strong><Link href="/register">Criar conta</Link><Link href="/login">Acessar painel</Link><a href="#como-funciona">Como funciona</a></nav>
+      <nav aria-label="Recursos"><strong>RECURSOS</strong><a href="#recursos">Distribuição digital</a><a href="#carreira">Carreira independente</a><a href="#faq">Perguntas frequentes</a></nav>
+      <nav aria-label="Informações legais"><strong>LEGAL / PRIVACIDADE</strong><Link href="/termos">Termos de uso</Link><Link href="/privacidade">Política de privacidade</Link><Link href="/lgpd">LGPD</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link></nav>
+      <nav aria-label="Redes sociais"><strong>REDES SOCIAIS</strong>
+       {landing.social_links.instagram&&<a href={landing.social_links.instagram} target="_blank" rel="noopener noreferrer"><Instagram size={15}/> Instagram</a>}
+       {landing.social_links.youtube&&<a href={landing.social_links.youtube} target="_blank" rel="noopener noreferrer"><Youtube size={15}/> YouTube</a>}
+       {landing.social_links.tiktok&&<a href={landing.social_links.tiktok} target="_blank" rel="noopener noreferrer"><Music2 size={15}/> TikTok</a>}
+       {!Object.values(landing.social_links).some(Boolean)&&<span>Canais oficiais em breve</span>}
+      </nav>
+     </div>
+     <div className="um-footer-bottom"><span>© {new Date().getFullYear()} SINTONE MEI. TODOS OS DIREITOS RESERVADOS.</span><span>DESENVOLVIDO PARA QUEM VIVE DE MÚSICA.</span></div>
+    </div></footer>
   </div>
 }

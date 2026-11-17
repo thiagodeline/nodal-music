@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import {ArrowRight} from 'lucide-react'
+import {ArrowRight,Instagram,Youtube,Music2} from 'lucide-react'
 import './landing.css'
 import '@/components/legal.css'
 import {createClient} from '@/lib/supabase/server'
@@ -8,6 +8,8 @@ import type {PublicPlan} from '@/components/billing/PlanCards'
 import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
 import '@/components/billing/plans.css'
 import LandingBelowHero from '@/components/landing/LandingBelowHero'
+import HeroCarousel from '@/components/landing/HeroCarousel'
+import '@/components/landing/landing-refresh.css'
 
 export const dynamic='force-dynamic'
 
@@ -15,20 +17,17 @@ export default async function Home() {
   const sb = await createClient()
   const { data } = await sb.from('billing_plans')
     .select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists')
-    .eq('published', true).eq('archived', false).order('price_brl', { ascending: true })
+    .eq('published', true).eq('active', true).eq('archived', false).order('price_brl', { ascending: true })
   const plans = (data || []) as PublicPlan[]
   const {data:heroConfig}=await sb.from('landing_page_config').select('*').eq('id',1).maybeSingle()
   const landing=normalizeLanding(heroConfig as Partial<LandingConfig>|null)
-  const configuredUrl=heroConfig?.hero_image_url
   const allowedOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL||''
-  let heroImageUrl: string|null=null
-  if(configuredUrl && allowedOrigin){
-    try {
-      const source=new URL(configuredUrl)
-      const origin=new URL(allowedOrigin)
-      if(source.origin===origin.origin && source.pathname.startsWith('/storage/v1/object/public/public-assets/hero/'))heroImageUrl=source.toString()
-    } catch {}
-  }
+  const heroImages=landing.hero_banners.filter(value=>{
+   if(!allowedOrigin)return false
+   try{const url=new URL(value),origin=new URL(allowedOrigin)
+    return url.origin===origin.origin&&url.pathname.startsWith('/storage/v1/object/public/public-assets/hero/')
+   }catch{return false}
+  })
   const checkoutReady = process.env.SINTONE_ENABLE_PAID_CHECKOUT === 'true'
     && process.env.SINTONE_PAYMENT_MODE === 'one_time'
     && !!(process.env.MERCADOPAGO_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.MERCADOPAGO_ACCESS_TOKEN)
@@ -46,20 +45,19 @@ export default async function Home() {
 
     <main id="conteudo">
       {landing.announcement_active&&<div className="st-announcement"><Link href={landing.announcement_link}>{landing.announcement_text} <ArrowRight size={15}/></Link></div>}
-      <section className="st-hero-banner" aria-labelledby="st-main-title">
-        {heroImageUrl && <div className="st-hero-image" role="img" aria-label="Imagem de fundo da SINTONE" style={{backgroundImage:`url("${heroImageUrl}")`}} />}
-        <div className="st-hero-overlay" aria-hidden="true"/>
-        <div className="st-hero-banner-inner">
-          <h1 id="st-main-title">{landing.hero_title}</h1>
-          <p>{landing.hero_subtitle}</p><Link className="st-hero-cms-cta" href={landing.hero_cta_url}>{landing.hero_cta_text} <ArrowRight size={18}/></Link>
-        </div>
-      </section>
+      <HeroCarousel images={heroImages} landing={landing}/>
 
-      <LandingBelowHero landing={landing} plans={plans} checkoutReady={checkoutReady}/>
+      <LandingBelowHero landing={landing} plans={plans.length>1?plans:[]} checkoutReady={checkoutReady}/>
     </main>
 
     <footer className="st-footer"><div className="wrap st-footer-inner"><div className="st-footer-brand"><Link href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" width={150} height={43} alt="SINTONE"/></Link><p>Distribuição musical com transparência, clareza e pessoas do seu lado.</p></div>
-      <div className="st-footer-nav"><div><strong>Plataforma</strong><Link href="/register">Criar conta</Link><Link href="/login">Acessar painel</Link><a href="#recursos">Recursos</a></div><div><strong>Informações</strong><Link href="/termos">Termos de uso</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">LGPD</Link></div></div>
+      <div className="st-footer-nav"><div><strong>Plataforma</strong><Link href="/register">Criar conta</Link><Link href="/login">Acessar painel</Link><a href="#recursos">Recursos</a></div><div><strong>Informações</strong><Link href="/termos">Termos de uso</Link><Link href="/privacidade">Privacidade</Link><Link href="/cookies">Cookies</Link><Link href="/reembolso">Reembolso</Link><Link href="/lgpd">LGPD</Link></div>
+      <div className="st-footer-social"><strong>Redes sociais</strong>
+       {landing.social_links.instagram&&<a href={landing.social_links.instagram} target="_blank" rel="noopener noreferrer"><Instagram size={17}/> Instagram</a>}
+       {landing.social_links.youtube&&<a href={landing.social_links.youtube} target="_blank" rel="noopener noreferrer"><Youtube size={17}/> YouTube</a>}
+       {landing.social_links.tiktok&&<a href={landing.social_links.tiktok} target="_blank" rel="noopener noreferrer"><Music2 size={17}/> TikTok</a>}
+       {!Object.values(landing.social_links).some(Boolean)&&<span className="st-social-pending">Canais oficiais em breve</span>}
+      </div></div>
     </div><div className="wrap st-footer-bottom"><span>© {new Date().getFullYear()} SINTONE. Todos os direitos reservados.</span><span>Tecnologia SINTONE · Feito para música independente.</span></div></footer>
   </div>
 }

@@ -22,7 +22,7 @@ export async function updateLandingHero(storagePath:string|null){
  return {ok:true as const,url}
 }
 
-type CmsSection='announcement'|'hero'|'pricing'|'faq'|'dsps'
+type CmsSection='announcement'|'hero'|'pricing'|'faq'|'dsps'|'social'
 import {DSP_CHOICES} from '@/lib/landing-config'
 
 const internalLink=(x:unknown)=>typeof x==='string'&&x.startsWith('/')&&!x.startsWith('//')&&x.length<=200&&!/[\\\r\n]/.test(x)
@@ -52,6 +52,21 @@ export async function saveLandingSection(section:CmsSection,raw:unknown){
   if(!Array.isArray(v.dsp_enabled)||v.dsp_enabled.length>DSP_CHOICES.length||v.dsp_enabled.some(x=>typeof x!=='string'||!DSP_CHOICES.some(d=>d.slug===x))||new Set(v.dsp_enabled).size!==v.dsp_enabled.length)
    return {ok:false as const,error:'Seleção de plataformas inválida.'}
   payload={dsp_enabled:v.dsp_enabled}
+ }else if(section==='social'){
+  const links=v.social_links
+  if(!links||typeof links!=='object'||Array.isArray(links))return {ok:false as const,error:'Redes sociais inválidas.'}
+  const source=links as Record<string,unknown>
+  const allowed:{[key:string]:string[]}={instagram:['instagram.com','www.instagram.com'],youtube:['youtube.com','www.youtube.com','youtu.be'],tiktok:['tiktok.com','www.tiktok.com']}
+  const sanitized:Record<string,string>={}
+  for(const [key,hosts] of Object.entries(allowed)){
+   const value=source[key]
+   if(value===undefined||value==='')continue
+   if(typeof value!=='string'||value.length>300)return {ok:false as const,error:'Link '+key+' inválido.'}
+   try{const url=new URL(value);if(url.protocol!=='https:'||!hosts.includes(url.hostname)||url.username||url.password)throw Error()
+    sanitized[key]=url.toString()
+   }catch{return {ok:false as const,error:'Informe uma URL HTTPS oficial para '+key+'.'}}
+  }
+  payload={social_links:sanitized}
  }else return {ok:false as const,error:'Seção inválida.'}
  const {error}=await ctx.supabase.from('landing_page_config')
   .update({...payload,updated_at:new Date().toISOString(),updated_by:ctx.user.id}).eq('id',1)
@@ -59,4 +74,35 @@ export async function saveLandingSection(section:CmsSection,raw:unknown){
  revalidatePath('/')
  revalidatePath('/admin/landing-page')
  return {ok:true as const}
+}
+
+/** Atualiza somente imagens públicas verificadas no bucket oficial; sem links arbitrários. */
+export async function saveLandingBanners(urls:string[]){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Acesso restrito à administração.'}
+ if(!Array.isArray(urls)||urls.length>6||new Set(urls).size!==urls.length)
+  return {ok:false as const,error:'O carrossel aceita até 6 imagens distintas.'}
+ const base=process.env.NEXT_PUBLIC_SUPABASE_URL
+ if(!base)return {ok:false as const,error:'Storage não configurado.'}
+ const verified:string[]=[]
+ for(const raw of urls){
+  if(typeof raw!=='string'||raw.length>550)return {ok:false as const,error:'URL inválida.'}
+  let fileName:string
+  try{
+   const url=new URL(raw),root=new URL(base)
+   const prefix='/storage/v1/object/public/public-assets/hero/'
+   if(url.origin!==root.origin||!url.pathname.startsWith(prefix)||url.search||url.hash)throw Error()
+   fileName=decodeURIComponent(url.pathname.slice(prefix.length))
+   if(!/^[0-9a-f-]{36}\.(png|jpg|jpeg|webp)$/.test(fileName))throw Error()
+  }catch{return {ok:false as const,error:'O banner deve estar no Storage da SINTONE.'}}
+  const {data,error}=await ctx.supabase.storage.from('public-assets').list('hero',{search:fileName,limit:10})
+  if(error||!data?.some(item=>item.name===fileName))return {ok:false as const,error:'Imagem não encontrada: '+fileName}
+  verified.push(ctx.supabase.storage.from('public-assets').getPublicUrl('hero/'+fileName).data.publicUrl)
+ }
+ const {error}=await ctx.supabase.from('landing_page_config')
+  .update({hero_banners:verified,hero_image_url:verified[0]||null,updated_at:new Date().toISOString(),updated_by:ctx.user.id})
+  .eq('id',1)
+ if(error)return {ok:false as const,error:'Falha ao salvar banners: '+error.message}
+ revalidatePath('/');revalidatePath('/admin/landing-page')
+ return {ok:true as const,urls:verified}
 }

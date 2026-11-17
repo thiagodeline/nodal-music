@@ -1,0 +1,52 @@
+/* Landing SINTONE - revisão visual restrita à home; CSS nativo do projeto. */
+.st-home{background:#fff;color:#09090b}
+.st-home .st-simple-header{background:#fff;border-bottom:1px solid #e4e4e7}
+.st-home .st-simple-auth a,.st-home .st-simple-auth a:last-child{color:#09090b;font-weight:600;letter-spacing:.035em}
+.st-home .st-simple-auth a:hover,.st-home .st-simple-auth a:last-child:hover{color:#52525b}
+.st-home .st-carousel-hero{background:#09090b;isolation:isolate;min-height:540px}
+.st-home .st-carousel-image{position:absolute;inset:0;z-index:0}
+.st-home .st-carousel-image img{object-position:center}
+.st-home .st-carousel-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(9,9,11,.94) 0%,rgba(9,9,11,.75) 52%,rgba(9,9,11,.2) 100%)}
+.st-home .st-hero-no-image .st-carousel-shade{background:radial-gradient(ellipse at 80% 45%,#252529 0%,#09090b 58%)}
+.st-home .st-carousel-hero .st-hero-banner-inner{z-index:2;padding-block:100px 120px}
+.st-home .st-hero-eyebrow{display:inline-block;margin-bottom:21px;letter-spacing:.16em;color:#d4d4d8;font-size:11px;font-weight:800}
+.st-home .st-carousel-hero h1{max-width:810px;font-size:clamp(37px,5.3vw,72px)}
+.st-home .st-carousel-hero p{max-width:630px;color:#e4e4e7}
+.st-home .st-carousel-hero .st-hero-cms-cta{color:#09090b;background:#fff}
+.st-home .st-carousel-hero .st-hero-cms-cta:hover{background:#e4e4e7}
+.st-home .st-carousel-controls{z-index:4;position:absolute;bottom:29px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:15px}
+.st-home .st-carousel-controls>button{border:1px solid #ffffff66;background:#09090b55;color:#fff;border-radius:999px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer}
+.st-home .st-carousel-dots{display:flex;align-items:center;gap:8px}
+.st-home .st-carousel-dots button{height:7px;width:7px;border:0;border-radius:999px;background:#ffffff75;cursor:pointer;transition:width .2s}
+.st-home .st-carousel-dots button[aria-current=true]{width:26px;background:#fff}
+.st-home .sb-platform-grid-section{background:#fff;padding:64px 0 72px;border-bottom:1px solid #f4f4f5}
+.st-home .sb-platform-grid-section h2{margin:0 auto 39px;max-width:800px;text-align:center;color:#09090b;font-size:clamp(24px,3vw,38px);font-weight:800;line-height:1.22;letter-spacing:-.04em}
+.st-home .sb-platform-grid{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px 22px}
+.st-home .sb-platform-grid-brand{min-width:220px;min-height:85px;display:flex;align-items:center;justify-content:center;gap:13px;border-radius:14px;background:#f8f8fa;border:1px solid #f0f0f2;padding:18px 19px;color:#09090b}
+.st-home .sb-platform-grid-brand svg{flex:none}
+.st-home .sb-platform-grid-brand strong{font-size:14px;font-weight:750;white-space:nowrap}
+.st-home .sb-highlights,.st-home .sb-resources,.st-home .sb-covers,.st-home .sb-journey,.st-home .sb-pricing,.st-home .sb-compare{background:#fff}
+.st-home .sb-pricing-cards{display:flex;justify-content:center;align-items:stretch;flex-wrap:wrap;gap:22px}
+.st-home .sb-pricing-cards>.sb-price-card,.st-home .sb-pricing-cards>.sb-paid-plans .st-plan{width:350px;min-width:280px;max-width:350px;min-height:520px;flex:0 1 350px}
+.st-home .sb-pricing-cards>.sb-paid-plans{display:flex;justify-content:center;flex:1 1 auto}
+.st-home .sb-faq.sb-faq{background:#09090b;color:#fafafa}
+.st-home .sb-faq .sb-eyebrow{color:#a1a1aa}
+.st-home .sb-faq .sb-faq-layout>div:first-child h2{color:#fff}
+.st-home .sb-faq .sb-faq-layout>div:first-child p{color:#a1a1aa}
+.st-home .sb-faq .sb-faq-layout>div:first-child a{color:#fff}
+.st-home .sb-faq .sb-faq-items details{background:#18181b;border-color:#3f3f46}
+.st-home .sb-faq .sb-faq-items details[open]{border-color:#71717a;box-shadow:none}
+.st-home .sb-faq .sb-faq-items summary strong{color:#f4f4f5}
+.st-home .sb-faq .sb-faq-items summary>span,.st-home .sb-faq .sb-faq-items summary svg{color:#a1a1aa}
+.st-home .sb-faq .sb-faq-items details>p{color:#d4d4d8}
+.st-home .sb-close-panel.sb-close-panel{background:#09090b}
+.st-home .st-footer{background:#fff;border-color:#e4e4e7}
+.st-home .st-footer-nav{gap:clamp(24px,4vw,65px)}
+.st-home .st-footer-social{display:flex;align-items:flex-start;flex-direction:column;gap:10px}
+.st-home .st-footer-social strong{font-size:13px;color:#09090b;margin-bottom:3px}
+.st-home .st-footer-social a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#52525b;font-size:12px}
+.st-home .st-footer-social a:hover{color:#09090b}
+.st-home .st-social-pending{color:#a1a1aa;font-size:12px}
+@media(max-width:720px){.st-home .st-footer-inner{gap:32px;flex-wrap:wrap}.st-home .st-footer-social{width:100%}.st-home .sb-platform-grid-brand{min-width:170px;flex:1 1 170px}.st-home .st-carousel-hero .st-hero-banner-inner{padding-block:80px 100px}}
+@media(max-width:520px){.st-home .sb-platform-grid{gap:12px}.st-home .sb-platform-grid-brand{min-width:140px;padding:12px 8px;gap:9px;min-height:70px}.st-home .sb-platform-grid-brand svg{width:25px;height:25px}.st-home .sb-platform-grid-brand strong{font-size:11px}.st-home .sb-platform-grid-section{padding:48px 0}.st-home .st-carousel-hero{min-height:510px}.st-home .st-carousel-shade{background:linear-gradient(90deg,#09090bee,#09090b99)}}
+@media(prefers-reduced-motion:reduce){.st-home .st-carousel-dots button{transition:none}}

@@ -15,6 +15,7 @@ export default function HeroCarousel({images,landing}:{images:string[];landing:L
  },[count])
  const active=count>0?images[index%count]:null
  return <section className={'um-hero'+(active?' um-hero-has-image':' um-hero-no-image')} aria-labelledby="st-main-title">
+  {!active&&<div className="um-hero-fallback-photo" role="img" aria-label="Cantora em estúdio de gravação, fotografia ilustrativa"/>}
   {active&&<div className="um-hero-photo" key={active}><Image src={active} alt="Banner promocional da SINTONE" fill priority={index===0} unoptimized sizes="100vw" style={{objectFit:'cover'}}/></div>}
   <div className="um-hero-shade" aria-hidden="true"/>
   <div className="um-container um-hero-inner">

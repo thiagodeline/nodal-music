@@ -15,10 +15,11 @@ export default function TeamRoles(){
  const sb=useMemo(()=>createClient(),[])
  const [email,setEmail]=useState(''),[selected,setSelected]=useState<StaffRole[]>([])
  const [rows,setRows]=useState<Row[]>([])
- const [busy,setBusy]=useState(false),[message,setMessage]=useState('')
+ const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[loading,setLoading]=useState(true)
  const load=useCallback(async()=>{
   const {data,error}=await sb.from('admin_user_roles').select('id,user_id,email,role').order('created_at',{ascending:false})
   if(error)setMessage(error.message);else setRows((data||[]) as Row[])
+  setLoading(false)
  },[sb])
  useEffect(()=>{void load()},[load])
  const toggle=(role:StaffRole)=>setSelected(s=>s.includes(role)?s.filter(x=>x!==role):[...s,role])
@@ -33,7 +34,7 @@ export default function TeamRoles(){
   if(!error){setSelected([]);setEmail('');await load()}
  }
  return <section className="sa-mod-panel">
-  <h1><Users size={23}/> Equipe & Cargos</h1>
+
   <p className="sa-x-note">Somente o administrador geral pode atribuir ou revogar cargos. Vários cargos podem ser atribuídos à mesma conta.</p>
   <form className="sa-x-edit" onSubmit={e=>void submit(e)}>
    <label>E-mail da conta cadastrada<input type="email" required maxLength={254} value={email}
@@ -48,9 +49,10 @@ export default function TeamRoles(){
   </form>
   {message&&<p role="status">{message}</p>}
   <h3>Atribuições atuais</h3>
-  <div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>E-mail</th><th>Cargo</th><th>Ação</th></tr></thead>
+  {!loading&&!rows.some(r=>r.role!=='admin')&&<div className="sa-team-empty" role="status"><Users size={21}/><p>Nenhum colaborador adicional cadastrado. Digite o e-mail acima e selecione os cargos para adicionar um novo membro da equipe SINTONE.</p></div>}
+  {rows.length>0&&<div className="sa-table-scroll"><table className="sa-table"><thead><tr><th>E-mail</th><th>Cargo</th><th>Ação</th></tr></thead>
    <tbody>{rows.map(r=><tr key={r.id}><td>{r.email}</td><td>{labels[r.role]||r.role}</td>
     <td><button className="sa-action-pill" type="button" onClick={()=>chooseEmail(r.email)}><ShieldCheck size={14}/> Editar cargos</button></td></tr>)}</tbody>
-  </table></div>
+  </table></div>}
  </section>
 }

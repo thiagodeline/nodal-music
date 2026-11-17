@@ -10,7 +10,7 @@ import SpotifyBadge from './SpotifyBadge'
 type Status='PENDING_ONBOARDING'|'PENDING_CONTRACT'|'ACTIVE'|'BLOCKED'
 type Draft={name:string;artist_name:string;phone:string;address:string;birth_date:string;cpf:string;cnpj:string;status:Status}
 const input='sa-x-input'
-export default function AdminAccounts({users,contracts,canEditBalance=false,spotifyProfiles}:{users:AdminUser[];contracts:AdminContract[];canEditBalance?:boolean;spotifyProfiles:AdminSpotifyProfile[]}) {
+export default function AdminAccounts({users,contracts,canEditBalance=false,canEditSpotify=false,spotifyProfiles}:{users:AdminUser[];contracts:AdminContract[];canEditBalance?:boolean;canEditSpotify?:boolean;spotifyProfiles:AdminSpotifyProfile[]}) {
   const router=useRouter()
   const [selected,setSelected]=useState<string|null>(null)
   const [draft,setDraft]=useState<Draft|null>(null)
@@ -52,7 +52,7 @@ export default function AdminAccounts({users,contracts,canEditBalance=false,spot
       <thead><tr><th>Artista / E-mail</th><th>Spotify ID / Link</th><th>Status</th><th>Saldo disponível</th><th>Contrato</th><th>Ações</th></tr></thead>
       <tbody>{users.map(u=><tr key={u.id}>
         <td><strong>{u.artist_name||u.name||'Sem nome'}</strong><small className="sa-x-small">{u.email}</small></td>
-        <td>{spotifyProfiles.filter(p=>p.owner_id===u.id).map(p=><SpotifyBadge key={p.id} artist={p}/>)}{!spotifyProfiles.some(p=>p.owner_id===u.id)&&<small>Sem perfil cadastrado</small>}</td>
+        <td>{spotifyProfiles.filter(p=>p.owner_id===u.id).map(p=><SpotifyBadge key={p.id} artist={p} profileId={p.id} canEdit={canEditSpotify}/>)}{!spotifyProfiles.some(p=>p.owner_id===u.id)&&<small>Sem perfil cadastrado</small>}</td>
         <td>{u.status}</td><td>{canEditBalance?'R$ '+Number(u.saldo_disponivel||0).toFixed(2):'Restrito ao financeiro'}</td>
         <td>{ready(u.id)?<button className="sa-action-pill" onClick={()=>void download(u.id)}><Download size={14}/> Baixar PDF</button>:'Pendente'}</td>
         <td><button className="sa-action-pill" onClick={()=>open(u)}><Settings2 size={14}/> Gerenciar</button></td>

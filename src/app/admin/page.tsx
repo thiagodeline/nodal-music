@@ -77,7 +77,7 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{ta
     cover_url: r.cover_path ? sb.storage.from('covers').getPublicUrl(r.cover_path).data.publicUrl : null,
   }))
   return <AdminPanel
-    allowedTabs={ctx.tabs} isGeneral={ctx.isGeneral}
+    allowedTabs={ctx.tabs} isGeneral={ctx.isGeneral} canEditSpotify={ctx.isGeneral||ctx.roles.includes("a_and_r")}
     adminLabel={ctx.user.email || 'Administrador'}
     users={users}
     spotifyProfiles={spotifyProfiles}

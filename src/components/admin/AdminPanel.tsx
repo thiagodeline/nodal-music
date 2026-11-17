@@ -49,7 +49,7 @@ export type AdminUser = {
 }
 export type AdminContract = {user_id:string;signed_name:string;signed_at:string;pdf_status:'pending'|'ready'}
 type Props = {
-  adminLabel:string;allowedTabs:AdminTab[];isGeneral:boolean; users:AdminUser[]; spotifyProfiles:AdminSpotifyProfile[]; releases:AdminRelease[]; contracts:AdminContract[];
+  adminLabel:string;allowedTabs:AdminTab[];isGeneral:boolean;canEditSpotify:boolean; users:AdminUser[]; spotifyProfiles:AdminSpotifyProfile[]; releases:AdminRelease[]; contracts:AdminContract[];
   metrics:{users:number;pending:number;approved:number;total:number;payouts:number};
   truncatedUsers:boolean;truncatedReleases:boolean
 }
@@ -71,7 +71,7 @@ function Field({label,value}:{label:string;value:string|boolean|null|undefined})
   return <div className="sa-detail-field"><dt>{label}</dt><dd>{typeof value==='boolean' ? (value?'Sim':'Não') : display(value)}</dd></div>
 }
 
-export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spotifyProfiles,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
+export default function AdminPanel({adminLabel,allowedTabs,isGeneral,canEditSpotify,users,spotifyProfiles,releases,contracts,metrics,truncatedUsers,truncatedReleases}:Props) {
   const router=useRouter()
   const searchParams=useSearchParams()
   const requested=searchParams.get('tab')||allowedTabs[0]||'releases'
@@ -154,17 +154,13 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
   ]
   return <>
       <main className="sa-content">
-        <div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>{!searchParams.has("tab")?"Painel administrativo":({releases:"Lançamentos",artists:"Artistas e contas",royalties:"Importar royalties",support:"Suporte",payouts:"Saques e Repasses",delivery:"Entregas às lojas",splits:"Divisões de royalties",banners:"Banners promocionais"} as Record<string,string>)[tab]}</h1><p>{!searchParams.has("tab")?"Visão geral dos lançamentos e atividades da SINTONE.":"Gerencie esta seção com as permissões do seu cargo."}</p></div>
-          <span className="sa-secure"><ShieldCheck size={15}/> Acesso administrativo</span>
-        </div>
+        {!searchParams.has('tab')&&<div className="sa-titlebar"><div><span className="sa-kicker">CENTRAL DE GERENCIAMENTO</span><h1>Painel administrativo</h1><p>Visão geral dos lançamentos e atividades da SINTONE.</p></div></div>}
         {tab==='releases'&&<div className="sa-metrics">{tiles.filter(tile=>allowedTabs.includes(tile.tab as AdminTab)).map(({label,value,Icon,desc,filter:status,tab:target})=><button type="button" className={'sa-metric sa-metric-button '+(tab===target&&filter===status?'sa-metric-selected':'')} key={label} onClick={()=>{changeTab(target as typeof tab);setFilter(status)}} aria-label={'Abrir '+label}>
           <div className="sa-metric-top"><span>{label}</span><span className="sa-metric-icon"><Icon size={21}/></span></div>
           <strong>{glyph(value)}</strong><small>{desc}</small>
         </button>)}</div>}
         <div className="sa-board">
-          <div className="sa-board-heading"><h2 className="sa-board-title">{
-            ({releases:'Lançamentos',artists:'Artistas e contratos',royalties:'Royalties',support:'Suporte',payouts:'Saques e repasses',delivery:'Distribuição e entregas',splits:'Divisões de royalties',banners:'Banners promocionais'} as Record<string,string>)[tab]
-          }</h2><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length)+' resultados':tab==='artists'?glyph(filteredUsers.length)+' resultados':'Gestão administrativa'}</span></div>
+          <div className="sa-board-heading sa-board-heading-compact"><span className="sa-board-context">Registros e ferramentas</span><span className="sa-count">{tab==='releases'?glyph(filteredReleases.length)+' resultados':tab==='artists'?glyph(filteredUsers.length)+' resultados':'Gestão administrativa'}</span></div>
           {(tab==='releases'||tab==='artists') && <div className="sa-controls">
             <label className="sa-search"><Search size={19}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={tab==='releases'?'Buscar título, artista ou código...':'Buscar artista, nome ou e-mail...'} aria-label="Buscar registros"/></label>
             <div className="sa-select-wrap"><Filter size={17}/>
@@ -197,8 +193,8 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,users,spoti
             {!filteredReleases.length&&<div className="sa-empty"><Disc3 size={36}/><h3>{filter==="pending"?"Nenhum lançamento aguardando revisão":"Nenhum lançamento encontrado"}</h3><p>{filter==="pending"?"Todos os lançamentos recebidos já foram analisados.":"Experimente alterar os filtros ou a busca."}</p></div>}
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
-            <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral} spotifyProfiles={spotifyProfiles}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases}/>}
+            <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral} canEditSpotify={canEditSpotify} spotifyProfiles={spotifyProfiles}/>
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases} canEditSpotify={canEditSpotify}/>}
         </div>
       </main>
     {selected&&<div className="sa-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}>

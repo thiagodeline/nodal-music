@@ -25,7 +25,7 @@ export default function AdminRoyaltySplits(){
   if(!error)await load()
  }
  return <section className="sa-mod-panel">
-  <h2><ShieldAlert size={21}/> Auditoria de divisões de royalties</h2>
+  <h3 className="sa-module-minor-title"><ShieldAlert size={18}/> Auditoria de divisões</h3>
   <p className="sa-x-note">Convites e aceites ainda não alteram automaticamente os repasses financeiros. Cancelamentos ficam registrados na auditoria.</p>
   {msg&&<p role="status">{msg}</p>}
   <div className="sa-table-scroll"><table className="sa-table">

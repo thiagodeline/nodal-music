@@ -36,7 +36,7 @@ export default function AdminPayouts(){
   finally{setBusy('')}
  }
  return <section className="sa-mod-panel">
-  <h2>Saques e repasses</h2><p className="sa-x-note">A SINTONE não transfere PIX ou Stripe automaticamente. Marque como pago somente após executar o pagamento externo e conferir o comprovante.</p>
+  <p className="sa-x-note">A SINTONE não transfere PIX ou Stripe automaticamente. Marque como pago somente após executar o pagamento externo e conferir o comprovante.</p>
   {error&&<p role="alert" className="sa-error">{error}</p>}
   {loading?<AdminSkeleton/>:<div className="sa-table-scroll"><table className="sa-mod-table">
    <thead><tr><th>Artista</th><th>Data</th><th>Valor</th><th>Chave PIX</th><th>Status</th><th>Ação</th></tr></thead>

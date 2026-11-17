@@ -22,10 +22,7 @@ export default function DspManager(){
   }catch(e){setNotice(e instanceof Error?e.message:'Falha ao salvar.')}
   finally{setBusy('')}
  }
- return <main className="dm"><header className="dm-header"><div><small>ADMINISTRAÇÃO / DISTRIBUIÇÃO</small>
-  <h1><SlidersHorizontal size={24}/> Configuração de plataformas</h1>
-  <p>Ative ou desative lojas e configure o preço adicional cobrado por lançamento. As mudanças são aplicadas aos novos envios.</p>
- </div><a href="/admin">Voltar</a></header>
+ return <main className="dm"><div className="sa-module-description"><p>Ative ou desative lojas e configure o preço adicional cobrado por lançamento. As mudanças são aplicadas aos novos envios.</p></div>
  {notice&&<p role="status" className="dm-notice">{notice}</p>}
  <label className="dm-search"><Search size={18}/><input placeholder="Buscar plataformas" value={query} onChange={e=>setQuery(e.target.value)}/></label>
  <div className="dm-table-wrap"><table><thead><tr><th>Loja / DSP</th><th>Ativa</th><th>Tipo</th><th>Taxa (R$)</th><th>Ação</th></tr></thead>

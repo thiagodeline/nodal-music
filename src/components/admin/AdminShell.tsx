@@ -54,7 +54,7 @@ export default function AdminShell({email,children,tabs,roles,isGeneral,counts}:
   <div className="sa-main">
    <header className="sa-header sa-context-header"><div className="sa-header-context">
     <div className="sa-crumb"><Link href="/">SINTONE</Link><ChevronRight size={14}/><Link href="/admin">Administração</Link>{!overview&&<><ChevronRight size={14}/><span>{headings[active]}</span></>}</div>
-    {!overview&&<h1>{headings[active]||'Administração'}</h1>}</div>
+    {!overview&&<><h1>{headings[active]||'Administração'}</h1><p className="sa-context-subtitle">Gerencie esta seção com as permissões do seu cargo.</p></>}</div>
     <div className="sa-header-actions"><span className="sa-role-badge"><ShieldCheck size={15}/>{role}</span><Link href="/" className="sa-view-site"><Eye size={16}/> Ver site</Link></div>
    </header>{children}
   </div>

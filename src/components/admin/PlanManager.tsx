@@ -71,8 +71,7 @@ export default function PlanManager(){
  }
  const fmt=(n:number)=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
  return <div className="pm">
-  <header><div><small>ADMINISTRAÇÃO / PLANOS</small><h1>Planos da SINTONE</h1><p>Configurações de distribuição, royalties, limites e Instagram/Facebook.</p></div>
-   <a href="/admin">Voltar ao painel</a></header>
+  <div className="sa-module-description"><p>Configurações de distribuição, royalties, limites e Instagram/Facebook.</p></div>
   {message&&<p role="status" className="pm-alert">{message}</p>}
   <div className="pm-layout">
    <section className="pm-list"><h2>Planos cadastrados</h2>

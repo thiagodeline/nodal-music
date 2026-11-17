@@ -31,7 +31,7 @@ export default function LandingCms({initial}:{initial:LandingConfig}){
  const field=(label:string,key:keyof LandingConfig,maxLength=200)=> <label className="st-cms-field"><span>{label}</span><input maxLength={maxLength} value={String(draft[key]??'')} onChange={e=>change(key as keyof LandingConfig,e.target.value as never)}/></label>
  const footer=(section:Section)=><div className="st-cms-actions"><button type="button" disabled={busy!==null} onClick={()=>void save(section)}>{busy===section?'Salvando…':'Salvar seção'}</button><span role="status">{messages[section]}</span></div>
  return <div className="st-cms">
-  <div className="st-cms-heading"><div><h1>Gerenciamento da Landing Page</h1><p>Edite o conteúdo público da SINTONE por módulos. Cada seção é salva independentemente.</p></div><Link href="/" target="_blank" rel="noopener noreferrer">Visualizar site <ExternalLink size={16}/></Link></div>
+  <div className="st-cms-heading"><div><p>Edite o conteúdo público da SINTONE por módulos. Cada seção é salva independentemente.</p></div><Link href="/" target="_blank" rel="noopener noreferrer">Visualizar site <ExternalLink size={16}/></Link></div>
   <nav className="st-cms-navigation" aria-label="Seções do CMS">{groups.map(s=><a key={s.key} href={'#cms-'+s.key}>{s.label}</a>)}<a href="#cms-image">Imagem do Hero</a></nav>
   <section id="cms-announcement" className="st-cms-panel"><h2>Alerta de topo</h2><label className="st-cms-toggle"><input type="checkbox" checked={draft.announcement_active} onChange={e=>change('announcement_active',e.target.checked)}/> Exibir faixa de anúncio acima do banner</label>
    {field('Mensagem do anúncio','announcement_text',240)}{field('Link do anúncio (rota interna)','announcement_link',200)}{footer('announcement')}

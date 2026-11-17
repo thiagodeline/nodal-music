@@ -4,7 +4,7 @@ import Image from 'next/image'
 import {BarChart3,Bell,CircleHelp,Disc3,FileText,Home,LockKeyhole,LogOut,Menu,Music2,Settings,UserRound,Wallet,X,Megaphone,Users,AudioLines} from 'lucide-react'
 
 type NavItem={key:string;label:string;icon:typeof Home;href:string;disabled?:boolean;badge?:number}
-export default function ArtistSidebar({active,name,unread,open,setOpen,onLogout}:{active:string;name:string;unread:number;open:boolean;setOpen:(value:boolean)=>void;onLogout:()=>void}){
+export default function ArtistSidebar({active,name,unread,open,setOpen,onNavigate,onLogout}:{active:string;name:string;unread:number;open:boolean;setOpen:(value:boolean)=>void;onNavigate:(tab:string)=>void;onLogout:()=>void}){
  const links:NavItem[]=[
   {key:'overview',label:'Início',icon:Home,href:'/dashboard#overview'},
   {key:'new',label:'Lançar música',icon:Music2,href:'/dashboard#new'},
@@ -25,7 +25,7 @@ export default function ArtistSidebar({active,name,unread,open,setOpen,onLogout}
  const render=(item:NavItem)=><li key={item.key}>
   {item.disabled?<span className="nd-side-link is-disabled" title={item.label+' — em breve'} aria-disabled="true"><item.icon size={20}/><span className="nd-side-label">{item.label} · EM BREVE</span></span>:
    <Link className={'nd-side-link '+(active===item.key?'is-active':'')} aria-current={active===item.key?'page':undefined}
-    href={item.href} title={item.label} onClick={()=>setOpen(false)}>
+    href={item.href} title={item.label} onClick={()=>{onNavigate(item.key)}}>
     <item.icon size={20}/><span className="nd-side-label">{item.label}</span>
     {item.badge? <span className="nd-side-counter">{item.badge>99?'99+':item.badge}</span>:null}</Link>}
  </li>

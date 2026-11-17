@@ -80,14 +80,30 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
   }, [])
 
  useEffect(()=>{void load(false)},[load])
+ // Sincroniza a aba com o hash no carregamento, em voltar/avançar e na navegação.
+ const syncHash=useCallback(()=>{
+  const next=window.location.hash.slice(1)
+  if(next==='admin'){window.location.replace('/admin');return}
+  setRoute(ROUTES.includes(next)?next:'overview')
+  setNavOpen(false)
+  window.scrollTo({top:0,behavior:'instant'})
+ },[])
  useEffect(()=>{
-  const update=()=>{
-   const next=window.location.hash.slice(1)
-   if(next==='admin'){window.location.replace('/admin');return}
-   setRoute(ROUTES.includes(next)?next:'overview');setNavOpen(false);window.scrollTo(0,0)
+  syncHash()
+  window.addEventListener('hashchange',syncHash)
+  window.addEventListener('popstate',syncHash)
+  return()=>{
+   window.removeEventListener('hashchange',syncHash)
+   window.removeEventListener('popstate',syncHash)
   }
-  update();window.addEventListener('hashchange',update)
-  return()=>window.removeEventListener('hashchange',update)
+ },[syncHash])
+ // Next/Link pode atualizar a URL sem disparar hashchange de forma consistente.
+ // Navegação do menu atualiza a aba imediatamente; o efeito cobre histórico e links externos.
+ const navigateToTab=useCallback((tab:string)=>{
+  if(!ROUTES.includes(tab))return
+  setRoute(tab)
+  setNavOpen(false)
+  window.scrollTo({top:0,behavior:'instant'})
  },[])
  useEffect(()=>{
   if(!d?.me?.id)return
@@ -115,7 +131,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  async function logout(){snapshotCache.clear();await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
  return <div className="nd nd-horizontal nd-premium">
-  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread} open={navOpen} setOpen={setNavOpen} onLogout={()=>void logout()}/>
+  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
   <div className="nd-premium-mobile-top"><span>SINTONE / PAINEL</span><a href="/dashboard#notifications" aria-label={unread+' notificações não lidas'}><Bell size={20}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</a></div>
   <main className="nd-hmain">
    {!d?<p className="mut">Carregando seu painel…</p>:<>

@@ -1,108 +1,93 @@
 'use server'
 import {revalidatePath} from 'next/cache'
 import {getAdminContext} from '@/lib/admin-access'
+import {normalizeLanding,type HeroBanner,type LandingConfig} from '@/lib/landing-config'
 
-export async function updateLandingHero(storagePath:string|null){
- const ctx=await getAdminContext('admin')
- if(!ctx)return {ok:false as const,error:'Acesso exclusivo de administrador.'}
- if(storagePath!==null && (!/^hero\/[0-9a-f-]{36}\.(png|jpg|jpeg|webp)$/.test(storagePath)||storagePath.length>110))
-  return {ok:false as const,error:'Caminho de imagem inválido.'}
- let url:string|null=null
- if(storagePath){
-  const {data:file,error:filesError}=await ctx.supabase.storage.from('public-assets').list('hero',{search:storagePath.split('/')[1],limit:100})
-  if(filesError||!file?.some(x=>x.name===storagePath.split('/')[1]))
-   return {ok:false as const,error:'Imagem não encontrada no Storage.'}
-  url=ctx.supabase.storage.from('public-assets').getPublicUrl(storagePath).data.publicUrl
- }
- const {data,error}=await ctx.supabase.from('landing_page_config')
-  .update({hero_image_url:url,updated_at:new Date().toISOString(),updated_by:ctx.user.id}).eq('id',1).select('id').single()
- if(error||!data)return {ok:false as const,error:'Falha ao salvar configuração. '+(error?.message||'')}
- revalidatePath('/')
- revalidatePath('/admin/landing-page')
- return {ok:true as const,url}
+const MAX_BANNERS=6
+const internalLink=(value:string)=>value.startsWith('/')&&!value.startsWith('//')&&!/[\\\r\n]/.test(value)&&value.length<=240
+const safeBanner=(banner:HeroBanner)=>{
+ const origin=process.env.NEXT_PUBLIC_SUPABASE_URL
+ if(!origin||typeof banner.image_url!=='string')return false
+ try{
+  const u=new URL(banner.image_url)
+  if(u.origin!==new URL(origin).origin||u.search||u.hash||
+   !/^\/storage\/v1\/object\/public\/public-assets\/hero\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(u.pathname))return false
+ }catch{return false}
+ return typeof banner.title==='string'&&banner.title.trim().length>0&&banner.title.length<=170&&
+  typeof banner.subtitle==='string'&&banner.subtitle.length<=240&&
+  typeof banner.button_text==='string'&&banner.button_text.length<=65&&
+  typeof banner.button_url==='string'&&banner.button_url.length<=240&&
+  ((!banner.button_text&&!banner.button_url)||(!!banner.button_text&&!!banner.button_url&&internalLink(banner.button_url)))
 }
-
-type CmsSection='announcement'|'hero'|'pricing'|'faq'|'dsps'|'social'
-import {DSP_CHOICES} from '@/lib/landing-config'
-
-const internalLink=(x:unknown)=>typeof x==='string'&&x.startsWith('/')&&!x.startsWith('//')&&x.length<=200&&!/[\\\r\n]/.test(x)
-const stringField=(x:unknown,max:number)=>typeof x==='string'&&x.trim().length>0&&x.length<=max
-export async function saveLandingSection(section:CmsSection,raw:unknown){
+const refresh=()=>{revalidatePath('/');revalidatePath('/admin/landing-page')}
+export async function saveLandingBanners(banners:HeroBanner[]){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Acesso restrito à administração.'}
+ if(!Array.isArray(banners)||banners.length>MAX_BANNERS||banners.some(b=>!b||!safeBanner(b))||
+   new Set(banners.map(b=>b.image_url)).size!==banners.length)
+  return {ok:false as const,error:'Confira imagens, títulos e links dos banners (máximo de 6).'}
+ const clean=banners.map(b=>({image_url:b.image_url,title:b.title.trim(),subtitle:b.subtitle.trim(),
+  button_text:b.button_text.trim(),button_url:b.button_url.trim()}))
+ const {error}=await ctx.supabase.from('landing_page_config').update({
+  hero_banners:clean,hero_image_url:clean[0]?.image_url||null,
+  updated_by:ctx.user.id,updated_at:new Date().toISOString()
+ }).eq('id',1)
+ if(error)return {ok:false as const,error:'Falha ao salvar banners: '+error.message}
+ refresh()
+ return {ok:true as const,banners:clean}
+}
+export async function registerLandingBanner(publicUrl:string){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Sem permissão para salvar.'}
+ const newBanner:HeroBanner={image_url:publicUrl,title:'DISTRIBUA SUA MÚSICA',
+  subtitle:'',button_text:'',button_url:''}
+ if(!safeBanner(newBanner))return {ok:false as const,error:'URL do Storage inválida.'}
+ const {data:current,error:queryError}=await ctx.supabase.from('landing_page_config').select('*').eq('id',1).single()
+ if(queryError||!current)return {ok:false as const,error:'Não foi possível consultar o carrossel.'}
+ const existing=normalizeLanding(current as Partial<LandingConfig>).hero_banners
+ if(existing.length>=MAX_BANNERS)return {ok:false as const,error:'Máximo de seis banners.'}
+ if(existing.some(x=>x.image_url===publicUrl))return {ok:false as const,error:'A imagem já está cadastrada.'}
+ // A chamada é feita somente depois do upload confirmado pelo Supabase Storage.
+ // Não há listagem imediata do arquivo, que causava falsos erros de "Imagem não encontrada".
+ const next=[...existing,newBanner]
+ const {error}=await ctx.supabase.from('landing_page_config').update({
+  hero_banners:next,hero_image_url:next[0].image_url,
+  updated_by:ctx.user.id,updated_at:new Date().toISOString()
+ }).eq('id',1)
+ if(error)return {ok:false as const,error:'Falha ao cadastrar banner: '+error.message}
+ refresh()
+ return {ok:true as const,banners:next}
+}
+export async function saveLandingSection(section:'announcement'|'social',raw:unknown){
  const ctx=await getAdminContext('admin')
  if(!ctx)return {ok:false as const,error:'Sem permissão de administrador.'}
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return {ok:false as const,error:'Dados inválidos.'}
- const v=raw as Record<string,unknown>
- let payload:Record<string,unknown>={}
+ const value=raw as Record<string,unknown>
+ let payload:Record<string,unknown>
  if(section==='announcement'){
-  if(typeof v.announcement_active!=='boolean'||!stringField(v.announcement_text,240)||!internalLink(v.announcement_link))return {ok:false as const,error:'Verifique o alerta e o link interno.'}
-  payload={announcement_active:v.announcement_active,announcement_text:(v.announcement_text as string).trim(),announcement_link:v.announcement_link}
- }else if(section==='hero'){
-  if(!stringField(v.hero_title,170)||!stringField(v.hero_subtitle,240)||!stringField(v.hero_cta_text,65)||!internalLink(v.hero_cta_url))return {ok:false as const,error:'Confira os textos e o link do Hero.'}
-  payload={hero_title:(v.hero_title as string).trim(),hero_subtitle:(v.hero_subtitle as string).trim(),hero_cta_text:(v.hero_cta_text as string).trim(),hero_cta_url:v.hero_cta_url}
- }else if(section==='pricing'){
-  if(!stringField(v.pricing_badge,55)||!stringField(v.pricing_title,55)||v.pricing_price!=='R$ 0,00'||!stringField(v.pricing_subtitle,140)||
-   !Array.isArray(v.pricing_features)||v.pricing_features.length>12||v.pricing_features.some(x=>!stringField(x,180)))
-    return {ok:false as const,error:'O plano gratuito deve manter R$ 0,00; confira os benefícios.'}
-  payload={pricing_badge:(v.pricing_badge as string).trim(),pricing_title:(v.pricing_title as string).trim(),pricing_price:'R$ 0,00',pricing_subtitle:(v.pricing_subtitle as string).trim(),pricing_features:v.pricing_features.map(x=>(x as string).trim())}
- }else if(section==='faq'){
-  if(!Array.isArray(v.faq_items)||v.faq_items.length>20||v.faq_items.some(x=>!x||typeof x!=='object'||!stringField(x.q,220)||!stringField(x.a,1500)))
-   return {ok:false as const,error:'Cada pergunta precisa de título e resposta; máximo de 20 perguntas.'}
-  payload={faq_items:v.faq_items.map(x=>({q:String(x.q).trim(),a:String(x.a).trim()}))}
- }else if(section==='dsps'){
-  if(!Array.isArray(v.dsp_enabled)||v.dsp_enabled.length>DSP_CHOICES.length||v.dsp_enabled.some(x=>typeof x!=='string'||!DSP_CHOICES.some(d=>d.slug===x))||new Set(v.dsp_enabled).size!==v.dsp_enabled.length)
-   return {ok:false as const,error:'Seleção de plataformas inválida.'}
-  payload={dsp_enabled:v.dsp_enabled}
+  if(typeof value.announcement_active!=='boolean'||typeof value.announcement_text!=='string'||
+   value.announcement_text.trim().length>240||value.announcement_text.trim().length<1)
+   return {ok:false as const,error:'Informe uma mensagem de até 240 caracteres.'}
+  payload={announcement_active:value.announcement_active,announcement_text:value.announcement_text.trim()}
  }else if(section==='social'){
-  const links=v.social_links
-  if(!links||typeof links!=='object'||Array.isArray(links))return {ok:false as const,error:'Redes sociais inválidas.'}
-  const source=links as Record<string,unknown>
-  const allowed:{[key:string]:string[]}={instagram:['instagram.com','www.instagram.com'],youtube:['youtube.com','www.youtube.com','youtu.be'],tiktok:['tiktok.com','www.tiktok.com']}
-  const sanitized:Record<string,string>={}
-  for(const [key,hosts] of Object.entries(allowed)){
-   const value=source[key]
-   if(value===undefined||value==='')continue
-   if(typeof value!=='string'||value.length>300)return {ok:false as const,error:'Link '+key+' inválido.'}
-   try{const url=new URL(value);if(url.protocol!=='https:'||!hosts.includes(url.hostname)||url.username||url.password)throw Error()
-    sanitized[key]=url.toString()
-   }catch{return {ok:false as const,error:'Informe uma URL HTTPS oficial para '+key+'.'}}
+  if(!value.social_links||typeof value.social_links!=='object'||Array.isArray(value.social_links))
+   return {ok:false as const,error:'Redes sociais inválidas.'}
+  const incoming=value.social_links as Record<string,unknown>
+  const domains:Record<string,string[]>={instagram:['instagram.com','www.instagram.com'],
+   youtube:['youtube.com','www.youtube.com','youtu.be'],tiktok:['tiktok.com','www.tiktok.com']}
+  const links:Record<string,string>={}
+  for(const [key,hosts] of Object.entries(domains)){
+   const input=incoming[key]
+   if(input===undefined||input==='')continue
+   if(typeof input!=='string'||input.length>300)return {ok:false as const,error:'Link de '+key+' inválido.'}
+   try{const u=new URL(input);if(u.protocol!=='https:'||!hosts.includes(u.hostname)||u.username||u.password)throw Error()
+    links[key]=u.toString()}catch{return {ok:false as const,error:'URL oficial HTTPS inválida em '+key+'.'}}
   }
-  payload={social_links:sanitized}
+  payload={social_links:links}
  }else return {ok:false as const,error:'Seção inválida.'}
- const {error}=await ctx.supabase.from('landing_page_config')
-  .update({...payload,updated_at:new Date().toISOString(),updated_by:ctx.user.id}).eq('id',1)
+ const {error}=await ctx.supabase.from('landing_page_config').update({
+  ...payload,updated_by:ctx.user.id,updated_at:new Date().toISOString()
+ }).eq('id',1)
  if(error)return {ok:false as const,error:'Falha ao salvar: '+error.message}
- revalidatePath('/')
- revalidatePath('/admin/landing-page')
- return {ok:true as const}
-}
-
-/** Atualiza somente imagens públicas verificadas no bucket oficial; sem links arbitrários. */
-export async function saveLandingBanners(urls:string[]){
- const ctx=await getAdminContext('admin')
- if(!ctx)return {ok:false as const,error:'Acesso restrito à administração.'}
- if(!Array.isArray(urls)||urls.length>6||new Set(urls).size!==urls.length)
-  return {ok:false as const,error:'O carrossel aceita até 6 imagens distintas.'}
- const base=process.env.NEXT_PUBLIC_SUPABASE_URL
- if(!base)return {ok:false as const,error:'Storage não configurado.'}
- const verified:string[]=[]
- for(const raw of urls){
-  if(typeof raw!=='string'||raw.length>550)return {ok:false as const,error:'URL inválida.'}
-  let fileName:string
-  try{
-   const url=new URL(raw),root=new URL(base)
-   const prefix='/storage/v1/object/public/public-assets/hero/'
-   if(url.origin!==root.origin||!url.pathname.startsWith(prefix)||url.search||url.hash)throw Error()
-   fileName=decodeURIComponent(url.pathname.slice(prefix.length))
-   if(!/^[0-9a-f-]{36}\.(png|jpg|jpeg|webp)$/.test(fileName))throw Error()
-  }catch{return {ok:false as const,error:'O banner deve estar no Storage da SINTONE.'}}
-  const {data,error}=await ctx.supabase.storage.from('public-assets').list('hero',{search:fileName,limit:10})
-  if(error||!data?.some(item=>item.name===fileName))return {ok:false as const,error:'Imagem não encontrada: '+fileName}
-  verified.push(ctx.supabase.storage.from('public-assets').getPublicUrl('hero/'+fileName).data.publicUrl)
- }
- const {error}=await ctx.supabase.from('landing_page_config')
-  .update({hero_banners:verified,hero_image_url:verified[0]||null,updated_at:new Date().toISOString(),updated_by:ctx.user.id})
-  .eq('id',1)
- if(error)return {ok:false as const,error:'Falha ao salvar banners: '+error.message}
- revalidatePath('/');revalidatePath('/admin/landing-page')
- return {ok:true as const,urls:verified}
+ refresh();return {ok:true as const}
 }

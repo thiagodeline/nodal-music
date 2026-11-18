@@ -20,7 +20,6 @@ import AdminTickets from './AdminTickets'
 import AdminPayouts from './AdminPayouts'
 import AdminDelivery from './AdminDelivery'
 import AdminRoyaltySplits from './AdminRoyaltySplits'
-import AdminBanners from './AdminBanners'
 import AdminQA from './AdminQA'
 import ReleaseQuickPreview from './ReleaseQuickPreview'
 import SpotifyBadge from './SpotifyBadge'
@@ -75,7 +74,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,canEditSpot
   const router=useRouter()
   const searchParams=useSearchParams()
   const requested=searchParams.get('tab')||allowedTabs[0]||'releases'
-  const tab=(allowedTabs.includes(requested as AdminTab)?requested:allowedTabs[0]||'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'|'splits'|'banners'
+  const tab=(allowedTabs.includes(requested as AdminTab)?requested:allowedTabs[0]||'releases') as 'releases'|'artists'|'royalties'|'support'|'payouts'|'delivery'|'splits'
   const [search,setSearch]=useState('')
   const [filter,setFilter]=useState('all')
   const [contractFilter,setContractFilter]=useState('all')
@@ -194,7 +193,7 @@ export default function AdminPanel({adminLabel,allowedTabs,isGeneral,canEditSpot
           </> : tab==='artists' ? <>
             {truncatedUsers&&<p className="sa-warning">Exibindo os 1.000 usuários mais recentes.</p>}
             <AdminAccounts users={filteredUsers} contracts={contracts} canEditBalance={isGeneral} canEditSpotify={canEditSpotify} spotifyProfiles={spotifyProfiles}/>
-          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : tab==='banners' ? <AdminBanners/> : <AdminDelivery releases={releases} canEditSpotify={canEditSpotify}/>}
+          </> : tab==='royalties' ? <AdminRoyaltyUpload/> : tab==='support' ? <AdminTickets/> : tab==='payouts' ? <AdminPayouts/> : tab==='splits' ? <AdminRoyaltySplits/> : <AdminDelivery releases={releases} canEditSpotify={canEditSpotify}/>}
         </div>
       </main>
     {selected&&<div className="sa-overlay" onMouseDown={e=>{if(e.target===e.currentTarget)close()}}>

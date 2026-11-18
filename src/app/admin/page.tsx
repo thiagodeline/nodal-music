@@ -10,6 +10,7 @@ export default async function AdminPage({searchParams}:{searchParams:Promise<{ta
   const ctx = await getAdminContext('staff')
   if (!ctx) notFound()
   const {tab}=await searchParams
+  if(tab==='banners')redirect('/admin/popups')
   if(tab&&!ctx.tabs.includes(tab as typeof ctx.tabs[number]))notFound()
   if(tab==='team')redirect('/admin/equipe')
   if(tab==='plans')redirect('/admin/planos')

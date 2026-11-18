@@ -12,6 +12,7 @@ import './dashboard-refinements.css'
 import './dashboard-premium.css'
 import './spotify-dark.css'
 import ArtistSidebar from './ArtistSidebar'
+import DashboardPopup from './DashboardPopup'
 import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
 import Overview from './Overview'
@@ -134,6 +135,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  return <div className="nd nd-horizontal nd-premium">
   <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
   <div className="nd-premium-mobile-top"><span>SINTONE / PAINEL</span><a href="/dashboard#notifications" aria-label={unread+' notificações não lidas'}><Bell size={20}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</a></div>
+  {d&&<DashboardPopup/>}
   <main className="nd-hmain">
    {!d?<p className="mut">Carregando seu painel…</p>:<>
     {expired&&<div className="banner red" role="alert"><Lock size={20}/><p>Seu período de acesso terminou. <a href="/dashboard#plans">Renove seu plano</a> para continuar distribuindo.</p></div>}

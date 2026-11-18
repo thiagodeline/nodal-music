@@ -29,8 +29,6 @@ export default function Overview({ d, can, unread=0, reload }: { d: Data; can: b
    }catch{setAvatarError('Não foi possível atualizar a foto. Tente novamente.')}
    finally{setAvatarBusy(false)}
   }
-  const [banner,setBanner]=useState<{headline:string;body:string;cta_label:string;cta_url:string;expires_at:string|null}|null>(null)
-  useEffect(()=>{void createClient().from('dashboard_banners').select('headline,body,cta_label,cta_url,expires_at').eq('active',true).order('created_at',{ascending:false}).limit(20).then(({data})=>setBanner((data||[]).find(x=>!x.expires_at||new Date(x.expires_at)>new Date())||null))},[])
   const today = new Date(), months = Array.from({ length: 6 }, (_, i) => { const x = new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth()-(5-i),1)); return iso(x) })
   const cur = d.reports.filter(r => r.month >= months[4])
   const map: Record<string, number> = {}; d.reports.forEach(r => map[r.month] = (map[r.month] || 0) + Number(r.streams))
@@ -73,7 +71,6 @@ export default function Overview({ d, can, unread=0, reload }: { d: Data; can: b
       <a href="/dashboard#notifications">VER NOTIFICAÇÕES <ArrowRight size={15}/></a>
      </section>
     </div>
-    {banner&&<div className="nd-hpromo"><div><strong>{banner.headline}</strong><p>{banner.body}</p></div>{banner.cta_url.startsWith('/')&&!banner.cta_url.startsWith('//')&&<a className="btn" href={banner.cta_url}>{banner.cta_label}</a>}</div>}
     <section className="card nd-weekly-analysis">
       <div className="nd-section-head"><h3>Análise — últimos 7 dias</h3>
         <span className="nd-info-help" title="Os relatórios atuais da SINTONE chegam por competência mensal. Ainda não há dados diários verificáveis de vídeos, visualizações ou streams para calcular os últimos 7 dias." aria-label="Sobre os dados dos últimos 7 dias" tabIndex={0}><Info size={17}/></span>

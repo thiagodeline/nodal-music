@@ -1,9 +1,10 @@
+export type HeroBanner={image_url:string;title:string;subtitle:string;button_text:string;button_url:string}
 export type LandingConfig = {
  announcement_active:boolean; announcement_text:string; announcement_link:string;
  hero_title:string; hero_subtitle:string; hero_cta_text:string; hero_cta_url:string;
  pricing_badge:string; pricing_title:string; pricing_price:string; pricing_subtitle:string;
  pricing_features:string[]; faq_items:{q:string;a:string}[]; dsp_enabled:string[];
- hero_image_url:string|null;hero_banners:string[];social_links:{instagram?:string;youtube?:string;tiktok?:string}
+ hero_image_url:string|null;hero_banners:HeroBanner[];social_links:{instagram?:string;youtube?:string;tiktok?:string}
 }
 export const DEFAULT_LANDING:LandingConfig={
  announcement_active:false,announcement_text:'🚀 Distribuição rápida para +64 plataformas de streaming',announcement_link:'/register',
@@ -24,7 +25,16 @@ export function normalizeLanding(input:Partial<LandingConfig>|null|undefined):La
  const features=Array.isArray(v.pricing_features)?v.pricing_features.filter(x=>typeof x==='string'):DEFAULT_LANDING.pricing_features
  const faqs=Array.isArray(v.faq_items)?v.faq_items.filter(x=>x&&typeof x.q==='string'&&typeof x.a==='string'):DEFAULT_LANDING.faq_items
  const dsps=Array.isArray(v.dsp_enabled)?v.dsp_enabled.filter(x=>DSP_CHOICES.some(d=>d.slug===x)):DEFAULT_LANDING.dsp_enabled
- const banners=Array.isArray(v.hero_banners)?v.hero_banners.filter((x):x is string=>typeof x==='string').slice(0,6):v.hero_image_url?[v.hero_image_url]:[]
+ const fallbackTitle=DEFAULT_LANDING.hero_title
+ const banners:HeroBanner[]=Array.isArray(v.hero_banners)?v.hero_banners.slice(0,6).flatMap((x:unknown)=>{
+  if(typeof x==='string')return [{image_url:x,title:fallbackTitle,subtitle:DEFAULT_LANDING.hero_subtitle,button_text:DEFAULT_LANDING.hero_cta_text,button_url:'/register'}]
+  if(!x||typeof x!=='object'||Array.isArray(x))return []
+  const raw=x as Record<string,unknown>
+  if(typeof raw.image_url!=='string')return []
+  return [{image_url:raw.image_url,title:typeof raw.title==='string'?raw.title:fallbackTitle,
+   subtitle:typeof raw.subtitle==='string'?raw.subtitle:'',button_text:typeof raw.button_text==='string'?raw.button_text:'',
+   button_url:typeof raw.button_url==='string'?raw.button_url:''}]
+ }):v.hero_image_url?[{image_url:v.hero_image_url,title:fallbackTitle,subtitle:'',button_text:'',button_url:''}]:[]
  const socialRaw:Record<string,unknown>=v.social_links&&typeof v.social_links==='object'&&!Array.isArray(v.social_links)?v.social_links:{}
  const domains:Record<string,string[]>={instagram:['instagram.com','www.instagram.com'],youtube:['youtube.com','www.youtube.com','youtu.be'],tiktok:['tiktok.com','www.tiktok.com']}
  const socials:Record<string,string>={}

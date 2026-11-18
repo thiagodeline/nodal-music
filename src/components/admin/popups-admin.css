@@ -1,0 +1,15 @@
+.sa .sa-popup-admin .sa-mod-panel{padding:24px}
+.sa .sa-popup-upload{display:inline-flex;align-items:center;gap:9px;position:relative;overflow:hidden;cursor:pointer;
+ background:#2563eb;color:white;border-radius:9px;border:1px solid #2563eb;padding:12px 17px;font-weight:800}
+.sa .sa-popup-upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.sa .sa-popup-upload:has(input:disabled){opacity:.5}
+.sa .sa-popup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px;margin-top:22px}
+.sa .sa-popup-card{background:#1a1a1e;border:1px solid #303035;border-radius:14px;padding:14px;display:grid;gap:12px}
+.sa .sa-popup-photo{position:relative;aspect-ratio:4/3;background:#09090b;border-radius:9px;overflow:hidden}
+.sa .sa-popup-card-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.sa .sa-popup-toggle{display:inline-flex;align-items:center;gap:7px;color:#d4d4d8;font-size:12px;cursor:pointer}
+.sa .sa-popup-toggle input{accent-color:#2563eb;width:17px;height:17px}
+.sa .sa-popup-delete{display:inline-flex;align-items:center;gap:6px;background:#450a0a;color:#fca5a5;
+ border:1px solid #7f1d1d;border-radius:8px;padding:8px 11px}
+.sa .sa-popup-card small,.sa .sa-popup-empty{color:#a1a1aa}
+.sa .sa-popup-error{color:#fca5a5;padding-top:12px}

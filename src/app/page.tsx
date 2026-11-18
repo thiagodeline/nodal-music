@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import {ArrowRight,ArrowUpRight,Instagram,Youtube,Music2} from 'lucide-react'
+import {ArrowUpRight,Instagram,Youtube,Music2} from 'lucide-react'
 import {createClient} from '@/lib/supabase/server'
 import type {PublicPlan} from '@/components/billing/PlanCards'
 import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
@@ -14,14 +14,14 @@ export default async function Home() {
   const sb = await createClient()
   const { data } = await sb.from('billing_plans')
     .select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists')
-    .eq('published', true).eq('active', true).eq('archived', false).order('price_brl', { ascending: true })
+    .eq('published', true).eq('archived', false).order('price_brl', { ascending: true })
   const plans = (data || []) as PublicPlan[]
-  const {data:heroConfig}=await sb.from('landing_page_config').select('*').eq('id',1).maybeSingle()
+  const {data:heroConfig}=await sb.from('landing_page_config').select('announcement_active,announcement_text,hero_banners,hero_image_url,social_links').eq('id',1).maybeSingle()
   const landing=normalizeLanding(heroConfig as Partial<LandingConfig>|null)
   const allowedOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL||''
-  const heroImages=landing.hero_banners.filter(value=>{
+  const heroBanners=landing.hero_banners.filter(value=>{
    if(!allowedOrigin)return false
-   try{const url=new URL(value),origin=new URL(allowedOrigin)
+   try{const url=new URL(value.image_url),origin=new URL(allowedOrigin)
     return url.origin===origin.origin&&url.pathname.startsWith('/storage/v1/object/public/public-assets/hero/')
    }catch{return false}
   })
@@ -39,9 +39,9 @@ export default async function Home() {
      <div className="um-header-actions"><Link className="um-login" href="/login">ENTRAR</Link><Link className="um-signup" href="/register">CADASTRE-SE <ArrowUpRight size={16}/></Link></div>
     </div></header>
     <main id="conteudo">
-     {landing.announcement_active&&<div className="um-announcement"><Link href={landing.announcement_link}>{landing.announcement_text}<ArrowRight size={16}/></Link></div>}
-     <HeroCarousel images={heroImages} landing={landing}/>
-     <LandingBelowHero landing={landing} plans={plans} checkoutReady={checkoutReady}/>
+     {landing.announcement_active&&<div className="um-announcement"><span>{landing.announcement_text}</span></div>}
+     <HeroCarousel banners={heroBanners}/>
+     <LandingBelowHero plans={plans} checkoutReady={checkoutReady}/>
     </main>
     <footer className="um-footer"><div className="um-container">
      <div className="um-footer-lead"><span>[ SINTONE / {new Date().getFullYear()} ]</span><h2>SUA MÚSICA<br/>NÃO TEM LIMITES.</h2><Link href="/register">FAÇA PARTE DA SINTONE <ArrowUpRight size={20}/></Link></div>

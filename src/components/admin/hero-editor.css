@@ -1,0 +1,23 @@
+/* CMS / Hero banners */
+.sa .st-hero-editor-list{display:grid;gap:16px}
+.sa .st-hero-editor-item{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr);gap:17px;
+ padding:18px;border:1px solid #303035;background:#121215;border-radius:14px}
+.sa .st-hero-editor-thumb{width:100%;aspect-ratio:4/3;position:relative;background:#09090b;border-radius:9px;overflow:hidden}
+.sa .st-hero-editor-fields{display:grid;gap:10px}
+.sa .st-hero-editor-fields label{display:grid;gap:5px;font-size:12px;color:#d4d4d8}
+.sa .st-hero-editor-fields :is(input,textarea){background:#1a1a1e;color:#fff;border:1px solid #3f3f46;border-radius:8px;padding:10px 12px}
+.sa .st-hero-editor-fields :is(input,textarea):focus{outline:1px solid #3b82f6}
+.sa .st-hero-editor-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sa .st-hero-editor-actions button{display:inline-flex;align-items:center;gap:5px;padding:8px 11px;
+ color:#e4e4e7;background:#27272a;border:1px solid #3f3f46;border-radius:8px}
+.sa .st-hero-editor-actions button:hover{background:#3f3f46}
+.sa .st-hero-editor-actions button.danger{color:#fca5a5;border-color:#7f1d1d}
+.sa .st-hero-editor-submit,.sa .st-hero-editor-upload{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+ padding:11px 16px;background:#2563eb;color:#fff;border:1px solid #2563eb;border-radius:9px;font-weight:800;cursor:pointer}
+.sa .st-hero-editor-upload{position:relative;overflow:hidden}
+.sa .st-hero-editor-upload input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.sa .st-hero-editor-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.sa .st-hero-editor-feedback{color:#cbd5e1;font-size:12px}
+.sa .st-hero-editor-feedback[role=alert]{color:#fca5a5}
+.sa .st-hero-editor-submit:disabled,.sa .st-hero-editor-upload:has(input:disabled){opacity:.5;cursor:not-allowed}
+@media(max-width:650px){.sa .st-hero-editor-item{grid-template-columns:1fr}.sa .st-hero-editor-thumb{aspect-ratio:16/8}}

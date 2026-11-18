@@ -1,0 +1,9 @@
+.nd-popup-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;
+ display:flex;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(6px)}
+.nd-popup-modal{position:relative;max-width:min(720px,94vw);width:100%;background:#121215;
+ border:1px solid #3f3f46;border-radius:15px;box-shadow:0 20px 70px #000b;padding:14px}
+.nd-popup-image{position:relative;width:100%;height:min(75dvh,650px);background:#09090b;border-radius:10px;overflow:hidden}
+.nd-popup-close{position:absolute;right:4px;top:4px;z-index:2;display:grid;place-items:center;
+ background:#09090b;color:#fff;border:1px solid #52525b;border-radius:50%;height:38px;width:38px;cursor:pointer}
+.nd-popup-close:hover{background:#27272a}
+@media(max-width:600px){.nd-popup-backdrop{padding:10px}.nd-popup-modal{padding:8px}.nd-popup-image{height:min(70dvh,530px)}}

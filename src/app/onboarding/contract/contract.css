@@ -51,3 +51,39 @@
 .sc-success .sc-secondary{margin-top:10px}
 @media(max-width:650px){.sc-page{padding:18px 12px 48px}.sc-card,.sc-success{padding:17px}.sc-identity{grid-template-columns:1fr 1fr}.sc-identity div:last-child{grid-column:1/-1}.sc-step{flex-wrap:wrap}.sc-scroll{padding:15px;max-height:none;height:380px}.sc-contract-heading{align-items:flex-start}.sc-contract-heading>span{white-space:nowrap}}
 @media(prefers-reduced-motion:reduce){.sc-spin{animation:none}}
+
+/* Contrato de adesão — Dark Premium: preserva leitura, assinatura e emissão de PDF. */
+.sc-page{background:#020617;color:#f8fafc;min-height:100dvh;color-scheme:dark}
+.sc-wrap{max-width:920px}.sc-brand img{filter:brightness(0) invert(1)}
+.sc-step-done{color:#86efac}.sc-step-current{background:#172554;color:#bfdbfe}
+.sc-heading h1,.sc-success h1{color:#fff;font-weight:900}
+.sc-heading p,.sc-success>p{color:#94a3b8}
+.sc-eyebrow{color:#93c5fd}
+.sc-card,.sc-success{background:#0f172a;border:1px solid #1e293b;box-shadow:0 18px 55px rgba(0,0,0,.3);border-radius:18px;padding:clamp(23px,4vw,36px)}
+.sc-identity{background:#111d32;border:1px solid #334155;border-radius:13px}
+.sc-identity small,.sc-contract-heading small{color:#94a3b8}
+.sc-identity strong,.sc-contract-heading strong{color:#f8fafc}
+.sc-contract-heading svg{color:#60a5fa}
+.sc-read-pending{background:#451a03;color:#fde68a}.sc-read-done{background:#052e16;color:#86efac}
+.sc-scroll{background:#0f172a;border:1px solid #334155;border-radius:16px;padding:clamp(20px,4vw,32px);
+ scrollbar-color:#475569 #0f172a;scrollbar-width:thin;max-height:55dvh}
+.sc-scroll:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}
+.sc-scroll pre{color:#cbd5e1;font-size:13px;line-height:1.9}
+.sc-last-line{border-color:#334155;color:#94a3b8}
+.sc-hint,.sc-footnote{color:#94a3b8}
+.sc-primary{background:#2563eb;color:#fff;border-radius:12px;min-height:54px;box-shadow:0 10px 28px rgba(37,99,235,.25)}
+.sc-primary:hover:not(:disabled){background:#3b82f6}
+.sc-primary:disabled{box-shadow:none;opacity:.5}
+.sc-secondary{background:#1e293b;border:1px solid #334155;color:#e2e8f0}
+.sc-secondary:hover{background:#334155}
+.sc-draft{background:#451a03;border:1px solid #92400e;color:#fde68a}
+.sc-error{background:#450a0a;color:#fecaca;border:1px solid #7f1d1d}
+.sc-working{color:#93c5fd}
+.sc-resume{background:#052e16;color:#86efac;border:1px solid #166534}
+.sc-resume p{color:#bbf7d0}
+.sc-return{color:#94a3b8}
+.sc-success-icon{background:#052e16;color:#86efac}
+.sc-success-detail{background:#111d32;border:1px solid #334155;color:#93c5fd}
+.sc-success-detail strong{color:#f8fafc}.sc-success-detail small{color:#94a3b8}
+@media(max-width:650px){.sc-page{padding:22px 14px 55px}
+ .sc-scroll{height:390px;max-height:55dvh}.sc-card,.sc-success{padding:20px}}

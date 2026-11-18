@@ -100,3 +100,36 @@
 .rg-social-note{color:#a1a1aa;font-size:11px}
 @media(max-width:900px){.rg-dark-auth .rg-container{grid-template-columns:1fr}.rg-dark-auth .rg-aside{display:none}.rg-dark-auth .rg-panel{padding:46px 22px;min-height:100dvh;align-items:flex-start}.rg-dark-auth .rg-mobile-brand{display:block}}
 @media(max-width:520px){.rg-dark-auth.rg-page{background:#09090b}.rg-dark-auth .rg-panel{padding:27px 19px 60px}.rg-dark-auth .rg-heading h1{font-size:28px}}
+
+/* Cadastro alinhado à identidade premium da SINTONE. */
+.rg-dark-auth.rg-page{background:#020617;color:#fff}
+.rg-dark-auth .rg-container{background:#020617}
+.rg-dark-auth .rg-aside{background:#09090b}
+.rg-dark-auth .rg-panel{background:#020617}
+.rg-dark-auth .rg-form-wrap{max-width:540px}
+.rg-dark-auth .rg-group input:not([type=checkbox]){background:rgba(15,23,42,.85);border:1px solid #1e293b;
+ border-radius:12px;color:#fff;padding:13px 16px;transition:border-color .2s,box-shadow .2s}
+.rg-dark-auth .rg-group input:focus{border-color:#3b82f6;box-shadow:0 0 0 1px #3b82f6}
+.rg-dark-auth .rg-group input::placeholder{color:#64748b}
+.rg-dark-auth .rg-caption{color:#cbd5e1}
+.rg-dark-auth .rg-password button{color:#94a3b8}
+.rg-dark-auth .rg-submit{min-height:53px;background:#2563eb;color:#fff;border-radius:12px;
+ box-shadow:0 10px 28px rgba(37,99,235,.25);font-size:13px;letter-spacing:.045em;font-weight:900}
+.rg-dark-auth .rg-submit:hover:not(:disabled){background:#3b82f6;transform:translateY(-1px)}
+.rg-dark-auth .rg-submit:disabled{background:#1e293b;color:#94a3b8;box-shadow:none}
+.rg-dark-auth .rg-terms .rg-terms-check{background:#0f172a;border-color:#475569}
+.rg-dark-auth .rg-terms .rg-terms-check.is-checked{background:#2563eb;color:#fff;border-color:#2563eb}
+.rg-dark-auth .rg-terms a,.rg-dark-auth .rg-login a{color:#93c5fd}
+.rg-dark-auth .rg-account-types{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:21px 0 24px}
+.rg-dark-auth .rg-account-card{min-width:0;display:grid;align-content:start;justify-items:start;gap:10px;text-align:left;
+ background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:22px;color:#f8fafc;
+ font:inherit;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
+.rg-dark-auth .rg-account-card:hover{border-color:#3b82f6}
+.rg-dark-auth .rg-account-card.selected{background:rgba(37,99,235,.10);border-color:#3b82f6;
+ box-shadow:0 0 0 1px rgba(59,130,246,.45)}
+.rg-dark-auth .rg-account-card svg{color:#60a5fa}
+.rg-dark-auth .rg-account-card strong{font-size:15px;font-weight:850}
+.rg-dark-auth .rg-account-card small{color:#94a3b8;font-size:12px;line-height:1.55}
+.rg-dark-auth .rg-account-card:focus-visible{outline:2px solid #60a5fa;outline-offset:3px}
+@media(max-width:520px){.rg-dark-auth .rg-account-card{padding:15px}
+ .rg-dark-auth .rg-account-types{gap:10px}}

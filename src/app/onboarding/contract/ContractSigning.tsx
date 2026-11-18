@@ -202,7 +202,7 @@ export default function ContractSigning({
           ? <button type="button" className="sc-primary" disabled={busy} onClick={retryPdf}>{busy?<LoaderCircle size={18} className="sc-spin"/>:<FileCheck2 size={18}/>} {busy?'Processando…':'Concluir geração do PDF'}</button>
           : <button type="button" className="sc-primary" disabled={!readToEnd || !readyToSign || busy} onClick={accept}>
             {busy?<LoaderCircle className="sc-spin" size={18}/>:<LockKeyhole size={18}/>}
-            {busy?'Registrando assinatura…':'Aceito os termos do contrato'}
+            {busy?'Registrando assinatura…' :'Assinar e Aceitar Contrato'}
           </button>}
         <small className="sc-footnote">Ao aceitar, você manifesta concordância eletrônica com a versão exibida. Os dados de assinatura são registrados pelo servidor.</small>
       </div>

@@ -13,18 +13,18 @@ export default function EditorialFeatures({videoUrl}:{videoUrl:string|null}){
  ]
  return <>
   <section className="um-mission" id="recursos"><div className="um-container um-mission-inner">
-   <div className="um-mission-logo"><Image src="/sintone-logo.svg" alt="SINTONE" width={330} height={110} sizes="(max-width:600px) 230px, 330px"/></div>
+   <div className="um-mission-logo"><Image src="/sintone-icon.svg" alt="Símbolo S da SINTONE" width={330} height={110} sizes="(max-width:600px) 230px, 330px"/></div>
    <h2>SUA MÚSICA É NOSSA PRIORIDADE</h2>
    <p>Artistas independentes escolhem a Sintone para alavancar suas carreiras</p>
    <Link href="/register" className="um-mission-cta">SAIBA MAIS <ArrowUpRight size={18}/></Link>
   </div></section>
-  <section className="um-video-section" id="carreira" aria-label="Vídeo da SINTONE"><div className="um-container">
-   {video?<div className="um-video-frame">
+  {video&&<section className="um-video-section" id="carreira" aria-label="Vídeo da SINTONE"><div className="um-container">
+   <div className="um-video-frame">
     {video.kind==='embed'?<iframe src={video.url} title="Vídeo institucional da SINTONE" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/>:
      <video src={video.url} controls preload="metadata" playsInline aria-label="Vídeo institucional da SINTONE"/>}
-   </div>:<div className="um-video-fallback"><span>SINTONE / EM BREVE</span><h2>UM NOVO JEITO DE VIVER A MÚSICA.</h2><p>Conheça nossos conteúdos e acompanhe as novidades da SINTONE.</p></div>}
-  </div></section>
-  <section className="um-choice-section" id="direitos"><div className="um-container"><div className="um-choice-card">
+   </div>
+  </div></section>}
+  <section className="um-choice-section" id={video?"direitos":"carreira"}><div className="um-container"><div className="um-choice-card">
    <h2>POR QUE DEVO ESCOLHER A SINTONE?</h2>
    <ul>{benefits.map(text=><li key={text}><CheckCircle2 size={23} aria-hidden="true"/><span>{text}</span></li>)}</ul>
   </div></div></section>

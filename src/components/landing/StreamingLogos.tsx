@@ -16,5 +16,5 @@ const paths:Record<string,string>={"youtube":"M23.498 6.186a2.974 2.974 0 0 0-2.
 export function StreamingLogo({slug,size=36,monochrome=false}:{slug:string;size?:number;monochrome?:boolean}){
  const platform=STREAMING_PLATFORMS.find(x=>x.slug===slug)
  if(!platform)return null
- return <svg role="img" aria-label={platform.name} width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={monochrome?'#09090b':platform.color}><path d={paths[slug]}/></svg>
+ return <svg role="img" aria-label={platform.name} width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={monochrome?'currentColor':(slug==='tiktok'||slug==='tidal'?'#fafafa':platform.color)}><path d={paths[slug]}/></svg>
 }

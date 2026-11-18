@@ -200,3 +200,21 @@
  .um-home .um-platform span{font-size:11px}.um-home .um-platform svg{width:24px;height:24px}
  .um-home .um-mission{padding-block:70px}.um-home .um-mission-logo img{width:230px}
  .um-home .um-video-fallback{min-height:205px}.um-home .um-choice-card li{gap:12px}}
+
+/* Ajustes de identidade: monograma central e logos SVG oficiais. */
+.um-home .um-mission-logo{display:grid;place-items:center;width:min(330px,75vw);height:min(330px,75vw);
+ filter:drop-shadow(0 0 35px rgba(59,130,246,.5))}
+.um-home .um-mission-logo img{width:100%;height:100%;object-fit:contain;filter:none}
+.um-home .um-platform-list{gap:24px clamp(23px,3.5vw,62px)}
+.um-home .um-platform{display:grid;place-items:center;min-width:62px;min-height:56px;color:#fafafa}
+.um-home .um-platform svg{height:36px;width:36px;opacity:1}
+.um-home .um-video-section{background:#f8fafc!important;padding:clamp(38px,6vw,78px) 0!important}
+.um-home .um-video-frame{box-shadow:0 16px 55px rgba(15,23,42,.12);border-color:#e4e4e7}
+@media(max-width:600px){.um-home .um-mission-logo{width:230px;height:230px}
+ .um-home .um-platform{min-width:48px;min-height:48px}.um-home .um-platform svg{height:29px;width:29px}}
+
+/* Preserve the original 330x110 logo slot while showing only the S mark. */
+.um-home .um-mission-logo{width:min(330px,75vw);height:110px}
+.um-home .um-mission-logo img{width:100%;height:110px;object-fit:contain}
+@media(max-width:600px){.um-home .um-mission-logo{width:230px;height:110px}
+ .um-home .um-mission-logo img{height:110px}}

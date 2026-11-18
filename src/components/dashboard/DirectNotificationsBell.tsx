@@ -1,9 +1,10 @@
 'use client'
 import {useEffect,useState} from 'react'
 import Link from 'next/link'
-import {Bell,Check,CheckCheck,X,Info,CheckCircle2,AlertTriangle,AlertCircle,ArrowRight,Handshake,Music2,Megaphone} from 'lucide-react'
+import {Bell,Check,CheckCheck,X,Trash2,Info,CheckCircle2,AlertTriangle,AlertCircle,ArrowRight,Handshake,Music2,Megaphone} from 'lucide-react'
 import {useNotifications,type UnifiedNotification,type NotificationKind} from './useNotifications'
 import './direct-notifications.css'
+import NotificationBulkActions from './NotificationBulkActions'
 
 const labels:Record<NotificationKind,string>={
  info:'Informação',success:'Conquista / Sucesso',warning:'Aviso / Ajuste',action:'Ação requerida',
@@ -23,7 +24,7 @@ function validHref(raw:string|null){
  return null
 }
 export default function DirectNotificationsBell(){
- const {notifications,unreadCount,loading,error,fetchNotifications,markAsRead}=useNotifications()
+ const {notifications,unreadCount,loading,error,fetchNotifications,markAsRead,deleteNotification}=useNotifications()
  const [open,setOpen]=useState(false),[busy,setBusy]=useState<string|null>(null)
  useEffect(()=>{
   if(!open)return
@@ -48,15 +49,19 @@ export default function DirectNotificationsBell(){
    <aside className="nd-direct-drawer" id="nd-direct-drawer" role="dialog" aria-modal="true" aria-label="Notificações">
     <header className="nd-direct-head"><div><span>AVISOS E COMUNICADOS</span><h2>NOTIFICAÇÕES <small>{unreadCount} NÃO LIDAS</small></h2></div>
      <button type="button" onClick={()=>setOpen(false)} aria-label="Fechar notificações"><X size={21}/></button></header>
+    <NotificationBulkActions compact/>
     <div className="nd-direct-body">
      {error&&<p className="nd-direct-error" role="alert">{error}</p>}
      {loading?<p className="nd-direct-empty">Carregando notificações…</p>:
-      !notifications.length?<div className="nd-direct-empty"><Bell size={31}/><strong>Você está em dia!</strong><p>Seus comunicados da equipe SINTONE aparecerão aqui.</p></div>:
+      !notifications.length?<div className="nd-direct-empty"><Bell size={31} style={{opacity:.4}}/><strong>Nenhuma notificação</strong><p>Você não possui novas notificações no momento.</p></div>:
       notifications.map(item=>{const Icon=icons[item.type];const href=validHref(item.action_url)
        return <article key={item.source+item.id} className={'nd-direct-item '+colors[item.type]+(item.read?' read':'')}>
         <div className="nd-direct-icon"><Icon size={20}/></div>
         <div className="nd-direct-content"><div className="nd-direct-item-top"><span>{labels[item.type]}</span>
-         {!item.read&&<span className="nd-direct-dot" aria-label="Não lida"/>}</div>
+         <div className="nd-notice-card-tools">{!item.read&&<span className="nd-direct-dot" aria-label="Não lida"/>}
+          <button className="nd-notice-delete" type="button" aria-label={'Excluir notificação: '+item.title}
+           title="Excluir notificação" onClick={()=>void deleteNotification(item)}><Trash2 size={16}/></button>
+         </div></div>
          <h3>{item.title}</h3><p>{item.message}</p>
          <time dateTime={item.created_at}>{new Date(item.created_at).toLocaleString('pt-BR')}</time>
          <div className="nd-direct-actions">{href&&<Link href={href} onClick={()=>{void mark(item);setOpen(false)}}>VER DETALHES <ArrowRight size={15}/></Link>}

@@ -1,0 +1,56 @@
+/* Ações de exclusão de notificações — tema Dark Premium. */
+.nd-premium .nd-notice-head-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:12px}
+.nd-notice-card-tools{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+.nd-premium .nd-notice-delete,.nd-direct-item .nd-notice-delete{
+ display:inline-flex;align-items:center;justify-content:center;flex:none;
+ padding:5px;border-radius:7px;background:transparent;border:1px solid transparent;
+ color:#71717a;cursor:pointer;transition:background .18s,color .18s,border-color .18s
+}
+.nd-premium .nd-notice-delete:hover,.nd-direct-item .nd-notice-delete:hover{
+ background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.18)
+}
+.nd-premium .nd-notice-delete:focus-visible,.nd-direct-item .nd-notice-delete:focus-visible{
+ outline:2px solid #60a5fa;outline-offset:2px
+}
+.nd-premium .nd-notice-bulk{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.nd-premium .nd-notice-bulk>button,.nd-premium .nd-notice-confirm button{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ border:1px solid #3f3f46;border-radius:8px;padding:9px 11px;background:#27272a;
+ color:#d4d4d8;font-size:11px;font-weight:750;cursor:pointer
+}
+.nd-premium .nd-notice-bulk>button:hover,.nd-premium .nd-notice-confirm button:hover{
+ background:#3f3f46;color:#fff
+}
+.nd-premium .nd-notice-bulk button.danger,.nd-premium .nd-notice-confirm button.danger{
+ background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.24);color:#fca5a5
+}
+.nd-premium .nd-notice-bulk button.danger:hover,.nd-premium .nd-notice-confirm button.danger:hover{
+ background:rgba(239,68,68,.18);color:#fecaca
+}
+.nd-premium .nd-notice-bulk button:disabled{opacity:.5;cursor:not-allowed}
+.nd-premium .nd-notice-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nd-premium .nd-notice-confirm>span{font-size:11px;color:#f4f4f5;font-weight:650}
+.nd-premium .nd-notice-bulk.compact{padding:12px 20px;border-bottom:1px solid #303035}
+.nd-premium .nd-notice-bulk.compact .nd-notice-confirm{width:100%;justify-content:flex-start}
+.nd-notice-toast{
+ position:fixed;bottom:24px;right:24px;z-index:600;display:flex;align-items:center;gap:9px;
+ max-width:min(440px,calc(100vw - 28px));padding:13px 17px;color:#d1fae5;
+ border:1px solid #166534;border-radius:10px;background:#052e16;
+ font-size:12px;font-weight:750;box-shadow:0 15px 40px #0009
+}
+.nd-premium .nd-notice-empty svg,.nd-premium .nd-direct-empty svg{opacity:.4}
+.nd-premium .nd-notice-feed .nd-notice-inline-actions :is(button,a){
+ background:#27272a;border-color:#3f3f46;color:#e4e4e7
+}
+.nd-premium .nd-notice-feed .nd-notice-inline-actions .nd-notice-accept{background:#052e16;color:#86efac;border-color:#166534}
+.nd-premium .nd-notice-feed .nd-notice-inline-actions .nd-notice-decline{background:#450a0a;color:#fca5a5;border-color:#7f1d1d}
+.nd-premium .nd-notice-feed .nd-notice-counter{background:#172554;color:#bfdbfe}
+.nd-premium .nd-notice-feed .nd-notice-type{background:#27272a;border-color:#3f3f46;color:#e4e4e7}
+.nd-premium .nd-notice-feed .nd-notice-body>p{color:#d4d4d8}
+.nd-premium .nd-notice-feed .nd-notice-row{border-bottom-color:#303035}
+.nd-premium .nd-notice-feed .nd-notice-message{background:#172554;color:#bfdbfe;border:1px solid #1e40af}
+@media(max-width:640px){
+ .nd-premium .nd-notice-head-actions{justify-content:flex-start;width:100%}
+ .nd-notice-toast{bottom:15px;right:14px}
+ .nd-premium .nd-notice-bulk.compact{padding:11px 14px}
+}

@@ -1,8 +1,9 @@
 'use client'
 import {useCallback,useEffect,useMemo,useState} from 'react'
 import {createClient} from '@/lib/supabase/client'
-import {Bell,CheckCheck,CheckCircle2,XCircle,Handshake,Megaphone,Info,AlertTriangle,AlertCircle} from 'lucide-react'
+import {Bell,CheckCheck,CheckCircle2,XCircle,Handshake,Megaphone,Info,AlertTriangle,AlertCircle,Trash2} from 'lucide-react'
 import {useNotifications,type UnifiedNotification,type NotificationKind} from './useNotifications'
+import NotificationBulkActions from './NotificationBulkActions'
 
 type Invite={id:string;release_id:string;percentage:number;status:string;created_at:string}
 type FeedItem={key:string;date:string;notice?:UnifiedNotification;invite?:Invite;kind:NotificationKind}
@@ -26,7 +27,7 @@ function validLink(raw:string|null){
 }
 export default function NotificationsCenter(){
  const sb=useMemo(()=>createClient(),[])
- const {notifications,unreadCount,loading,error,markAsRead,fetchNotifications}=useNotifications()
+ const {notifications,unreadCount,loading,error,markAsRead,fetchNotifications,deleteNotification}=useNotifications()
  const [invites,setInvites]=useState<Invite[]>([])
  const [message,setMessage]=useState('')
  const [busy,setBusy]=useState<string|null>(null)
@@ -55,7 +56,8 @@ export default function NotificationsCenter(){
    if(matched)used.add(matched.id)
    return {key:n.source+'-'+n.id,date:n.created_at,notice:n,invite:matched,kind:n.type}
   })
-  for(const i of invites)if(!used.has(i.id))items.push({key:'i-'+i.id,date:i.created_at,invite:i,kind:'split_invite'})
+  // Invites without a notification remain in RoyaltyInvites; do not resurrect
+  // discarded notifications as standalone items in this unified inbox.
   return items.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date))
  },[notifications,invites])
 
@@ -80,11 +82,11 @@ export default function NotificationsCenter(){
 
  return <section className="card nd-notice-feed">
   <div className="nd-notice-feed-head"><div><h2><Bell size={22}/> Notificações</h2><p className="mut">Acompanhe notificações diretas, avisos e convites da sua conta.</p></div>
-   <span className="nd-notice-counter">{unreadCount} não lidas</span>
+   <div className="nd-notice-head-actions"><span className="nd-notice-counter">{unreadCount} não lidas</span><NotificationBulkActions/></div>
   </div>
   {(message||error)&&<p role="status" className="nd-notice-message">{message||error}</p>}
   {loading||invitesLoading?<p className="mut">Carregando notificações…</p>:
-   !feed.length?<div className="nd-notice-empty"><Bell size={24}/><h3>Nenhuma notificação</h3><p className="mut">Seus avisos vão aparecer aqui.</p></div>:
+   !feed.length?<div className="nd-notice-empty"><Bell size={27} style={{opacity:.4}}/><h3>Nenhuma notificação</h3><p className="mut">Você não possui novas notificações no momento.</p></div>:
    <div className="nd-notice-list">{feed.map(item=>{
     const Icon=kindIcons[item.kind],n=item.notice,i=item.invite
     const cls=colorClass[item.kind]
@@ -93,7 +95,10 @@ export default function NotificationsCenter(){
      <span className={'nd-notice-icon nd-notice-icon-'+cls}><Icon size={18}/></span>
      <div className="nd-notice-body">
       <div className="nd-notice-top"><span className={'nd-notice-type nd-notice-type-'+cls}>{kindLabels[item.kind]}</span>
-       <time dateTime={item.date}>{new Date(item.date).toLocaleString('pt-BR')}</time></div>
+       <div className="nd-notice-card-tools"><time dateTime={item.date}>{new Date(item.date).toLocaleString('pt-BR')}</time>
+        {n&&<button type="button" className="nd-notice-delete" title="Excluir notificação"
+         aria-label={'Excluir notificação: '+n.title} onClick={()=>void deleteNotification(n)}><Trash2 size={17}/></button>}
+       </div></div>
       <strong>{n?.title||'Você recebeu uma divisão de royalties'}</strong>
       <p style={{whiteSpace:'pre-wrap'}}>{n?.message||(i?'Convite para receber '+Number(i.percentage).toLocaleString('pt-BR')+'% dos royalties.':'')}</p>
       {i&&<p className="nd-notice-split">Percentual: <strong>{Number(i.percentage).toLocaleString('pt-BR')}%</strong> · Status: {i.status==='accepted'?'Aceito':i.status==='rejected'?'Recusado':'Pendente'}. O aceite não realiza um pagamento automático.</p>}

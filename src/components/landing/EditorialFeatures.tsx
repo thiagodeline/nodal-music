@@ -13,7 +13,7 @@ export default function EditorialFeatures({videoUrl}:{videoUrl:string|null}){
  ]
  return <>
   <section className="um-mission" id="recursos"><div className="um-container um-mission-inner">
-   <div className="um-mission-logo"><Image src="/sintone-icon.svg" alt="Símbolo S da SINTONE" width={330} height={110} sizes="(max-width:600px) 230px, 330px"/></div>
+   <div className="um-mission-logo"><Image src="/sintone-mark-transparent.svg" alt="Símbolo S da SINTONE" width={160} height={160} sizes="(max-width:768px) 112px, 160px"/></div>
    <h2>SUA MÚSICA É NOSSA PRIORIDADE</h2>
    <p>Artistas independentes escolhem a Sintone para alavancar suas carreiras</p>
    <Link href="/register" className="um-mission-cta">SAIBA MAIS <ArrowUpRight size={18}/></Link>

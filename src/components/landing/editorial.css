@@ -218,3 +218,64 @@
 .um-home .um-mission-logo img{width:100%;height:110px;object-fit:contain}
 @media(max-width:600px){.um-home .um-mission-logo{width:230px;height:110px}
  .um-home .um-mission-logo img{height:110px}}
+
+/* 2026-11-18 | Plataforma, monograma e FAQ editorial — isolados à Landing. */
+.um-home .um-platforms{width:100%;background:#fff!important;border-bottom:1px solid #f1f5f9!important;
+ padding:48px 24px!important;color:#1e293b}
+.um-home .um-platforms>.um-container{max-width:1200px;margin-inline:auto;padding:0}
+.um-home .um-platform-intro{margin:0 auto 32px;max-width:850px;text-align:center;color:#1e293b;
+ font-size:clamp(16px,1.7vw,18px);font-weight:500;line-height:1.5;letter-spacing:-.025em}
+.um-home .um-platform-intro span{color:rgba(180,83,9,.9);font-weight:600}
+.um-home .um-platform-list{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+ gap:32px clamp(32px,4.5vw,56px);max-width:1152px;margin-inline:auto}
+.um-home .um-platform{display:flex;align-items:center;justify-content:center;min-height:36px;min-width:0;
+ color:#0b0b0c!important;background:transparent!important;padding:0!important}
+.um-home .um-platform-wordmark{display:block;height:28px;width:auto;max-width:210px;
+ object-fit:contain;opacity:.9;color:#09090b;transition:opacity .2s,filter .2s;
+ filter:grayscale(1)}
+.um-home .um-platform:hover .um-platform-wordmark{opacity:1;filter:grayscale(0)}
+.um-home .um-mission-logo{display:grid;place-items:center;width:160px;height:160px;padding:0;
+ filter:drop-shadow(0 0 35px rgba(37,99,235,.7))!important}
+.um-home .um-mission-logo img{display:block;width:160px!important;height:160px!important;max-width:100%;
+ object-fit:contain;filter:none!important}
+.um-home .um-faq{background:#000!important;color:#fff!important;padding:96px 24px!important;
+ border-top:1px solid #171717!important}
+.um-home .um-faq>.um-container{display:block!important;width:100%;max-width:1152px;margin-inline:auto;padding:0}
+.um-home .um-faq-title{max-width:768px;margin:0 auto 64px;text-align:center;
+ font-size:clamp(30px,4.4vw,48px);line-height:1.12;font-weight:800;letter-spacing:-.035em;
+ color:#fff;text-wrap:balance}
+.um-home .um-faq-list{max-width:896px;margin-inline:auto;border-top:1px solid #262626!important}
+.um-home .um-faq-list details{border-bottom:1px solid #262626!important;background:transparent}
+.um-home .um-faq-list summary{display:flex;align-items:center;justify-content:space-between;
+ gap:20px;padding:24px 8px;cursor:pointer;list-style:none}
+.um-home .um-faq-list summary::-webkit-details-marker{display:none}
+.um-home .um-faq-list summary strong{font-size:clamp(14px,1.3vw,16px);font-weight:700;
+ letter-spacing:.075em;line-height:1.5;text-transform:uppercase;color:#fff;transition:color .2s}
+.um-home .um-faq-list summary:hover strong{color:#cbd5e1}
+.um-home .um-faq-list summary:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+.um-home .um-faq-list .um-faq-plus,.um-home .um-faq-list .um-faq-minus{
+ flex:none;color:#a3a3a3;font-size:23px;font-weight:300;line-height:1}
+.um-home .um-faq-list summary:hover .um-faq-plus,
+.um-home .um-faq-list summary:hover .um-faq-minus{color:#fff}
+.um-home .um-faq-list .um-faq-minus{display:none}
+.um-home .um-faq-list details[open] .um-faq-plus{display:none}
+.um-home .um-faq-list details[open] .um-faq-minus{display:inline}
+.um-home .um-faq-list details>p{padding:8px 42px 24px 8px!important;
+ color:#94a3b8!important;font-size:clamp(14px,1.35vw,16px);line-height:1.75;
+ animation:um-faq-enter .22s ease-out both}
+@keyframes um-faq-enter{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:768px){.um-home .um-platform-wordmark{height:36px}}
+@media(max-width:600px){
+ .um-home .um-platforms{padding:38px 20px!important}
+ .um-home .um-platform-list{gap:24px 24px}
+ .um-home .um-platform-wordmark{height:27px}
+ .um-home .um-mission-logo{width:112px;height:112px}
+ .um-home .um-mission-logo img{width:112px!important;height:112px!important}
+ .um-home .um-faq{padding:70px 20px!important}
+ .um-home .um-faq-title{margin-bottom:45px}
+ .um-home .um-faq-list details>p{padding-right:8px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .um-home .um-faq-list details>p{animation:none}
+ .um-home .um-platform-wordmark{transition:none}
+}

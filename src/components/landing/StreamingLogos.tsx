@@ -18,3 +18,19 @@ export function StreamingLogo({slug,size=36,monochrome=false}:{slug:string;size?
  if(!platform)return null
  return <svg role="img" aria-label={platform.name} width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={monochrome?'currentColor':(slug==='tiktok'||slug==='tidal'?'#fafafa':platform.color)}><path d={paths[slug]}/></svg>
 }
+
+/** Monochrome SVG logo lockup. The icon paths are from the existing local vector
+ * library; names are SVG text to retain sharpness at every screen resolution.
+ * The text uses a readable system typeface (not a trademark font reproduction). */
+export function StreamingWordmark({slug}:{slug:string}){
+ const platform=STREAMING_PLATFORMS.find(item=>item.slug===slug)
+ if(!platform)return null
+ const lengths:Record<string,number>={spotify:100,applemusic:142,tiktok:91,instagram:125,amazonmusic:154,youtube:109,tidal:82,deezer:85}
+ const width=lengths[slug]||112
+ return <svg className="um-platform-wordmark" role="img" aria-label={platform.name}
+   viewBox={`0 0 ${width+36} 40`} xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+   <path transform="translate(0 7) scale(1.08)" d={paths[slug]}/>
+   <text x="36" y="28" fontFamily="Arial, Helvetica, sans-serif" fontWeight="750"
+     fontSize="21" letterSpacing="-0.7">{platform.name}</text>
+  </svg>
+}

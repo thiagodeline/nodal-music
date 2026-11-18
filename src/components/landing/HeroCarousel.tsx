@@ -19,7 +19,6 @@ export default function HeroCarousel({banners}:{banners:HeroBanner[]}){
   {active&&<div className="um-hero-photo" key={active.image_url}><Image src={active.image_url} alt="Banner promocional da SINTONE" fill priority={index===0} unoptimized sizes="100vw" style={{objectFit:'cover'}}/></div>}
   <div className="um-hero-shade" aria-hidden="true"/>
   <div className="um-container um-hero-inner">
-   <span className="um-hero-tag">SINTONE · DISTRIBUIÇÃO DIGITAL</span>
    <h1 id="st-main-title">{active?.title||'SUA MÚSICA EM MAIS DE 50 PLATAFORMAS.'}</h1>
    {(active?.subtitle||!active)&&<p>{active?.subtitle||'Distribua sua música de forma independente com a SINTONE.'}</p>}
    {active?.button_text&&active.button_url&&<Link className="um-hero-cta" href={active.button_url}>{active.button_text}<ArrowRight size={18}/></Link>}

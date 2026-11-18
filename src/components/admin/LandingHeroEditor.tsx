@@ -1,7 +1,7 @@
 'use client'
 import {useState} from 'react'
 import Image from 'next/image'
-import {ArrowDown,ArrowUp,Plus,Trash2,Save} from 'lucide-react'
+import {ArrowDown,ArrowUp,Plus,Trash2,Save,Pencil,Check} from 'lucide-react'
 import type {HeroBanner} from '@/lib/landing-config'
 import {createClient} from '@/lib/supabase/client'
 import {saveLandingBanners,registerLandingBanner} from '@/app/admin/landing-page/actions'
@@ -12,13 +12,14 @@ export default function LandingHeroEditor({initialBanners}:{initialBanners:HeroB
  const [busy,setBusy]=useState(false)
  const [status,setStatus]=useState('')
  const [error,setError]=useState(false)
+ const [editingImages,setEditingImages]=useState<string[]>([])
  const change=(i:number,key:keyof HeroBanner,value:string)=>setBanners(old=>old.map((b,j)=>i===j?{...b,[key]:value}:b))
  async function save(next=banners,success='Carrossel salvo.'){
   setBusy(true);setStatus('');setError(false)
   try{
    const result=await saveLandingBanners(next)
    if(!result.ok)throw Error(result.error)
-   setBanners(result.banners);setStatus(success)
+   setBanners(result.banners);setStatus(success);setEditingImages([])
   }catch(e){setStatus(e instanceof Error?e.message:'Não foi possível salvar.');setError(true)}
   finally{setBusy(false)}
  }
@@ -69,15 +70,18 @@ export default function LandingHeroEditor({initialBanners}:{initialBanners:HeroB
   <div className="st-hero-editor-list">{banners.map((banner,index)=><article className="st-hero-editor-item" key={banner.image_url}>
    <div className="st-hero-editor-thumb"><Image src={banner.image_url} alt={'Banner '+(index+1)} fill sizes="(max-width: 650px) 90vw, 240px" unoptimized style={{objectFit:'cover'}}/></div>
    <div className="st-hero-editor-fields">
-    <strong>Imagem {index+1}</strong>
-    <label>Título sobreposto<input maxLength={170} value={banner.title} onChange={e=>change(index,'title',e.target.value)}/></label>
-    <label>Subtítulo<textarea rows={2} maxLength={240} value={banner.subtitle} onChange={e=>change(index,'subtitle',e.target.value)}/></label>
-    <label>Texto do botão (opcional)<input maxLength={65} value={banner.button_text} onChange={e=>change(index,'button_text',e.target.value)}/></label>
-    <label>Link interno do botão (opcional)<input maxLength={240} placeholder="/register" value={banner.button_url} onChange={e=>change(index,'button_url',e.target.value)}/></label>
+    <div className="st-hero-editor-summary"><div><small>SLIDE {String(index+1).padStart(2,'0')}</small><strong>{banner.title||'Sem título'}</strong><p>{banner.subtitle||'Sem subtítulo'}</p></div></div>
+    {editingImages.includes(banner.image_url)&&<div className="st-hero-editor-form">
+     <label>Título sobreposto<input maxLength={170} value={banner.title} onChange={e=>change(index,'title',e.target.value)}/></label>
+     <label>Subtítulo<textarea rows={2} maxLength={240} value={banner.subtitle} onChange={e=>change(index,'subtitle',e.target.value)}/></label>
+     <label>Texto do Botão (Opcional)<input maxLength={65} value={banner.button_text} onChange={e=>change(index,'button_text',e.target.value)}/></label>
+     <label>Link do Botão (Opcional)<input maxLength={240} placeholder="/register" value={banner.button_url} onChange={e=>change(index,'button_url',e.target.value)}/></label>
+    </div>}
     <div className="st-hero-editor-actions">
-     <button type="button" disabled={busy||index===0} onClick={()=>move(index,-1)}><ArrowUp size={15}/> Acima</button>
-     <button type="button" disabled={busy||index===banners.length-1} onClick={()=>move(index,1)}><ArrowDown size={15}/> Abaixo</button>
-     <button type="button" disabled={busy} className="danger" onClick={()=>setBanners(old=>old.filter((_,i)=>i!==index))}><Trash2 size={15}/> Remover</button>
+     <button type="button" disabled={busy} className="st-hero-edit" aria-expanded={editingImages.includes(banner.image_url)} onClick={()=>setEditingImages(old=>old.includes(banner.image_url)?old.filter(x=>x!==banner.image_url):[...old,banner.image_url])}>{editingImages.includes(banner.image_url)?<Check size={15}/>:<Pencil size={15}/>} {editingImages.includes(banner.image_url)?'Concluir edição':'Editar'}</button>
+     <button type="button" disabled={busy||index===0} onClick={()=>move(index,-1)}><ArrowUp size={15}/> Subir</button>
+     <button type="button" disabled={busy||index===banners.length-1} onClick={()=>move(index,1)}><ArrowDown size={15}/> Descer</button>
+     <button type="button" disabled={busy} className="danger" onClick={()=>setBanners(old=>old.filter((_,i)=>i!==index))}><Trash2 size={15}/> Excluir</button>
     </div>
    </div>
   </article>)}</div>

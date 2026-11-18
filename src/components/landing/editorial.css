@@ -147,3 +147,14 @@
  .um-home .um-hero h1{max-width:560px}
 }
 @media(max-width:520px){.um-home .um-hero-tag{margin-bottom:12px}.um-home .um-hero p{margin:12px 0 19px}.um-home .um-hero h1{font-size:28px;line-height:1.13}}
+
+/* Overlay uniforme no banner: sem gradiente lateral, inclusive nos breakpoints. */
+.um-home .um-hero .um-hero-shade,
+.um-home .um-hero-no-image .um-hero-shade{
+ background:rgba(0,0,0,.40)!important;
+ position:absolute;inset:0;z-index:-1;pointer-events:none
+}
+.um-home .um-hero-no-image{background:#09090b}
+.um-home .um-hero .um-hero-inner{position:relative;z-index:1}
+.um-home .um-carousel-controls{z-index:2}
+.um-home .um-plan-check,.st-plan-check{font-size:16px;color:#60a5fa;font-weight:800;line-height:1;flex:none}

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import {ArrowUpRight,Check} from 'lucide-react'
+import {ArrowUpRight} from 'lucide-react'
 import type {PublicPlan} from '@/components/billing/PlanCards'
 const money=(n:number)=>Number(n).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
 export default function EditorialPlans({plans,checkoutReady}:{plans:PublicPlan[];checkoutReady:boolean}){
@@ -12,9 +12,7 @@ export default function EditorialPlans({plans,checkoutReady}:{plans:PublicPlan[]
    return <article className="um-plan" key={plan.id}>
     <div className="um-plan-top"><span>{free?'COMECE AGORA':'PARA IR ALÉM'}</span><h3>{plan.name}</h3><p>{plan.description||'Distribuição musical pela SINTONE.'}</p></div>
     <div className="um-plan-price">{free?'GRÁTIS':money(plan.price_brl)}{!free&&<small> / 30 dias</small>}</div>
-    <ul>{(plan.benefits||[]).map((benefit,i)=><li key={i}><Check size={17}/>{benefit}</li>)}
-     {plan.monthly_releases_limit!==undefined&&<li><Check size={17}/>{plan.monthly_releases_limit===null?'Lançamentos ilimitados':plan.monthly_releases_limit+' lançamentos por mês'}</li>}
-    </ul>
+    <ul>{(Array.isArray(plan.benefits)?plan.benefits:[]).map(item=>item.trim()).filter(Boolean).map((benefit,i)=><li key={i}><span aria-hidden="true" className="um-plan-check">✓</span>{benefit}</li>)}</ul>
     {(free||checkoutReady)?<Link className="um-plan-cta" href="/register">{free?'CRIAR CONTA GRÁTIS':'CONHECER O PLANO'}<ArrowUpRight size={17}/></Link>:
     <span className="um-plan-cta um-plan-cta-disabled">DISPONÍVEL EM BREVE</span>}
     <small>Serviços e limites sujeitos às condições do plano.</small>

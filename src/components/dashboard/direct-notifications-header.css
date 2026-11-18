@@ -1,0 +1,7 @@
+.nd-premium .nd-direct-header{margin-left:64px;display:flex;align-items:center;justify-content:space-between;padding:19px clamp(20px,3.4vw,54px) 0;color:#a1a1aa;gap:14px}
+.nd-premium .nd-direct-header-desktop{font-size:11px;font-weight:850;letter-spacing:.13em}
+.nd-premium .nd-direct-header-mobile{display:none}
+.nd-premium .nd-hmain,.nd-premium .nd-hmain.nd-hmain{min-height:calc(100dvh - 73px);padding-top:18px}
+@media(max-width:760px){.nd-premium .nd-direct-header{position:fixed;inset:0 0 auto 0;z-index:115;height:72px;margin:0;padding:0 18px 0 75px;background:#09090bf2;border-bottom:1px solid #303035;color:#fff}
+.nd-premium .nd-direct-header-desktop{display:none}.nd-premium .nd-direct-header-mobile{display:block;font-size:12px;font-weight:850;letter-spacing:.08em}
+.nd-premium .nd-hmain,.nd-premium .nd-hmain.nd-hmain{padding-top:87px}}

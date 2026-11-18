@@ -1,0 +1,34 @@
+.nd-premium .nd-direct-trigger{position:relative;display:grid;place-items:center;width:43px;height:43px;background:#18181b;border:1px solid #3f3f46;border-radius:11px;color:#f4f4f5;cursor:pointer}
+.nd-premium .nd-direct-trigger:hover{background:#27272a;border-color:#52525b}
+.nd-direct-unread{position:absolute;top:-6px;right:-7px;background:#dc2626;color:#fff;border:2px solid #09090b;min-width:21px;height:21px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:99px;font-size:10px;font-weight:900}
+.nd-premium .nd-direct-topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:4px}
+.nd-direct-topbar h2{color:#fff;font-size:11px;font-weight:800;letter-spacing:.11em}
+.nd-direct-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.78);display:flex;justify-content:flex-end;backdrop-filter:blur(3px)}
+.nd-direct-drawer{width:min(440px,100vw);height:100dvh;overflow:hidden;background:#121215;border-left:1px solid #3f3f46;color:#f4f4f5;display:flex;flex-direction:column;box-shadow:-14px 0 48px #0009}
+.nd-direct-head{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:24px;border-bottom:1px solid #303035}
+.nd-direct-head>div>span{font-size:10px;letter-spacing:.15em;font-weight:900;color:#93c5fd}
+.nd-direct-head h2{display:flex;gap:11px;align-items:center;flex-wrap:wrap;color:#fff;font-size:21px;font-weight:900;margin-top:9px}
+.nd-direct-head h2 small{font-size:9px;background:#27272a;color:#d4d4d8;padding:6px 8px;border-radius:99px}
+.nd-direct-head button{height:39px;width:39px;display:grid;place-items:center;background:#27272a;border:1px solid #3f3f46;border-radius:9px;color:#fff;cursor:pointer}
+.nd-direct-body{overflow:auto;flex:1;padding:20px;display:grid;align-content:start;gap:13px}
+.nd-direct-item{display:flex;gap:14px;border:1px solid #303035;border-radius:13px;padding:17px;background:#18181b;border-left-width:3px}
+.nd-direct-item.info{border-left-color:#3b82f6}.nd-direct-item.success{border-left-color:#22c55e}.nd-direct-item.warning{border-left-color:#eab308}.nd-direct-item.action{border-left-color:#ef4444}
+.nd-direct-item.read{opacity:.74}
+.nd-direct-icon{height:37px;width:37px;min-width:37px;display:grid;place-items:center;background:#1e3a8a33;border-radius:9px;color:#60a5fa}
+.nd-direct-item.success .nd-direct-icon{background:#052e16;color:#86efac}.nd-direct-item.warning .nd-direct-icon{background:#451a03;color:#fde68a}.nd-direct-item.action .nd-direct-icon{background:#450a0a;color:#fca5a5}
+.nd-direct-content{min-width:0;flex:1}.nd-direct-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;font-weight:850;color:#a1a1aa;text-transform:uppercase;letter-spacing:.08em}
+.nd-direct-dot{height:8px;width:8px;background:#ef4444;border-radius:50%;flex:none}
+.nd-direct-content h3{font-size:15px;line-height:1.3;font-weight:850;color:#fff;margin:9px 0}
+.nd-direct-content p{font-size:12px;color:#d4d4d8;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+.nd-direct-content time{display:block;font-size:10px;color:#a1a1aa;margin-top:11px}
+.nd-direct-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.nd-direct-actions :is(a,button){display:inline-flex;align-items:center;gap:7px;padding:8px 10px;border-radius:7px;background:#27272a;border:1px solid #3f3f46;color:#e4e4e7;font-size:10px;font-weight:850;text-decoration:none;cursor:pointer}
+.nd-direct-actions a{border-color:#1e40af;background:#172554;color:#bfdbfe}
+.nd-direct-actions :is(a,button):hover{background:#3f3f46}
+.nd-direct-actions button:disabled{opacity:.5}
+.nd-direct-empty{display:grid;justify-items:center;gap:14px;padding:52px 23px;text-align:center;color:#a1a1aa;font-size:13px}
+.nd-direct-empty strong{color:#fff;font-size:18px}.nd-direct-empty p{line-height:1.6}
+.nd-direct-foot{border-top:1px solid #303035;padding:17px 22px}
+.nd-direct-foot a{display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:850;font-size:11px;letter-spacing:.05em;text-decoration:none;padding:11px}
+.nd-direct-error{color:#fca5a5;background:#450a0a;border:1px solid #7f1d1d;padding:11px;border-radius:8px}
+@media(max-width:760px){.nd-direct-overlay{z-index:220}.nd-direct-topbar{display:none}.nd-premium-mobile-top .nd-direct-trigger{width:40px;height:40px;border:0;background:transparent}}

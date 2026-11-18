@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import {usePathname,useSearchParams} from 'next/navigation'
-import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck,Handshake,PanelsTopLeft,SlidersHorizontal,UserCog,Palette,BookOpenText} from 'lucide-react'
+import {ChevronRight,Eye,ShieldCheck,Music2,UsersRound,FileSpreadsheet,CreditCard,MessageSquare,Banknote,Truck,Handshake,PanelsTopLeft,SlidersHorizontal,UserCog,Palette,BookOpenText,Bell} from 'lucide-react'
 import type {AdminTab,StaffRole} from '@/lib/admin-access'
 import './admin.css'
 import './admin-extras.css'
@@ -19,6 +19,7 @@ const groups=[
   {key:'splits',name:'Divisões de royalties',Icon:Handshake}]},
  {heading:'ATENDIMENTO & CONTRATOS',items:[
   {key:'support',name:'Suporte',Icon:MessageSquare,badge:'support'},
+  {key:'direct-notifications',name:'Notificações aos Artistas',Icon:Bell},
   {key:'plans',name:'Planos da SINTONE',Icon:CreditCard}]},
  {heading:'PLATAFORMA & CONFIGURAÇÕES',items:[
   {key:'popups',name:'Popups',Icon:PanelsTopLeft},
@@ -28,16 +29,16 @@ const groups=[
   {key:'team',name:'Equipe & Cargos',Icon:UserCog}]}
 ] as const
 type NavKey=typeof groups[number]['items'][number]['key']
-const links:Partial<Record<NavKey,string>>={plans:'/admin/planos',dsp:'/admin/config-plataformas',team:'/admin/equipe',landing:'/admin/landing-page',popups:'/admin/popups',blog:'/admin/blog'}
-const headings:Record<string,string>={releases:'Lançamentos',delivery:'Entregas às lojas',artists:'Artistas e contas',royalties:'Importar royalties',payouts:'Saques e Repasses',splits:'Divisões de royalties',support:'Suporte',plans:'Planos da SINTONE',popups:'Popups',blog:'Blog',landing:'Landing Page',dsp:'Plataformas e taxas',team:'Equipe & Cargos'}
+const links:Partial<Record<NavKey,string>>={plans:'/admin/planos',dsp:'/admin/config-plataformas',team:'/admin/equipe',landing:'/admin/landing-page',popups:'/admin/popups',blog:'/admin/blog','direct-notifications':'/admin/notificacoes'}
+const headings:Record<string,string>={releases:'Lançamentos',delivery:'Entregas às lojas',artists:'Artistas e contas',royalties:'Importar royalties',payouts:'Saques e Repasses',splits:'Divisões de royalties',support:'Suporte',plans:'Planos da SINTONE',popups:'Popups',blog:'Blog','direct-notifications':'Notificações aos Artistas',landing:'Landing Page',dsp:'Plataformas e taxas',team:'Equipe & Cargos'}
 const roleLabels:Record<StaffRole,string>={admin:'Administrador Geral',qc_specialist:'Analista QC',ingestion_manager:'Gestor de Ingestão',a_and_r:'A&R',royalty_financial:'Analista Financeiro',customer_success:'Atendimento',ui_designer:'Designer de Interface'}
 type Counts={releases:number|null;payouts:number|null;support:number|null}
 export default function AdminShell({email,children,tabs,roles,isGeneral,counts}:{email:string;children:React.ReactNode;tabs:AdminTab[];roles:StaffRole[];isGeneral:boolean;counts:Counts}){
  const pathname=usePathname(),params=useSearchParams()
- const active=pathname.startsWith('/admin/blog')?'blog':pathname.startsWith('/admin/popups')?'popups':pathname.startsWith('/admin/landing-page')?'landing':pathname.startsWith('/admin/planos')?'plans':pathname.startsWith('/admin/equipe')?'team':pathname.startsWith('/admin/config-plataformas')?'dsp':params.get('tab')||tabs[0]||'releases'
+ const active=pathname.startsWith('/admin/notificacoes')?'direct-notifications':pathname.startsWith('/admin/blog')?'blog':pathname.startsWith('/admin/popups')?'popups':pathname.startsWith('/admin/landing-page')?'landing':pathname.startsWith('/admin/planos')?'plans':pathname.startsWith('/admin/equipe')?'team':pathname.startsWith('/admin/config-plataformas')?'dsp':params.get('tab')||tabs[0]||'releases'
  const overview=pathname==='/admin'&&!params.has('tab')
  const role=isGeneral?'Administrador Geral':roles.map(x=>roleLabels[x]).join(' · ')
- const allow=(key:NavKey)=>key==='blog'?isGeneral:key==='popups'?isGeneral:key==='landing'?isGeneral||roles.includes('ui_designer'):key==='team'||key==='plans'?isGeneral:tabs.includes(key as AdminTab)
+ const allow=(key:NavKey)=>key==='direct-notifications'?isGeneral:key==='blog'?isGeneral:key==='popups'?isGeneral:key==='landing'?isGeneral||roles.includes('ui_designer'):key==='team'||key==='plans'?isGeneral:tabs.includes(key as AdminTab)
  const colors:Record<string,string>={releases:'amber',payouts:'green',support:'red'}
  return <div className="sa">
   <aside className="sa-sidebar sa-sidebar-modular">

@@ -1,0 +1,39 @@
+.sa .sa-direct-admin{padding:25px clamp(16px,3vw,38px) 75px;color:#f4f4f5}
+.sa .sa-direct-header{display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid #303035;padding:0 0 24px;margin-bottom:25px}
+.sa .sa-direct-header span{font-size:11px;letter-spacing:.14em;color:#93c5fd;font-weight:850}
+.sa .sa-direct-header h2{font-size:clamp(21px,2.7vw,29px);color:#fff;font-weight:900;letter-spacing:-.04em;margin:9px 0}
+.sa .sa-direct-header p{font-size:13px;color:#a1a1aa}
+.sa .sa-direct-layout{display:grid;grid-template-columns:minmax(340px,.85fr) minmax(0,1.35fr);gap:20px;align-items:start}
+.sa .sa-direct-panel{min-width:0;background:#121215;border:1px solid #303035;border-radius:16px;padding:24px;display:grid;gap:16px}
+.sa .sa-direct-panel h3{font-size:17px;font-weight:900;color:#fff;margin-bottom:3px}
+.sa .sa-direct-field{display:grid;gap:8px;color:#d4d4d8;font-size:12px;font-weight:700}
+.sa .sa-direct-field :is(input,select,textarea){width:100%;min-width:0;display:block;background:#1a1a1e!important;border:1px solid #3f3f46!important;border-radius:9px;padding:12px 13px;color:#f4f4f5!important;color-scheme:dark;resize:vertical;font:inherit;font-size:13px}
+.sa .sa-direct-field :is(input,textarea)::placeholder{color:#71717a}
+.sa .sa-direct-field :is(input,textarea,select):focus{outline:1px solid #3b82f6!important;border-color:#3b82f6!important}
+.sa .sa-direct-search{display:flex;align-items:center;gap:9px;background:#1a1a1e;border:1px solid #3f3f46;border-radius:9px;padding-left:12px;color:#a1a1aa}
+.sa .sa-direct-search input{border:0!important;background:transparent!important}
+.sa .sa-direct-results{max-height:230px;overflow:auto;background:#1a1a1e;border:1px solid #303035;border-radius:9px;padding:6px;display:grid;gap:4px}
+.sa .sa-direct-results button{display:grid;gap:3px;padding:10px 12px;text-align:left;background:transparent;border:0;border-radius:7px;color:#fff;cursor:pointer}
+.sa .sa-direct-results button:hover{background:#27272a}
+.sa .sa-direct-results small,.sa .sa-direct-selected small{font-size:11px;color:#a1a1aa}
+.sa .sa-direct-results p{padding:15px;color:#a1a1aa;font-size:12px}
+.sa .sa-direct-selected{display:flex;gap:12px;align-items:center;background:#172554;border:1px solid #1e40af;border-radius:9px;padding:12px;color:#bfdbfe}
+.sa .sa-direct-selected>div{display:grid;gap:3px;flex:1;min-width:0}.sa .sa-direct-selected strong{color:#fff;font-size:13px}
+.sa .sa-direct-selected button{background:#1e40af;border:1px solid #3b82f6;color:#fff;padding:8px;border-radius:7px;cursor:pointer;font-size:11px}
+.sa .sa-direct-help{color:#a1a1aa;font-size:11px;line-height:1.6}
+.sa .sa-direct-send{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#2563eb;color:#fff;border:1px solid #2563eb;border-radius:9px;font-weight:900;font-size:12px;cursor:pointer}
+.sa .sa-direct-send:hover{background:#1d4ed8}
+.sa .sa-direct-send:disabled{opacity:.45;cursor:not-allowed}
+.sa .sa-direct-feedback{background:#052e16;border:1px solid #166534;color:#86efac;padding:12px;border-radius:9px;font-size:12px}
+.sa .sa-direct-feedback.error{background:#450a0a;border-color:#7f1d1d;color:#fca5a5}
+.sa .sa-direct-table-wrap{overflow:auto;border:1px solid #303035;border-radius:10px}
+.sa .sa-direct-table-wrap table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px}
+.sa .sa-direct-table-wrap th{background:#1a1a1e;text-align:left;color:#a1a1aa;padding:13px;font-weight:850}
+.sa .sa-direct-table-wrap td{border-top:1px solid #303035;padding:13px;vertical-align:top;color:#e4e4e7}
+.sa .sa-direct-table-wrap td strong{display:block;color:#fff;max-width:220px;overflow-wrap:anywhere}
+.sa .sa-direct-table-wrap td small{display:block;color:#a1a1aa;margin-top:5px;max-width:260px;line-height:1.45;overflow-wrap:anywhere}
+.sa .sa-direct-type{display:inline-block;padding:6px 8px;border-radius:6px;background:#172554;color:#93c5fd;white-space:nowrap;font-weight:800;font-size:10px}
+.sa .sa-direct-type.success{background:#052e16;color:#86efac}.sa .sa-direct-type.warning{background:#451a03;color:#fde68a}.sa .sa-direct-type.action{background:#450a0a;color:#fca5a5}
+.sa .sa-direct-read{display:inline-flex;align-items:center;gap:6px;font-size:10px;white-space:nowrap;color:#a1a1aa}
+.sa .sa-direct-read.yes{color:#86efac}.sa .sa-direct-empty{text-align:center;padding:35px;color:#a1a1aa}
+@media(max-width:1200px){.sa .sa-direct-layout{grid-template-columns:1fr}}

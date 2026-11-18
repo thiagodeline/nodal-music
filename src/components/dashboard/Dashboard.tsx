@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import {useRouter,useSearchParams} from 'next/navigation'
-import {Bell,Lock} from 'lucide-react'
+import {Lock} from 'lucide-react'
 import {createClient} from '@/lib/supabase/client'
 import './dashboard.css'
 import './dashboard-horizontal.css'
@@ -13,6 +13,8 @@ import './dashboard-premium.css'
 import './spotify-dark.css'
 import ArtistSidebar from './ArtistSidebar'
 import DashboardPopup from './DashboardPopup'
+import DirectNotificationsBell from './DirectNotificationsBell'
+import './direct-notifications-header.css'
 import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
 import Overview from './Overview'
@@ -65,6 +67,7 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const [subscription,setSubscription]=useState<{plan_id:string;status:string;access_expires_at:string|null}|null>(null)
  const [billingLoading,setBillingLoading]=useState(true)
  const [unread,setUnread]=useState(0)
+ const [directUnread,setDirectUnread]=useState(0)
  const [navOpen,setNavOpen]=useState(false)
  const [staffAccess,setStaffAccess]=useState(false)
    const load = useCallback(async (force=true) => {
@@ -133,8 +136,8 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  async function logout(){snapshotCache.clear();await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
  return <div className="nd nd-horizontal nd-premium">
-  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
-  <div className="nd-premium-mobile-top"><span>SINTONE / PAINEL</span><a href="/dashboard#notifications" aria-label={unread+' notificações não lidas'}><Bell size={20}/>{unread>0&&<sup>{unread>99?'99+':unread}</sup>}</a></div>
+  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread+directUnread} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
+  <div className="nd-direct-header"><span className="nd-direct-header-mobile">SINTONE / PAINEL</span><span className="nd-direct-header-desktop">CENTRAL DO ARTISTA</span>{d?.me?.id&&<DirectNotificationsBell userId={d.me.id} onUnreadChange={setDirectUnread}/>}</div>
   {d&&<DashboardPopup/>}
   <main className="nd-hmain">
    {!d?<p className="mut">Carregando seu painel…</p>:<>

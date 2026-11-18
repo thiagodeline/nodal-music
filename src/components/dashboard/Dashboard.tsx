@@ -14,6 +14,7 @@ import './spotify-dark.css'
 import ArtistSidebar from './ArtistSidebar'
 import DashboardPopup from './DashboardPopup'
 import DirectNotificationsBell from './DirectNotificationsBell'
+import {NotificationsProvider,useNotifications} from './useNotifications'
 import './direct-notifications-header.css'
 import '@/components/billing/plans-dashboard.css'
 import type {Data} from './ui'
@@ -66,8 +67,6 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const [plans,setPlans]=useState<PublicPlan[]>([])
  const [subscription,setSubscription]=useState<{plan_id:string;status:string;access_expires_at:string|null}|null>(null)
  const [billingLoading,setBillingLoading]=useState(true)
- const [unread,setUnread]=useState(0)
- const [directUnread,setDirectUnread]=useState(0)
  const [navOpen,setNavOpen]=useState(false)
  const [staffAccess,setStaffAccess]=useState(false)
    const load = useCallback(async (force=true) => {
@@ -112,12 +111,6 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  },[])
  useEffect(()=>{
   if(!d?.me?.id)return
-  const sb=createClient()
-  void sb.from('notifications').select('id',{head:true,count:'exact'}).eq('user_id',d.me.id).eq('read',false)
-   .then(({count})=>setUnread(count||0))
- },[d?.me?.id,route])
- useEffect(()=>{
-  if(!d?.me?.id)return
   let mounted=true
   void createClient().from('admin_user_roles').select('id').eq('user_id',d.me.id).limit(1)
    .then(({data})=>{if(mounted)setStaffAccess(!!data?.length)})
@@ -135,16 +128,30 @@ export default function Dashboard({checkoutReady=false}:{checkoutReady?:boolean}
  const restricted=expired&&!['plans','support','account','financial','catalog','notifications','contracts','privacy','profile','profiles'].includes(route)
  async function logout(){snapshotCache.clear();await createClient().auth.signOut();location.href='/'}
  const jump=(name:string)=>{location.hash='#'+name;setRoute(name)}
+ return <NotificationsProvider userId={d?.me?.id||null}><DashboardView
+  d={d} route={route} navOpen={navOpen} setNavOpen={setNavOpen} navigateToTab={navigateToTab}
+  logout={logout} expired={expired} gate={gate} locked={locked} restricted={restricted}
+  load={load} plans={plans} checkoutReady={checkoutReady} subscription={subscription}
+ /></NotificationsProvider>
+}
+
+function DashboardView({d,route,navOpen,setNavOpen,navigateToTab,logout,expired,gate,locked,restricted,load,plans,checkoutReady,subscription}:{
+ d:Data|null;route:string;navOpen:boolean;setNavOpen:(v:boolean)=>void;navigateToTab:(tab:string)=>void;
+ logout:()=>Promise<void>;expired:boolean;gate:ReturnType<typeof useCanReleaseMusic>;locked:boolean;restricted:boolean;
+ load:(force?:boolean)=>Promise<void>;plans:PublicPlan[];checkoutReady:boolean;
+ subscription:{plan_id:string;status:string;access_expires_at:string|null}|null
+ }){
+ const {unreadCount}=useNotifications()
  return <div className="nd nd-horizontal nd-premium">
-  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unread+directUnread} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
-  <div className="nd-direct-header"><span className="nd-direct-header-mobile">SINTONE / PAINEL</span><span className="nd-direct-header-desktop">CENTRAL DO ARTISTA</span>{d?.me?.id&&<DirectNotificationsBell userId={d.me.id} onUnreadChange={setDirectUnread}/>}</div>
+  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unreadCount} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
+  <div className="nd-direct-header"><span className="nd-direct-header-mobile">SINTONE / PAINEL</span><span className="nd-direct-header-desktop">CENTRAL DO ARTISTA</span>{d?.me?.id&&<DirectNotificationsBell/>}</div>
   {d&&<DashboardPopup/>}
   <main className="nd-hmain">
    {!d?<p className="mut">Carregando seu painel…</p>:<>
     {expired&&<div className="banner red" role="alert"><Lock size={20}/><p>Seu período de acesso terminou. <a href="/dashboard#plans">Renove seu plano</a> para continuar distribuindo.</p></div>}
     {route!=='contracts'&&route!=='notifications'&&<ContractBanner status={gate.status} signed={!!d.me?.contract_accepted_at}/>}
     {restricted?<div className="card"><h3>Acesso restrito</h3><p>Renove o plano para utilizar esta seção.</p><a className="btn" href="/dashboard#plans">Ver planos</a></div>:<>
-     {route==='overview'&&<Overview d={d} can={!locked} unread={unread} reload={()=>void load(true)}/>}
+     {route==='overview'&&<Overview d={d} can={!locked} unread={unreadCount} reload={()=>void load(true)}/>}
      {route==='catalog'&&<Catalog d={d} can={!locked}/>}
      {route==='drafts'&&<ReleaseDrafts userId={d.me.id}/>}
      {route==='profiles'&&<Artists d={d}/>}

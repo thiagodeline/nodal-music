@@ -34,7 +34,7 @@ export default async function Home() {
     <header className="um-header"><div className="um-container um-header-inner">
      <Link className="um-header-logo" href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" alt="SINTONE" width={166} height={46} priority/></Link>
      <nav className="um-top-nav" aria-label="Navegação principal">
-      <a href="#recursos">RECURSOS</a><a href="#carreira">CARREIRA</a>{plans.length>1&&<a href="#planos">PLANOS</a>}<a href="#faq">FAQ</a>
+      <a href="#recursos">RECURSOS</a><a href="#carreira">CARREIRA</a>{plans.length>1&&<a href="#planos">PLANOS</a>}<a href="#faq">FAQ</a><Link href="/blog">BLOG</Link>
      </nav>
      <div className="um-header-actions"><Link className="um-login" href="/login">ENTRAR</Link><Link className="um-signup" href="/register">CADASTRE-SE <ArrowUpRight size={16}/></Link></div>
     </div></header>

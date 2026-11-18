@@ -16,7 +16,7 @@ export default async function Home() {
     .select('id,name,description,price_brl,frequency,benefits,mp_plan_id,is_default,monthly_releases_limit,max_artists')
     .eq('published', true).eq('archived', false).order('price_brl', { ascending: true })
   const plans = (data || []) as PublicPlan[]
-  const {data:heroConfig}=await sb.from('landing_page_config').select('announcement_active,announcement_text,hero_banners,hero_image_url,social_links').eq('id',1).maybeSingle()
+  const {data:heroConfig}=await sb.from('landing_page_config').select('announcement_active,announcement_text,hero_banners,hero_image_url,social_links,feature_video_url').eq('id',1).maybeSingle()
   const landing=normalizeLanding(heroConfig as Partial<LandingConfig>|null)
   const allowedOrigin=process.env.NEXT_PUBLIC_SUPABASE_URL||''
   const heroBanners=landing.hero_banners.filter(value=>{
@@ -41,7 +41,7 @@ export default async function Home() {
     <main id="conteudo">
      {landing.announcement_active&&<div className="um-announcement"><span>{landing.announcement_text}</span></div>}
      <HeroCarousel banners={heroBanners}/>
-     <LandingBelowHero plans={plans} checkoutReady={checkoutReady}/>
+     <LandingBelowHero plans={plans} checkoutReady={checkoutReady} videoUrl={landing.feature_video_url}/>
     </main>
     <footer className="um-footer"><div className="um-container">
      <div className="um-footer-lead"><span>[ SINTONE / {new Date().getFullYear()} ]</span><h2>SUA MÚSICA<br/>NÃO TEM LIMITES.</h2><Link href="/register">FAÇA PARTE DA SINTONE <ArrowUpRight size={20}/></Link></div>

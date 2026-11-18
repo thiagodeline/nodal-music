@@ -1,37 +1,33 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import {ArrowUpRight,AudioLines,BarChart3,Headphones,ShieldCheck} from 'lucide-react'
-const studioPhoto='https://images.unsplash.com/photo-1615458317538-72c46d9359d8?auto=format&fit=crop&w=1400&q=80'
-const artistPhoto='https://images.unsplash.com/photo-1694881227511-ca3b9f69ea91?auto=format&fit=crop&w=1400&q=80'
-export default function EditorialFeatures(){
+import {ArrowUpRight,AudioLines,BarChart3,Headphones,ShieldCheck,CheckCircle2} from 'lucide-react'
+import {parseLandingVideo} from '@/lib/landing-video'
+
+export default function EditorialFeatures({videoUrl}:{videoUrl:string|null}){
+ const video=parseLandingVideo(videoUrl)
+ const benefits=[
+  'Distribuição sem taxas abusivas',
+  'Acesso direto a mais de 45 lojas digitais e serviços de streaming',
+  'Suporte rápido e humanizado para te auxiliar durante sua jornada conosco',
+  'Dashboard detalhado e responsivo para te ajudar avaliar o desempenho de suas faixas'
+ ]
  return <>
-  <section className="um-statement" id="recursos"><div className="um-container">
-   <span className="um-kicker um-kicker-light">[ NOSSA MISSÃO ]</span>
-   <h2>O ARTISTA É O <em>CENTRO</em> DE TUDO.</h2>
-   <div className="um-statement-bottom"><p>Do primeiro lançamento ao próximo grande passo. Distribuição, acompanhamento e ferramentas em um só lugar — com independência e transparência.</p>
-    <Link href="/register" className="um-outline-cta">FAÇA PARTE <ArrowUpRight size={20}/></Link></div>
+  <section className="um-mission" id="recursos"><div className="um-container um-mission-inner">
+   <div className="um-mission-logo"><Image src="/sintone-logo.svg" alt="SINTONE" width={330} height={110} sizes="(max-width:600px) 230px, 330px"/></div>
+   <h2>SUA MÚSICA É NOSSA PRIORIDADE</h2>
+   <p>Artistas independentes escolhem a Sintone para alavancar suas carreiras</p>
+   <Link href="/register" className="um-mission-cta">SAIBA MAIS <ArrowUpRight size={18}/></Link>
   </div></section>
-  <section className="um-editorial" id="carreira"><div className="um-container">
-   <div className="um-editorial-topline"><span>[ SINTONE / INDEPENDÊNCIA ]</span><span>01 — 03</span></div>
-   <div className="um-editorial-grid">
-    <div className="um-editorial-photo um-studio-photo" role="img" aria-label="Estúdio de gravação — imagem ilustrativa" style={{backgroundImage:'url('+studioPhoto+')'}}><span>CRIAR. LANÇAR. EVOLUIR.</span></div>
-    <div className="um-editorial-copy"><span className="um-kicker">[ CARREIRA INDEPENDENTE ]</span>
-     <h2>CONHECIMENTO REAL PARA IMPULSIONAR SUA CARREIRA INDEPENDENTE.</h2>
-     <p>Entenda cada etapa do lançamento, organize suas informações e tome decisões melhores para sua música. Você produz a arte; a SINTONE ajuda a colocar seu catálogo em movimento.</p>
-     <Link className="um-text-link" href="#como-funciona">SAIBA COMO FUNCIONA <ArrowUpRight size={19}/></Link>
-    </div>
-   </div>
+  <section className="um-video-section" id="carreira" aria-label="Vídeo da SINTONE"><div className="um-container">
+   {video?<div className="um-video-frame">
+    {video.kind==='embed'?<iframe src={video.url} title="Vídeo institucional da SINTONE" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/>:
+     <video src={video.url} controls preload="metadata" playsInline aria-label="Vídeo institucional da SINTONE"/>}
+   </div>:<div className="um-video-fallback"><span>SINTONE / EM BREVE</span><h2>UM NOVO JEITO DE VIVER A MÚSICA.</h2><p>Conheça nossos conteúdos e acompanhe as novidades da SINTONE.</p></div>}
   </div></section>
-  <section className="um-editorial um-editorial-muted" id="direitos"><div className="um-container">
-   <div className="um-editorial-topline"><span>[ SINTONE / PROTEÇÃO ]</span><span>02 — 03</span></div>
-   <div className="um-editorial-grid um-editorial-reversed">
-    <div className="um-editorial-photo um-artist-photo" role="img" aria-label="Profissional em estúdio — imagem ilustrativa" style={{backgroundImage:'url('+artistPhoto+')'}}><span>SUA OBRA. SEUS DIREITOS.</span></div>
-    <div className="um-editorial-copy"><span className="um-kicker">[ DIREITOS AUTORAIS ]</span>
-     <h2>SUA MÚSICA TEM VALOR. CONHEÇA SEUS DIREITOS.</h2>
-     <p>Créditos corretos, ISRC e informações de titulares fazem diferença. A distribuição não substitui o registro de obras nem transfere automaticamente direitos autorais: confira os termos do seu contrato.</p>
-     <Link className="um-text-link" href="/termos">ENTENDA AS CONDIÇÕES <ArrowUpRight size={19}/></Link>
-    </div>
-   </div>
-  </div></section>
+  <section className="um-choice-section" id="direitos"><div className="um-container"><div className="um-choice-card">
+   <h2>POR QUE DEVO ESCOLHER A SINTONE?</h2>
+   <ul>{benefits.map(text=><li key={text}><CheckCircle2 size={23} aria-hidden="true"/><span>{text}</span></li>)}</ul>
+  </div></div></section>
   <section className="um-benefits" id="como-funciona"><div className="um-container">
    <div className="um-benefits-heading"><span className="um-kicker">[ O QUE VOCÊ ENCONTRA AQUI ]</span><h2>FEITO PARA QUEM FAZ MÚSICA.</h2></div>
    <div className="um-benefit-grid">

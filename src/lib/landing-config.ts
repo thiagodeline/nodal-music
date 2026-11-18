@@ -1,5 +1,6 @@
 export type HeroBanner={image_url:string;title:string;subtitle:string;button_text:string;button_url:string}
 export type LandingConfig = {
+ feature_video_url:string|null;
  announcement_active:boolean; announcement_text:string; announcement_link:string;
  hero_title:string; hero_subtitle:string; hero_cta_text:string; hero_cta_url:string;
  pricing_badge:string; pricing_title:string; pricing_price:string; pricing_subtitle:string;
@@ -7,6 +8,7 @@ export type LandingConfig = {
  hero_image_url:string|null;hero_banners:HeroBanner[];social_links:{instagram?:string;youtube?:string;tiktok?:string}
 }
 export const DEFAULT_LANDING:LandingConfig={
+ feature_video_url:null,
  announcement_active:false,announcement_text:'🚀 Distribuição rápida para +64 plataformas de streaming',announcement_link:'/register',
  hero_title:'Envie sua música para mais de 50 plataformas de streaming!',hero_subtitle:'Distribuidora digital 100% brasileira.',
  hero_cta_text:'Criar conta grátis',hero_cta_url:'/register',pricing_badge:'Plano Gratuito',pricing_title:'Grátis',

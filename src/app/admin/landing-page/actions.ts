@@ -2,6 +2,7 @@
 import {revalidatePath} from 'next/cache'
 import {getAdminContext} from '@/lib/admin-access'
 import {normalizeLanding,type HeroBanner,type LandingConfig} from '@/lib/landing-config'
+import {parseLandingVideo} from '@/lib/landing-video'
 
 const MAX_BANNERS=6
 const internalLink=(value:string)=>value.startsWith('/')&&!value.startsWith('//')&&!/[\\\r\n]/.test(value)&&value.length<=240
@@ -90,4 +91,20 @@ export async function saveLandingSection(section:'announcement'|'social',raw:unk
  }).eq('id',1)
  if(error)return {ok:false as const,error:'Falha ao salvar: '+error.message}
  refresh();return {ok:true as const}
+}
+
+/** Admin-only registration. Uploaded videos must come from the dedicated Storage bucket. */
+export async function saveLandingVideo(url:string|null){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Acesso restrito à administração.'}
+ if(url!==null&&typeof url!=='string')return {ok:false as const,error:'URL inválida.'}
+ const normalized=url?.trim()||null
+ if(normalized&&(normalized.length>1500||!parseLandingVideo(normalized)))
+  return {ok:false as const,error:'Use URL HTTPS de vídeo MP4/WebM, YouTube, Vimeo ou o upload oficial do Storage.'}
+ const {error}=await ctx.supabase.from('landing_page_config').update({
+  feature_video_url:normalized,updated_by:ctx.user.id,updated_at:new Date().toISOString()
+ }).eq('id',1)
+ if(error)return {ok:false as const,error:'Falha ao salvar vídeo: '+error.message}
+ refresh()
+ return {ok:true as const,url:normalized}
 }

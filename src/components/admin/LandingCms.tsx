@@ -3,6 +3,7 @@ import {useState} from 'react'
 import Link from 'next/link'
 import {ExternalLink} from 'lucide-react'
 import LandingHeroEditor from './LandingHeroEditor'
+import LandingVideoEditor from './LandingVideoEditor'
 import {saveLandingSection} from '@/app/admin/landing-page/actions'
 import type {LandingConfig} from '@/lib/landing-config'
 import './landing-cms.css'
@@ -25,13 +26,15 @@ export default function LandingCms({initial}:{initial:LandingConfig}){
  }
  const footer=(section:Section)=><div className="st-cms-actions"><button type="button" disabled={busy!==null} onClick={()=>void save(section)}>{busy===section?'Salvando…':'Salvar seção'}</button><span role="status">{messages[section]}</span></div>
  return <div className="st-cms">
-  <div className="st-cms-heading"><div><p>Gerencie os banners, o anúncio de topo e os links sociais da Landing Page.</p></div><Link href="/" target="_blank" rel="noopener noreferrer">Visualizar site <ExternalLink size={16}/></Link></div>
+  <div className="st-cms-heading"><div><p>Gerencie os banners, vídeo institucional, anúncio de topo e links sociais da Landing Page.</p></div><Link href="/" target="_blank" rel="noopener noreferrer">Visualizar site <ExternalLink size={16}/></Link></div>
   <nav className="st-cms-navigation" aria-label="Seções do CMS">
    <a href="#cms-banners">Banners do Hero (Carrossel)</a>
+   <a href="#cms-video">Vídeo Institucional</a>
    <a href="#cms-announcement">Alerta de Topo</a>
    <a href="#cms-social">Redes Sociais</a>
   </nav>
   <section id="cms-banners" className="st-cms-panel st-cms-image"><LandingHeroEditor initialBanners={draft.hero_banners}/></section>
+  <section id="cms-video" className="st-cms-panel"><LandingVideoEditor initialUrl={draft.feature_video_url}/></section>
   <section id="cms-announcement" className="st-cms-panel">
    <h2>Alerta de Topo</h2>
    <label className="st-cms-toggle"><input type="checkbox" checked={draft.announcement_active} onChange={e=>setDraft(d=>({...d,announcement_active:e.target.checked}))}/> Exibir anúncio acima do Hero</label>

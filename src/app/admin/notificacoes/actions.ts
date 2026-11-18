@@ -39,3 +39,28 @@ export async function sendDirectArtistNotification(input:{
   return {ok:true as const,notification:created}
  }catch(e){return {ok:false as const,error:e instanceof Error?e.message:'Falha ao enviar.'}}
 }
+
+export async function removeDirectArtistNotification(id:string){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Acesso restrito ao administrador geral.'}
+ if(!UUID.test(id))return {ok:false as const,error:'Identificador inválido.'}
+ const {data,error}=await ctx.supabase.from('artist_notifications')
+  .update({deleted_at:new Date().toISOString()})
+  .eq('id',id).is('deleted_at',null).select('id').maybeSingle()
+ if(error)return {ok:false as const,error:'Falha ao remover: '+error.message}
+ if(!data)return {ok:false as const,error:'Notificação não encontrada ou já removida.'}
+ revalidatePath('/admin/notificacoes')
+ return {ok:true as const}
+}
+export async function clearDirectArtistNotifications(mode:'all'|'read'){
+ const ctx=await getAdminContext('admin')
+ if(!ctx)return {ok:false as const,error:'Acesso restrito ao administrador geral.'}
+ if(mode!=='all'&&mode!=='read')return {ok:false as const,error:'Modo inválido.'}
+ let query=ctx.supabase.from('artist_notifications')
+  .update({deleted_at:new Date().toISOString()}).is('deleted_at',null)
+ if(mode==='read')query=query.eq('read',true)
+ const {data,error}=await query.select('id')
+ if(error)return {ok:false as const,error:'Falha ao limpar o histórico: '+error.message}
+ revalidatePath('/admin/notificacoes')
+ return {ok:true as const,count:data?.length||0}
+}

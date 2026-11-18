@@ -9,7 +9,7 @@ export default async function Page(){
  const [accounts,artists,history]=await Promise.all([
   ctx.supabase.from('profiles').select('id,name,artist_name,email').order('created_at',{ascending:false}).limit(1000),
   ctx.supabase.from('artist_profiles').select('id,owner_id,name').limit(2000),
-  ctx.supabase.from('artist_notifications').select('id,user_id,artist_profile_id,title,message,type,action_url,read,created_at').order('created_at',{ascending:false}).limit(150)
+  ctx.supabase.from('artist_notifications').select('id,user_id,artist_profile_id,title,message,type,action_url,read,created_at').is('deleted_at',null).order('created_at',{ascending:false}).limit(150)
  ])
  if(accounts.error||artists.error||history.error)throw Error('Falha ao consultar artistas ou notificações.')
  return <DirectNotificationsAdmin initialAccounts={accounts.data||[]} initialArtists={artists.data||[]} initialHistory={history.data||[]}/>

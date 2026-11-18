@@ -37,3 +37,14 @@
 .sa .sa-direct-read{display:inline-flex;align-items:center;gap:6px;font-size:10px;white-space:nowrap;color:#a1a1aa}
 .sa .sa-direct-read.yes{color:#86efac}.sa .sa-direct-empty{text-align:center;padding:35px;color:#a1a1aa}
 @media(max-width:1200px){.sa .sa-direct-layout{grid-template-columns:1fr}}
+
+.sa .sa-direct-history-head{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.sa .sa-direct-history-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sa .sa-direct-history-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #3f3f46;background:#27272a;color:#d4d4d8;border-radius:8px;padding:9px 11px;font-size:11px;font-weight:750;cursor:pointer}
+.sa .sa-direct-history-actions button:hover{background:#3f3f46;color:#fff}
+.sa .sa-direct-history-actions button.danger,.sa .sa-direct-delete{border:1px solid rgba(239,68,68,.24);background:rgba(239,68,68,.08);color:#fca5a5;border-radius:8px;padding:8px 10px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:750;cursor:pointer}
+.sa .sa-direct-history-actions button.danger:hover,.sa .sa-direct-delete:hover{background:rgba(239,68,68,.18);color:#fecaca}
+.sa .sa-direct-history-actions button:disabled,.sa .sa-direct-delete:disabled{opacity:.45;cursor:not-allowed}
+.sa .sa-direct-clear-confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sa .sa-direct-clear-confirm span{color:#f4f4f5;font-size:11px;font-weight:700}
+.sa .sa-direct-delete{white-space:nowrap}

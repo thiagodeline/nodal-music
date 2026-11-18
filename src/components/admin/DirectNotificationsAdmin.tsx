@@ -1,7 +1,7 @@
 'use client'
 import {useMemo,useState} from 'react'
-import {Bell,Send,Search,CheckCircle2,Clock} from 'lucide-react'
-import {sendDirectArtistNotification,type DirectNoticeType} from '@/app/admin/notificacoes/actions'
+import {Bell,Send,Search,CheckCircle2,Clock,Trash2} from 'lucide-react'
+import {sendDirectArtistNotification,removeDirectArtistNotification,clearDirectArtistNotifications,type DirectNoticeType} from '@/app/admin/notificacoes/actions'
 import './direct-notifications.css'
 
 type Account={id:string;name:string|null;artist_name:string|null;email:string|null}
@@ -23,6 +23,7 @@ export default function DirectNotificationsAdmin({initialAccounts,initialArtists
  const [busy,setBusy]=useState(false)
  const [feedback,setFeedback]=useState('')
  const [isError,setIsError]=useState(false)
+ const [confirmClear,setConfirmClear]=useState<'all'|'read'|null>(null)
  const matches=useMemo(()=>accounts.filter(a=>([a.artist_name,a.name,a.email,...artists.filter(x=>x.owner_id===a.id).map(x=>x.name)].join(' ').toLowerCase()).includes(search.toLowerCase())).slice(0,30),[accounts,artists,search])
  const selected=accounts.find(a=>a.id===recipient)
  const profiles=artists.filter(a=>a.owner_id===recipient)
@@ -39,6 +40,37 @@ export default function DirectNotificationsAdmin({initialAccounts,initialArtists
    setHistory(rows=>[result.notification as History,...rows].slice(0,150))
   }catch(e){setIsError(true);setFeedback(e instanceof Error?e.message:'Falha ao enviar.')}
   finally{setBusy(false)}
+ }
+
+ async function remove(id:string){
+  if(busy)return
+  if(!window.confirm('Remover esta notificação do histórico e do painel do artista?'))return
+  const previous=history
+  setBusy(true);setFeedback('');setIsError(false)
+  setHistory(rows=>rows.filter(row=>row.id!==id))
+  try{
+   const result=await removeDirectArtistNotification(id)
+   if(!result.ok)throw Error(result.error)
+   setFeedback('Notificação removida do histórico e do painel do artista.')
+  }catch(e){
+   setHistory(previous)
+   setIsError(true);setFeedback(e instanceof Error?e.message:'Falha ao excluir.')
+  }finally{setBusy(false)}
+ }
+ async function clear(mode:'all'|'read'){
+  if(busy)return
+  const previous=history
+  setBusy(true);setFeedback('');setIsError(false)
+  setHistory(rows=>mode==='all'?[]:rows.filter(row=>!row.read))
+  try{
+   const result=await clearDirectArtistNotifications(mode)
+   if(!result.ok)throw Error(result.error)
+   setFeedback(result.count+' notificação(ões) removida(s) do histórico e dos painéis dos artistas.')
+   setConfirmClear(null)
+  }catch(e){
+   setHistory(previous)
+   setIsError(true);setFeedback(e instanceof Error?e.message:'Falha ao limpar histórico.')
+  }finally{setBusy(false)}
  }
  return <main className="sa-content sa-direct-admin">
   <div className="sa-direct-header"><div><span>COMUNICAÇÃO DIRETA / SINTONE</span><h2>NOTIFICAÇÕES AOS ARTISTAS</h2><p>Mensagens individuais, exclusivas para a conta selecionada.</p></div><Bell size={29}/></div>
@@ -61,13 +93,23 @@ export default function DirectNotificationsAdmin({initialAccounts,initialArtists
     <button type="button" className="sa-direct-send" disabled={busy||!recipient||title.trim().length<3||!message.trim()} onClick={()=>void send()}><Send size={18}/>{busy?'ENVIANDO…':'ENVIAR NOTIFICAÇÃO DIRETA'}</button>
    </section>
    <section className="sa-direct-panel sa-direct-history">
-    <h3>02 / HISTÓRICO DE ENVIOS</h3>
-    <p className="sa-direct-help">Últimas 150 mensagens. O status é atualizado quando o destinatário marca a mensagem como lida.</p>
-    <div className="sa-direct-table-wrap"><table><thead><tr><th>Artista</th><th>Notificação</th><th>Tipo</th><th>Enviada em</th><th>Status</th></tr></thead><tbody>{history.map(h=>{
+    <div className="sa-direct-history-head"><h3>02 / HISTÓRICO DE ENVIOS</h3>
+     <div className="sa-direct-history-actions">
+      {confirmClear?<div className="sa-direct-clear-confirm" role="group" aria-label="Confirmar limpeza do histórico"><span>{confirmClear==='all'?'Remover todas as notificações diretas?':'Remover todas as notificações diretas lidas?'}</span>
+       <button type="button" className="danger" disabled={busy} onClick={()=>void clear(confirmClear)}>Confirmar</button>
+       <button type="button" disabled={busy} onClick={()=>setConfirmClear(null)}>Cancelar</button></div>:<>
+       {history.some(h=>h.read)&&<button type="button" disabled={busy} onClick={()=>setConfirmClear('read')}>Excluir lidas</button>}
+       {history.length>0&&<button type="button" className="danger" disabled={busy} onClick={()=>setConfirmClear('all')}><Trash2 size={14}/> Limpar histórico</button>}
+      </>}
+     </div>
+    </div>
+    <p className="sa-direct-help">Últimas 150 notificações diretas ativas. Excluir aqui também as remove do painel do destinatário. O registro de auditoria permanece armazenado.</p>
+    <div className="sa-direct-table-wrap"><table><thead><tr><th>Artista</th><th>Notificação</th><th>Tipo</th><th>Enviada em</th><th>Status</th><th>Ações</th></tr></thead><tbody>{history.map(h=>{
      const a=accounts.find(x=>x.id===h.user_id)
      return <tr key={h.id}><td><strong>{a?.artist_name||a?.name||'Conta'}</strong><small>{a?.email||h.user_id.slice(0,8)}</small></td>
      <td><strong>{h.title}</strong><small>{h.message}</small></td><td><span className={'sa-direct-type '+h.type}>{typeNames[h.type]}</span></td>
-     <td>{new Date(h.created_at).toLocaleString('pt-BR')}</td><td><span className={'sa-direct-read '+(h.read?'yes':'no')}>{h.read?<CheckCircle2 size={14}/>:<Clock size={14}/>} {h.read?'Lida':'Não lida'}</span></td></tr>
+     <td>{new Date(h.created_at).toLocaleString('pt-BR')}</td><td><span className={'sa-direct-read '+(h.read?'yes':'no')}>{h.read?<CheckCircle2 size={14}/>:<Clock size={14}/>} {h.read?'Lida':'Não lida'}</span></td>
+     <td><button type="button" className="sa-direct-delete" disabled={busy} aria-label={'Excluir notificação: '+h.title} title="Excluir notificação" onClick={()=>void remove(h.id)}><Trash2 size={16}/> Excluir</button></td></tr>
     })}</tbody></table>{!history.length&&<p className="sa-direct-empty">Nenhuma notificação direta foi enviada.</p>}</div>
    </section>
   </div>

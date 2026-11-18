@@ -1,0 +1,109 @@
+/* Dark Premium — correções pontuais do admin.
+   Importado após admin-dark.css. Escopo exclusivo de .sa. */
+
+/* Métricas: o CSS legado tinha background claro com !important no card ativo. */
+.sa .sa-metrics .sa-metric,
+.sa .sa-metrics .sa-metric.sa-metric-button{
+  background:#121215!important;
+  color:#f1f5f9!important;
+  border:1px solid #27272a!important;
+  border-radius:16px;
+  box-shadow:none!important;
+}
+.sa .sa-metrics .sa-metric .sa-metric-top{color:#cbd5e1}
+.sa .sa-metrics .sa-metric strong{color:#fff!important;font-weight:850}
+.sa .sa-metrics .sa-metric small{color:#94a3b8!important}
+.sa .sa-metrics .sa-metric .sa-metric-icon{
+  background:#1e293b!important;color:#60a5fa!important;border:1px solid #334155;
+}
+.sa .sa-metrics .sa-metric.sa-metric-button:hover{
+  border-color:#475569!important;box-shadow:0 8px 20px rgba(0,0,0,.18)!important;
+}
+.sa .sa-metrics .sa-metric.sa-metric-selected{
+  background:#121215!important;
+  color:#f1f5f9!important;
+  border:1px solid rgba(59,130,246,.6)!important;
+  box-shadow:0 12px 28px rgba(59,130,246,.1)!important;
+}
+
+/* Perfil Spotify utilizado em artistas, entregas e detalhe dos lançamentos. */
+.sa .sa-spotify-profile-card{
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px;
+  margin:9px 0;padding:12px 14px;
+  background:rgba(30,41,59,.6)!important;
+  border:1px solid rgba(51,65,85,.6)!important;
+  border-radius:12px;color:#f1f5f9;
+}
+.sa .sa-spotify-profile-name{margin-right:6px;font-size:13px;font-weight:650;color:#f1f5f9}
+.sa .sa-spotify-profile-role{font-weight:400;color:#94a3b8}
+.sa .sa-spotify-missing{color:#94a3b8!important;font-size:12px}
+.sa .sa-spotify-new-release{
+  display:inline-flex;align-items:center;gap:5px;border-radius:999px;
+  background:#172554;color:#bfdbfe;font-size:12px;font-weight:700;padding:6px 9px
+}
+.sa .sa-spotify-profile-id{color:#93c5fd;font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.sa .sa-spotify-profile-link{color:#93c5fd;font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:5px;text-decoration:none}
+.sa .sa-spotify-profile-link:hover{color:#dbeafe;text-decoration:underline}
+.sa .sa-spotify-profile-card .sa-spotify-profile-action,
+.sa .sa-spotify-profile-card .sa-spotify-edit,
+.sa .sa-spotify-profiles-section .sa-action-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:6px 10px;border-radius:8px;cursor:pointer;
+  background:#334155!important;color:#e2e8f0!important;
+  border:1px solid #475569!important;font-size:12px;font-weight:650;
+}
+.sa .sa-spotify-profile-card :is(.sa-spotify-profile-action,.sa-spotify-edit):hover,
+.sa .sa-spotify-profiles-section .sa-action-pill:hover{
+  background:#475569!important;color:#fff!important
+}
+.sa .sa-spotify-profiles-section{
+  margin:22px 0;padding:17px;background:#121215;
+  border:1px solid #303035;border-radius:14px;color:#f1f5f9
+}
+.sa .sa-spotify-secondary{color:#94a3b8;font-size:13px}
+.sa .sa-spotify-profile-editor{
+  display:grid;gap:12px;margin-top:12px;padding:13px;
+  background:#1a1a1e;border:1px solid #303035;border-radius:10px
+}
+.sa .sa-spotify-profile-editor label{color:#d4d4d8}
+.sa .sa-spotify-popover,.sa .sa-spotify-profile-editor{
+  color:#e2e8f0
+}
+
+/* Campos compartilhados nas configurações e modais da administração.
+   Especificidade para superar backgrounds brancos do CSS legado. */
+.sa :is(.sa-content,.sa-mod-panel,.sa-drawer,.sa-dialog,.sa-x-edit,.sa-billing-form,.sa-spotify-popover,.sa-spotify-profile-editor,.pm,.dm,.st-cms,.st-carousel-admin)
+ :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){
+  background:#1a1a1e!important;
+  color:#f1f5f9!important;
+  border:1px solid #27272a!important;
+  border-radius:9px;
+  color-scheme:dark
+}
+.sa :is(.sa-content,.pm,.dm,.st-cms,.st-carousel-admin)
+ :is(input,textarea)::placeholder{color:#64748b!important;opacity:1}
+.sa :is(.sa-content,.sa-mod-panel,.sa-drawer,.sa-dialog,.pm,.dm,.st-cms,.st-carousel-admin)
+ :is(input,select,textarea):focus-visible{
+  border-color:#3b82f6!important;
+  outline:1px solid #3b82f6;outline-offset:0
+}
+.sa :is(.sa-team-option,.st-cms-dsp-grid label,.pm-store-grid label) input[type=checkbox]{accent-color:#2563eb}
+
+/* Espaços residuais claros em painéis e gerenciadores. */
+.sa .sa-plan-placeholder,.sa .sa-preview-panel,.sa .sa-qa,
+.sa .sa-mod-panel,.sa .sa-quick-menu,.sa .sa-dropzone,
+.sa .st-cms-panel,.sa .st-cms-faq,
+.sa .st-carousel-admin,.sa .st-carousel-admin-item,
+.sa .pm-list,.sa .pm-editor,.sa .pm-addon,.sa .pm-stores,
+.sa .dm-table-wrap{
+  background:#121215!important;border-color:#303035!important;color:#f1f5f9!important
+}
+.sa :is(.sa-quick-menu,.st-cms-panel,.pm-editor,.pm-list,.dm-table-wrap) :is(h2,h3,strong){color:#fff}
+.sa .sa-quick-menu button,.sa .st-carousel-admin-actions button,
+.sa .st-cms-array-row button,.sa .st-cms-faq-title button{
+ background:#27272a!important;color:#e2e8f0!important;border-color:#3f3f46!important
+}
+.sa .sa-quick-menu button:hover,.sa .st-carousel-admin-actions button:hover,
+.sa .st-cms-array-row button:hover,.sa .st-cms-faq-title button:hover{
+ background:#3f3f46!important;color:#fff!important
+}

@@ -7,6 +7,7 @@ import './admin.css'
 import './admin-extras.css'
 import './admin-modules.css'
 import './admin-dark.css'
+import './admin-theme-fixes.css'
 const groups=[
  {heading:'OPERACIONAL & CATÁLOGO',items:[
   {key:'releases',name:'Lançamentos',Icon:Music2,badge:'releases'},

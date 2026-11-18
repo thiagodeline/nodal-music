@@ -19,10 +19,10 @@ export default function SpotifyBadge({artist,profileId,canEdit=false}:{artist:Sp
   }catch(err){setError(err instanceof Error?err.message:'Não foi possível salvar o Spotify ID.')}
   finally{setBusy(false)}
  }
- return <div style={{display:'flex',alignItems:'center',flexWrap:'wrap',gap:9,margin:'9px 0',padding:'12px 14px',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:11}}>
-  <strong style={{marginRight:6,fontSize:13}}>{artist.name} <span style={{fontWeight:400,color:'#64748b'}}>({artist.role})</span></strong>
-  {sp.is_first_spotify_release?<span style={{display:'inline-flex',alignItems:'center',gap:5,borderRadius:30,background:'#dbeafe',color:'#1d4ed8',fontSize:12,fontWeight:700,padding:'6px 9px'}}><Sparkles size={14}/> Primeiro lançamento · perfil novo a criar</span>:
-  sp.spotify_id?<><span style={{color:'#15803d',fontSize:12,fontWeight:750}}>● Spotify ID: {sp.spotify_id}</span><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(sp.spotify_id!);setCopied(true)}catch{setCopied(false)}}} style={{border:'1px solid #cbd5e1',borderRadius:8,padding:'7px 9px',background:'white',display:'inline-flex',alignItems:'center',gap:5,cursor:'pointer'}}>{copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copiado':'Copiar ID'}</button><a target="_blank" rel="noopener noreferrer" href={sp.spotify_url!} style={{color:'#15803d',fontSize:12,fontWeight:800,display:'inline-flex',alignItems:'center',gap:5}}><ExternalLink size={14}/> Abrir perfil no Spotify</a></>:
+ return <div className="sa-spotify-profile-card">
+  <strong className="sa-spotify-profile-name">{artist.name} <span className="sa-spotify-profile-role">({artist.role})</span></strong>
+  {sp.is_first_spotify_release?<span className="sa-spotify-new-release"><Sparkles size={14}/> Primeiro lançamento · perfil novo a criar</span>:
+  sp.spotify_id?<><span className="sa-spotify-profile-id">● Spotify ID: {sp.spotify_id}</span><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(sp.spotify_id!);setCopied(true)}catch{setCopied(false)}}} className="sa-spotify-profile-action">{copied?<Check size={14}/>:<Copy size={14}/>} {copied?'Copiado':'Copiar ID'}</button><a target="_blank" rel="noopener noreferrer" href={sp.spotify_url!} className="sa-spotify-profile-link"><ExternalLink size={14}/> Abrir perfil no Spotify</a></>:
   <><span className="sa-spotify-missing">Spotify não informado</span>
   {canEdit&&profileId&&<div className="sa-spotify-quick">
    <button type="button" className="sa-spotify-edit" onClick={()=>{setEditing(!editing);setError('')}} aria-expanded={editing} aria-label={'Editar Spotify de '+artist.name}><Pencil size={13}/> Editar</button>

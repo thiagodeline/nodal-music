@@ -5,9 +5,10 @@ import {createClient} from '@/lib/supabase/server'
 import {BLOG_CATEGORIES,type BlogPost} from '@/lib/blog'
 import BlogCard from '@/components/blog/BlogCard'
 import BlogSearch from '@/components/blog/BlogSearch'
+import {JsonLd} from '@/lib/seo'
 
 export const dynamic='force-dynamic'
-export const metadata:Metadata={title:'Blog: carreira e mercado da música',description:'Artigos, comparativos de distribuidoras, direitos autorais, marketing musical e tutoriais para artistas independentes.',alternates:{canonical:'https://sintone.com.br/blog'}}
+export const metadata:Metadata={title:'Blog: carreira e mercado da música',description:'Artigos sobre como lançar música no Spotify, direitos autorais, distribuição musical e marketing para artistas independentes.',alternates:{canonical:'/blog'},openGraph:{title:'Blog SINTONE | Mercado da Música',description:'Guias e notícias de distribuição musical para artistas independentes.',url:'/blog',type:'website'}}
 const PER_PAGE=9
 
 export default async function Blog({searchParams}:{searchParams:Promise<{q?:string;category?:string;page?:string}>}){
@@ -22,7 +23,17 @@ export default async function Blog({searchParams}:{searchParams:Promise<{q?:stri
  const featured=!q&&!category&&page===1?posts[0]:null
  const cardPosts=featured?posts.slice(1):posts
  const pageLink=(n:number)=>{const params=new URLSearchParams();if(q)params.set('q',q);if(category)params.set('category',category);if(n>1)params.set('page',String(n));return '/blog'+(params.size?'?'+params.toString():'')}
- return <main className="sb-wrap sb-page bg-white text-slate-900 min-h-screen">
+ const blogSchema={
+  '@context':'https://schema.org','@type':'Blog',
+  '@id':'https://sintone.com.br/blog#blog',
+  name:'Blog SINTONE',url:'https://sintone.com.br/blog',inLanguage:'pt-BR',
+  publisher:{'@id':'https://sintone.com.br/#organization'},
+  blogPost:posts.map(post=>({'@type':'BlogPosting',headline:post.title,
+   url:'https://sintone.com.br/blog/'+post.slug,
+   datePublished:post.published_at||undefined,
+   author:{'@type':'Person',name:post.author_name}}))
+ }
+ return <><JsonLd data={blogSchema}/><main className="sb-wrap sb-page bg-white text-slate-900 min-h-screen">
   <section className="sb-hero">
    <span className="sb-kicker">SINTONE / EDITORIAL</span>
    <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight">CONHECIMENTO &amp;<br/>MERCADO DA MÚSICA.</h1>
@@ -38,5 +49,5 @@ export default async function Blog({searchParams}:{searchParams:Promise<{q?:stri
     {page*PER_PAGE<total&&<Link href={pageLink(page+1)}>Próxima →</Link>}
    </nav>}
   </section>
- </main>
+ </main></>
 }

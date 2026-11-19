@@ -7,6 +7,9 @@ import {normalizeLanding,type LandingConfig} from '@/lib/landing-config'
 import LandingBelowHero from '@/components/landing/LandingBelowHero'
 import HeroCarousel from '@/components/landing/HeroCarousel'
 import '@/components/landing/editorial.css'
+import {JsonLd} from '@/lib/seo'
+
+export const metadata = {alternates:{canonical:'/'}}
 
 export const dynamic='force-dynamic'
 
@@ -29,7 +32,23 @@ export default async function Home() {
     && process.env.SINTONE_PAYMENT_MODE === 'one_time'
     && !!(process.env.MERCADOPAGO_WEBHOOK_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.MERCADOPAGO_ACCESS_TOKEN)
 
-  return <div className="st-home um-home">
+  const businessSchema = {
+   '@context':'https://schema.org',
+   '@type':'Organization',
+   '@id':'https://sintone.com.br/#organization',
+   name:'SINTONE',
+   url:'https://sintone.com.br',
+   logo:'https://sintone.com.br/sintone-logo.svg',
+   description:'Distribuição digital brasileira para artistas e selos independentes.'
+  }
+  const websiteSchema = {
+   '@context':'https://schema.org',
+   '@type':'WebSite',
+   '@id':'https://sintone.com.br/#website',
+   name:'SINTONE',url:'https://sintone.com.br',
+   inLanguage:'pt-BR',publisher:{'@id':'https://sintone.com.br/#organization'}
+  }
+  return <><JsonLd data={[businessSchema,websiteSchema]}/><div className="st-home um-home">
     <a className="um-skip-link" href="#conteudo">Pular para o conteúdo</a>
     <header className="um-header"><div className="um-container um-header-inner">
      <Link className="um-header-logo" href="/" aria-label="SINTONE — Página inicial"><Image src="/sintone-logo.svg" alt="SINTONE" width={166} height={46} priority/></Link>
@@ -59,5 +78,5 @@ export default async function Home() {
      </div>
      <div className="um-footer-bottom"><span>© {new Date().getFullYear()} SINTONE MEI. TODOS OS DIREITOS RESERVADOS.</span><span>DESENVOLVIDO PARA QUEM VIVE DE MÚSICA.</span></div>
     </div></footer>
-  </div>
+  </div></>
 }

@@ -226,11 +226,12 @@
 .um-home .um-platform-intro{margin:0 auto 32px;max-width:850px;text-align:center;color:#1e293b;
  font-size:clamp(16px,1.7vw,18px);font-weight:500;line-height:1.5;letter-spacing:-.025em}
 .um-home .um-platform-intro span{color:rgba(180,83,9,.9);font-weight:600}
-.um-home .um-platform-list{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
- gap:32px;max-width:1280px;margin-inline:auto;padding:32px 16px}
-.um-home .um-platform{display:flex;align-items:center;justify-content:center;min-height:64px;min-width:120px;
+.um-home .um-platform-list{display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;
+ gap:16px;max-width:1300px;margin-inline:auto;padding:16px 8px;width:100%;
+ overflow-x:auto;overscroll-behavior-inline:contain}
+.um-home .um-platform{display:flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:44px;min-width:0;
  color:#0b0b0c!important;background:transparent!important;padding:0!important}
-.um-home .um-platform svg.um-platform-wordmark{display:block;height:40px;width:auto;max-width:none;
+.um-home .um-platform svg.um-platform-wordmark{display:block;flex-shrink:0;height:28px;width:auto;max-width:none;
  object-fit:contain;opacity:1;color:#09090b;transition:opacity .2s,filter .2s;
  filter:none}
 .um-home .um-platform:hover .um-platform-wordmark{opacity:1;filter:grayscale(0)}
@@ -264,12 +265,24 @@
  color:#94a3b8!important;font-size:clamp(14px,1.35vw,16px);line-height:1.75;
  animation:um-faq-enter .22s ease-out both}
 @keyframes um-faq-enter{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-@media(min-width:768px){.um-home .um-platform-list{gap:56px}.um-home .um-platform{min-width:160px}.um-home .um-platform svg.um-platform-wordmark{height:56px}}
-@media(min-width:1024px){.um-home .um-platform-list{gap:64px}.um-home .um-platform svg.um-platform-wordmark{height:64px}}
+@media(min-width:768px){
+ .um-home .um-platform-list{gap:24px}
+ .um-home .um-platform svg.um-platform-wordmark{height:32px}
+}
+@media(min-width:1024px){
+ .um-home .um-platform-list{gap:32px}
+ .um-home .um-platform svg.um-platform-wordmark{height:36px}
+}
+@media(min-width:768px) and (max-width:1350px){
+ .um-home .um-platform-list{justify-content:flex-start;overflow-x:auto}
+}
+@media(min-width:1351px){
+ .um-home .um-platform-list{overflow-x:visible}
+}
 @media(max-width:600px){
  .um-home .um-platforms{padding:38px 20px!important}
- .um-home .um-platform-list{gap:32px}
- .um-home .um-platform svg.um-platform-wordmark{height:40px}
+ .um-home .um-platform-list{gap:16px}
+ .um-home .um-platform svg.um-platform-wordmark{height:28px}
  .um-home .um-mission-logo{width:112px;height:112px}
  .um-home .um-mission-logo img{width:112px!important;height:112px!important}
  .um-home .um-faq{padding:70px 20px!important}

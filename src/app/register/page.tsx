@@ -9,7 +9,6 @@ import { Check, CircleCheck, Eye, EyeOff, LoaderCircle, LockKeyhole, Mic2, Build
 import { createClient } from '@/lib/supabase/client'
 import { ensureProfile } from '@/lib/profile'
 import './register.css'
-import SocialAuthButtons from '@/components/auth/SocialAuthButtons'
 
 const schema = z.object({
   fullName: z.string().trim().min(5, 'Digite seu nome e sobrenome.').max(160).refine(n => n.split(/\s+/).length > 1, 'Informe nome e sobrenome.'),
@@ -153,9 +152,8 @@ export default function Register() {
               {errors.terms && <small id="rg-terms-error" role="alert">{errors.terms.message}</small>}
             </div>
             {feedback && <div className="rg-alert" role="alert">{feedback}</div>}
-            <button className="rg-submit" type="submit" disabled={isSubmitting || !isValid}>{isSubmitting ? <><LoaderCircle className="rg-spin" size={18}/> Criando conta…</> : <><LockKeyhole size={17}/> Criar conta grátis</>}</button>
+            <button className="rg-submit" type="submit" disabled={isSubmitting || !isValid}>{isSubmitting ? <><LoaderCircle className="rg-spin" size={18}/> Criando conta…</> : <><LockKeyhole size={17}/> CRIAR CONTA</>}</button>
           </form>
-          <SocialAuthButtons requireTerms termsAccepted={termsAccepted}/>
           <p className="rg-login">Já tem uma conta? <Link href="/login">Entrar na SINTONE</Link></p>
         </div>}
       </section>

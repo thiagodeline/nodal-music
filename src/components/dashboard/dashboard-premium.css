@@ -135,3 +135,12 @@
 
 /* O novo símbolo já é branco sobre preto; não inverter suas cores. */
 .nd-premium-sidebar .nd-sidebar-brand img{filter:none}
+
+/* Visão geral simplificada: avatar apenas informativo e saldo sem duplicação. */
+.nd-avatar-upload.nd-avatar-static{cursor:default}
+.nd-welcome-wallet .nd-wallet-balance{font-size:clamp(27px,3vw,38px);line-height:1.1;font-weight:900;letter-spacing:-.04em;color:#fff}
+.nd-welcome-wallet .nd-withdraw-action{display:flex;align-items:center;justify-content:center;min-height:44px;padding:11px 15px;border:0;border-radius:9px;background:#2563eb;color:#fff;font-size:12px;font-weight:850;text-decoration:none;text-align:center;cursor:pointer;transition:background .2s}
+.nd-welcome-wallet .nd-withdraw-action:hover{background:#3b82f6}
+.nd-welcome-wallet .nd-withdraw-action.is-disabled,.nd-welcome-wallet .nd-withdraw-action:disabled{background:#1e293b;color:#64748b;cursor:not-allowed;opacity:.6}
+.nd-launch-simple{width:100%;display:block}
+.nd-launch-simple .nd-launch-cta{width:100%}

@@ -99,13 +99,13 @@
 .rg-social-button:not(:disabled):hover{background:#e4e4e7}
 .rg-social-note{color:#a1a1aa;font-size:11px}
 @media(max-width:900px){.rg-dark-auth .rg-container{grid-template-columns:1fr}.rg-dark-auth .rg-aside{display:none}.rg-dark-auth .rg-panel{padding:46px 22px;min-height:100dvh;align-items:flex-start}.rg-dark-auth .rg-mobile-brand{display:block}}
-@media(max-width:520px){.rg-dark-auth.rg-page{background:#09090b}.rg-dark-auth .rg-panel{padding:27px 19px 60px}.rg-dark-auth .rg-heading h1{font-size:28px}}
+@media(max-width:520px){.rg-dark-auth.rg-page{background:#000}.rg-dark-auth .rg-panel{padding:27px 19px 60px}.rg-dark-auth .rg-heading h1{font-size:28px}}
 
 /* Cadastro alinhado à identidade premium da SINTONE. */
-.rg-dark-auth.rg-page{background:#020617;color:#fff}
-.rg-dark-auth .rg-container{background:#020617}
-.rg-dark-auth .rg-aside{background:#09090b}
-.rg-dark-auth .rg-panel{background:#020617}
+.rg-dark-auth.rg-page{background:#000;color:#fff}
+.rg-dark-auth .rg-container{background:#000}
+.rg-dark-auth .rg-aside{background:#000}
+.rg-dark-auth .rg-panel{background:#000}
 .rg-dark-auth .rg-form-wrap{max-width:540px}
 .rg-dark-auth .rg-group input:not([type=checkbox]){background:rgba(15,23,42,.85);border:1px solid #1e293b;
  border-radius:12px;color:#fff;padding:13px 16px;transition:border-color .2s,box-shadow .2s}

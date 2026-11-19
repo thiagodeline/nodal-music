@@ -27,7 +27,7 @@ export function StreamingWordmark({slug}:{slug:string}){
  if(!platform)return null
  const lengths:Record<string,number>={spotify:100,applemusic:142,tiktok:91,instagram:125,amazonmusic:154,youtube:109,tidal:82,deezer:85}
  const width=lengths[slug]||112
- return <svg className="um-platform-wordmark h-12 md:h-16 w-auto object-contain transition-all" role="img" aria-label={platform.name}
+ return <svg className="um-platform-wordmark h-10 md:h-14 lg:h-16 w-auto max-w-none object-contain opacity-100 grayscale-0 transition-all" role="img" aria-label={platform.name}
    viewBox={`0 0 ${width+36} 40`} xmlns="http://www.w3.org/2000/svg" fill="currentColor">
    <path transform="translate(0 7) scale(1.08)" d={paths[slug]}/>
    <text x="36" y="28" fontFamily="Arial, Helvetica, sans-serif" fontWeight="750"

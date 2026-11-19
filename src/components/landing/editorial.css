@@ -41,7 +41,7 @@
 .um-home .um-strip-label{font-size:10px;color:#71717a;letter-spacing:.16em;font-weight:900;text-align:center;margin-bottom:25px}
 .um-home .um-platform-list{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:24px clamp(22px,3.8vw,57px)}
 .um-home .um-platform{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;color:#09090b}
-.um-home .um-platform svg{opacity:.88;flex:none}
+.um-home .um-platform svg{flex:none}
 .um-home .um-platform span{font-size:13px;font-weight:850;letter-spacing:-.02em}
 .um-home .um-statement{background:#09090b;color:#fff;padding:40px 0}
 .um-home .um-kicker-light{color:#a1a1aa}
@@ -136,7 +136,7 @@
 }
 @media(max-width:1150px){.um-home .um-top-nav{gap:17px}.um-home .um-header-inner{gap:17px}.um-home .um-benefit-grid{grid-template-columns:repeat(2,1fr)}.um-home .um-benefit-grid article:nth-child(2){border-right:0}.um-home .um-benefit-grid article:nth-child(3){padding-left:0;border-top:1px solid #d4d4d8}.um-home .um-benefit-grid article:nth-child(4){border-top:1px solid #d4d4d8}.um-home .um-footer-grid{grid-template-columns:repeat(4,1fr)}.um-home .um-footer-brand{grid-column:span 4}}
 @media(max-width:800px){.um-home .um-top-nav{display:none}.um-home .um-header-inner{min-height:72px} .um-home .um-hero{min-height:440px}.um-home .um-hero h1{font-size:30px}.um-home .um-editorial-grid{grid-template-columns:1fr}.um-home .um-editorial-photo{min-height:340px}.um-home .um-editorial-reversed .um-editorial-photo,.um-home .um-editorial-reversed .um-editorial-copy{order:initial}.um-home .um-faq>.um-container{grid-template-columns:1fr;gap:38px}}
-@media(max-width:520px){.um-home .um-header-logo img{width:126px}.um-home .um-header-actions{gap:12px}.um-home .um-login{font-size:11px}.um-home .um-signup{font-size:10px;padding:10px 11px}.um-home .um-signup svg{display:none}.um-home .um-hero{min-height:430px}.um-home .um-hero-inner{padding-block:40px 60px}.um-home .um-hero h1{font-size:28px}.um-home .um-hero-tag{font-size:10px}.um-home .um-platform-list{gap:18px 25px}.um-home .um-platform span{font-size:11px}.um-home .um-platform svg{width:24px;height:24px}.um-home .um-statement h2{font-size:28px}.um-home .um-editorial-copy h2{font-size:28px}.um-home .um-editorial-photo{min-height:310px}.um-home .um-benefit-grid{grid-template-columns:1fr}.um-home .um-benefit-grid article{border-right:0;border-top:1px solid #d4d4d8;padding:28px 0}.um-home .um-benefit-grid article:first-child{border-top:0}.um-home .um-footer-grid{grid-template-columns:repeat(2,1fr);gap:35px 22px}.um-home .um-footer-brand{grid-column:span 2}.um-home .um-footer-lead h2{font-size:28px}.um-home .um-footer-bottom{font-size:9px}}
+@media(max-width:520px){.um-home .um-header-logo img{width:126px}.um-home .um-header-actions{gap:12px}.um-home .um-login{font-size:11px}.um-home .um-signup{font-size:10px;padding:10px 11px}.um-home .um-signup svg{display:none}.um-home .um-hero{min-height:430px}.um-home .um-hero-inner{padding-block:40px 60px}.um-home .um-hero h1{font-size:28px}.um-home .um-hero-tag{font-size:10px}.um-home .um-platform-list{gap:18px 25px}.um-home .um-platform span{font-size:11px}.um-home .um-statement h2{font-size:28px}.um-home .um-editorial-copy h2{font-size:28px}.um-home .um-editorial-photo{min-height:310px}.um-home .um-benefit-grid{grid-template-columns:1fr}.um-home .um-benefit-grid article{border-right:0;border-top:1px solid #d4d4d8;padding:28px 0}.um-home .um-benefit-grid article:first-child{border-top:0}.um-home .um-footer-grid{grid-template-columns:repeat(2,1fr);gap:35px 22px}.um-home .um-footer-brand{grid-column:span 2}.um-home .um-footer-lead h2{font-size:28px}.um-home .um-footer-bottom{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.um-home .um-faq-list summary svg{transition:none}}
 
 /* Hero com imagem editorial em retrato quando não há banners cadastrados. */
@@ -163,7 +163,7 @@
 .um-home .um-platforms{background:#09090b;border-bottom:1px solid #27272a;padding:34px 0}
 .um-home .um-platform-list{gap:21px clamp(19px,3vw,48px);justify-content:center}
 .um-home .um-platform{color:#f4f4f5}
-.um-home .um-platform svg{opacity:.95}
+
 .um-home .um-platform span{color:#e4e4e7;font-weight:800}
 .um-home .um-mission{position:relative;overflow:hidden;background:#09090b;color:#fff;padding:clamp(76px,10vw,150px) 0 100px;text-align:center;border-bottom:1px solid #27272a}
 .um-home .um-mission:before{content:"";position:absolute;width:min(620px,95vw);height:350px;left:50%;top:5%;transform:translateX(-50%);
@@ -197,7 +197,7 @@
  line-height:1.55;color:#d4d4d8}
 .um-home .um-choice-card li svg{flex:none;color:#3b82f6;margin-top:2px}
 @media(max-width:600px){.um-home .um-platforms{padding:25px 0}.um-home .um-platform-list{gap:16px 22px}
- .um-home .um-platform span{font-size:11px}.um-home .um-platform svg{width:24px;height:24px}
+ .um-home .um-platform span{font-size:11px}
  .um-home .um-mission{padding-block:70px}.um-home .um-mission-logo img{width:230px}
  .um-home .um-video-fallback{min-height:205px}.um-home .um-choice-card li{gap:12px}}
 
@@ -206,12 +206,12 @@
  filter:drop-shadow(0 0 35px rgba(59,130,246,.5))}
 .um-home .um-mission-logo img{width:100%;height:100%;object-fit:contain;filter:none}
 .um-home .um-platform-list{gap:24px clamp(23px,3.5vw,62px)}
-.um-home .um-platform{display:grid;place-items:center;min-width:62px;min-height:56px;color:#fafafa}
-.um-home .um-platform svg{height:36px;width:36px;opacity:1}
+.um-home .um-platform{display:flex;align-items:center;justify-content:center;min-height:56px;color:#fafafa}
+
 .um-home .um-video-section{background:#f8fafc!important;padding:clamp(38px,6vw,78px) 0!important}
 .um-home .um-video-frame{box-shadow:0 16px 55px rgba(15,23,42,.12);border-color:#e4e4e7}
 @media(max-width:600px){.um-home .um-mission-logo{width:230px;height:230px}
- .um-home .um-platform{min-width:48px;min-height:48px}.um-home .um-platform svg{height:29px;width:29px}}
+ .um-home .um-platform{min-height:48px}}
 
 /* Preserve the original 330x110 logo slot while showing only the S mark. */
 .um-home .um-mission-logo{width:min(330px,75vw);height:110px}
@@ -222,17 +222,17 @@
 /* 2026-11-18 | Plataforma, monograma e FAQ editorial — isolados à Landing. */
 .um-home .um-platforms{width:100%;background:#fff!important;border-bottom:1px solid #f1f5f9!important;
  padding:48px 24px!important;color:#1e293b}
-.um-home .um-platforms>.um-container{max-width:1200px;margin-inline:auto;padding:0}
+.um-home .um-platforms>.um-container{max-width:1280px;margin-inline:auto;padding:0}
 .um-home .um-platform-intro{margin:0 auto 32px;max-width:850px;text-align:center;color:#1e293b;
  font-size:clamp(16px,1.7vw,18px);font-weight:500;line-height:1.5;letter-spacing:-.025em}
 .um-home .um-platform-intro span{color:rgba(180,83,9,.9);font-weight:600}
 .um-home .um-platform-list{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
- gap:40px 40px;max-width:1152px;margin-inline:auto}
-.um-home .um-platform{display:flex;align-items:center;justify-content:center;min-height:36px;min-width:0;
+ gap:32px;max-width:1280px;margin-inline:auto;padding:32px 16px}
+.um-home .um-platform{display:flex;align-items:center;justify-content:center;min-height:64px;min-width:120px;
  color:#0b0b0c!important;background:transparent!important;padding:0!important}
-.um-home .um-platform-wordmark{display:block;height:48px;width:auto;max-width:none;
- object-fit:contain;opacity:.9;color:#09090b;transition:opacity .2s,filter .2s;
- filter:grayscale(1)}
+.um-home .um-platform svg.um-platform-wordmark{display:block;height:40px;width:auto;max-width:none;
+ object-fit:contain;opacity:1;color:#09090b;transition:opacity .2s,filter .2s;
+ filter:none}
 .um-home .um-platform:hover .um-platform-wordmark{opacity:1;filter:grayscale(0)}
 .um-home .um-mission-logo{display:grid;place-items:center;width:160px;height:160px;padding:0;
  filter:drop-shadow(0 0 35px rgba(37,99,235,.7))!important}
@@ -264,11 +264,12 @@
  color:#94a3b8!important;font-size:clamp(14px,1.35vw,16px);line-height:1.75;
  animation:um-faq-enter .22s ease-out both}
 @keyframes um-faq-enter{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
-@media(min-width:768px){.um-home .um-platform-list{gap:64px}.um-home .um-platform-wordmark{height:64px}}
+@media(min-width:768px){.um-home .um-platform-list{gap:56px}.um-home .um-platform{min-width:160px}.um-home .um-platform svg.um-platform-wordmark{height:56px}}
+@media(min-width:1024px){.um-home .um-platform-list{gap:64px}.um-home .um-platform svg.um-platform-wordmark{height:64px}}
 @media(max-width:600px){
  .um-home .um-platforms{padding:38px 20px!important}
- .um-home .um-platform-list{gap:40px}
- .um-home .um-platform-wordmark{height:48px}
+ .um-home .um-platform-list{gap:32px}
+ .um-home .um-platform svg.um-platform-wordmark{height:40px}
  .um-home .um-mission-logo{width:112px;height:112px}
  .um-home .um-mission-logo img{width:112px!important;height:112px!important}
  .um-home .um-faq{padding:70px 20px!important}

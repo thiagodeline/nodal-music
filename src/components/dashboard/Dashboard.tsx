@@ -144,7 +144,7 @@ function DashboardView({d,route,navOpen,setNavOpen,navigateToTab,logout,expired,
  }){
  const {unreadCount}=useNotifications()
  return <div className="nd nd-horizontal nd-premium">
-  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} unread={unreadCount} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
+  <ArtistSidebar active={route} name={d?.me?.artist_name||d?.me?.name||'Artista'} showPlans={plans.length>=2} unread={unreadCount} open={navOpen} setOpen={setNavOpen} onNavigate={navigateToTab} onLogout={()=>void logout()}/>
   <div className="nd-direct-header"><span className="nd-direct-header-mobile">SINTONE / PAINEL</span><span className="nd-direct-header-desktop">CENTRAL DO ARTISTA</span>{d?.me?.id&&<DirectNotificationsBell/>}</div>
   {d&&<DashboardPopup/>}
   <main className="nd-hmain">

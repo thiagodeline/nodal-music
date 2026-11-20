@@ -25,3 +25,23 @@
  border-radius:14px;background:#121215;color:#d4d4d8
 }
 .nd-premium .sr.sr-two .sr-spotify-card>strong{color:#fff}
+
+/* Artist profiles — dark, responsive and aligned. */
+.nd-premium .nd-artists-page{display:grid;gap:24px;min-width:0;color:#e2e8f0}
+.nd-premium .nd-artists-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.nd-premium .nd-artists-header h2{font-size:clamp(24px,3vw,32px);font-weight:900;letter-spacing:-.035em;color:#fff;margin:5px 0 8px}
+.nd-premium .nd-artists-header p{color:#94a3b8;font-size:13px;line-height:1.6}
+.nd-premium .nd-artists-kicker{font-size:10px;font-weight:850;letter-spacing:.14em;color:#94a3b8}
+.nd-premium .nd-artists-add{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:11px 17px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-size:13px;font-weight:800;cursor:pointer}
+.nd-premium .nd-artists-add:hover{background:#3b82f6}
+.nd-premium .nd-artists-list{display:grid;gap:18px}
+.nd-premium .nd-artist-profile-card{background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:24px;color:#f8fafc}
+.nd-premium .nd-artist-card-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1e293b}
+.nd-premium .nd-artist-card-header strong{font-size:19px;font-weight:850;letter-spacing:-.02em}
+.nd-premium .nd-artist-delete{display:inline-flex;align-items:center;gap:7px;border:1px solid #7f1d1d;border-radius:9px;background:#450a0a;color:#fecaca;padding:9px 12px;font-weight:750;font-size:12px;cursor:pointer}
+.nd-premium .nd-artist-delete:hover{background:#7f1d1d}
+.nd-premium .nd-artist-add-form{display:flex;align-items:end;flex-wrap:wrap;gap:12px;background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:20px}
+.nd-premium .nd-artist-add-form label{display:grid;gap:8px;flex:1 1 240px;color:#cbd5e1;font-size:13px;font-weight:750}
+.nd-premium .nd-artist-add-form input{min-height:44px;width:100%;padding:10px 13px;border:1px solid #334155;border-radius:9px;background:#020617;color:#fff}
+.nd-premium .nd-artists-page .spotify-fields-dark .spotify-profile-input{background:#020617!important;border-color:#334155!important;border-radius:9px}
+@media(max-width:600px){.nd-premium .nd-artist-profile-card{padding:18px}.nd-premium .nd-artists-add{width:100%}}

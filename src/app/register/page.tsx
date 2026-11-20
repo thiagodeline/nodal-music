@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check, CircleCheck, Eye, EyeOff, LoaderCircle, LockKeyhole, Mic2, Building2 } from 'lucide-react'
+import { Check, CircleCheck, Eye, EyeOff, LoaderCircle, LockKeyhole } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { ensureProfile } from '@/lib/profile'
 import './register.css'
@@ -20,7 +20,6 @@ const schema = z.object({
 type Values = z.infer<typeof schema>
 
 export default function Register() {
-  const [accountType, setAccountType] = useState<'ARTIST'|'LABEL'>('ARTIST')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [feedback, setFeedback] = useState('')
@@ -46,7 +45,6 @@ export default function Register() {
         options: { data: {
           full_name: values.fullName.trim(),
           terms_version: '2026-11',
-          registration_profile: accountType,
         } },
       })
       if (error) {
@@ -95,14 +93,6 @@ export default function Register() {
         {done ? <div className="rg-success"><CircleCheck size={42} /><h1>Confira seu e-mail</h1><p>Se o cadastro foi aceito, você receberá uma mensagem para confirmar o endereço informado. Depois, entre para completar seu perfil.</p><Link href="/login" className="rg-submit">Ir para entrar</Link></div> :
         <div className="rg-form-wrap">
           <div className="rg-heading"><span className="rg-eyebrow">CADASTRO GRATUITO</span><h1>CRIAR CONTA</h1><p>Preencha seus dados para começar na SINTONE.</p></div>
-          <div className="rg-account-types" role="radiogroup" aria-label="Tipo de conta">
-            {([['ARTIST','Artista','Lanço minhas próprias músicas',Mic2],['LABEL','Selo','Gerencio artistas e lançamentos',Building2]] as const).map(([key,name,description,Icon])=>
-              <button key={key} type="button" role="radio" aria-checked={accountType===key}
-                className={'rg-account-card'+(accountType===key?' selected':'')} onClick={()=>setAccountType(key)}>
-                <Icon size={25}/><strong>{name}</strong><small>{description}</small>
-              </button>
-            )}
-          </div>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="rg-group">
               {field('rg-name', 'Nome completo', errors.fullName?.message)}

@@ -87,3 +87,5 @@
 .sc-success-detail strong{color:#f8fafc}.sc-success-detail small{color:#94a3b8}
 @media(max-width:650px){.sc-page{padding:22px 14px 55px}
  .sc-scroll{height:390px;max-height:55dvh}.sc-card,.sc-success{padding:20px}}
+
+.sc-page{background:#000}

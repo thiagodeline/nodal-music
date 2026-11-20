@@ -4,16 +4,16 @@ import Image from 'next/image'
 import {BarChart3,Bell,CircleHelp,Disc3,FileText,Home,LockKeyhole,LogOut,Menu,Music2,Settings,UserRound,Wallet,X,Megaphone,Users,AudioLines} from 'lucide-react'
 
 type NavItem={key:string;label:string;icon:typeof Home;href:string;disabled?:boolean;badge?:number}
-export default function ArtistSidebar({active,name,unread,open,setOpen,onNavigate,onLogout}:{active:string;name:string;unread:number;open:boolean;setOpen:(value:boolean)=>void;onNavigate:(tab:string)=>void;onLogout:()=>void}){
+export default function ArtistSidebar({active,name,unread,open,setOpen,onNavigate,onLogout,showPlans=false}:{active:string;name:string;unread:number;open:boolean;setOpen:(value:boolean)=>void;onNavigate:(tab:string)=>void;onLogout:()=>void;showPlans?:boolean}){
  const links:NavItem[]=[
   {key:'overview',label:'Início',icon:Home,href:'/dashboard#overview'},
   {key:'new',label:'Lançar música',icon:Music2,href:'/dashboard#new'},
   {key:'catalog',label:'Meu catálogo',icon:Disc3,href:'/dashboard#catalog'},
   {key:'drafts',label:'Rascunhos',icon:AudioLines,href:'/dashboard#drafts'},
   {key:'profiles',label:'Artistas',icon:Users,href:'/dashboard#profiles'},
-  {key:'analytics',label:'Percepções / Analytics',icon:BarChart3,href:'/dashboard#analytics'},
+  {key:'analytics',label:'Analytics',icon:BarChart3,href:'/dashboard#analytics'},
   {key:'financial',label:'Carteira',icon:Wallet,href:'/dashboard#financial'},
-  {key:'plans',label:'Exclusivo / Planos',icon:LockKeyhole,href:'/dashboard#plans'},
+  ...(showPlans?[{key:'plans',label:'Exclusivo / Planos',icon:LockKeyhole,href:'/dashboard#plans'}]:[]),
   {key:'promote',label:'Promova',icon:Megaphone,href:'#',disabled:true}
  ]
  const footer:NavItem[]=[
